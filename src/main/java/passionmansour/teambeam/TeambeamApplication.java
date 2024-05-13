@@ -8,6 +8,7 @@ public class TeambeamApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(TeambeamApplication.class, args);
+		System.out.println("hello world");
 	}
 
 }
