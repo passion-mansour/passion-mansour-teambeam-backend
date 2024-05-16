@@ -39,15 +39,18 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
 
-      - name: Create app directory on server
-        run: ssh -o StrictHostKeyChecking=no beamt348@${{ secrets.GCP_HOST }} 'mkdir -p /home/beamt348/app'
+      - name: Ensure app directory exists and set permissions
+        run: ssh -o StrictHostKeyChecking=no beamt348@${{ secrets.GCP_HOST }} << 'EOF'
+          mkdir -p /home/beamt348/app
+          sudo chown -R beamt348:beamt348 /home/beamt348/app
+          sudo chmod -R 755 /home/beamt348/app
+        EOF
 
       - name: Transfer JAR to server
-        run: scp -o StrictHostKeyChecking=no build/libs/app.jar beamt348@${{ secrets.GCP_HOST }}:/home/beamt348/app/app.jar
+        run: scp -o StrictHostKeyChecking=no build/libs/teambeam-0.0.1-SNAPSHOT.jar beamt348@${{ secrets.GCP_HOST }}:/home/beamt348/app/app.jar
 
       - name: Deploy on GCP instance
-        run: |
-          ssh -o StrictHostKeyChecking=no beamt348@${{ secrets.GCP_HOST }} << 'EOF'
-            pkill -f 'java -jar' || true
-            nohup java -jar /home/beamt348/app/app.jar --spring.profiles.active=gcp > /home/beamt348/app/app.log 2>&1 &
-          EOF
+        run: ssh -o StrictHostKeyChecking=no beamt348@${{ secrets.GCP_HOST }} << 'EOF'
+          pkill -f 'java -jar' || true
+          nohup java -jar /home/beamt348/app/app.jar --spring.profiles.active=gcp > /home/beamt348/app/app.log 2>&1 &
+        EOF
