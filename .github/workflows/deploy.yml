@@ -29,7 +29,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Build with Gradle
-        run: ./gradlew clean build
+        run: ./gradlew clean build -Dspring.profiles.active=gcp
 
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.5.3
@@ -43,5 +43,5 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no beamt348@${{ secrets.GCP_HOST }} << 'EOF'
             pkill -f 'java -jar' || true
-            nohup java -jar /home/beamt348/app/app.jar > /home/beamt348/app/app.log 2>&1 &
+            nohup java -jar /home/beamt348/app/app.jar --spring.profiles.active=gcp > /home/beamt348/app/app.log 2>&1 &
           EOF
