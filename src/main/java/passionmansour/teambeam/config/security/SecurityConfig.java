@@ -20,9 +20,9 @@ import passionmansour.teambeam.service.member.CustomUserDetailsService;
 @EnableWebSecurity(debug = true)
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
-    private final JwtTokenUtil jwtTokenUtil;
-    private final JwtRequestFilter jwtRequestFilter;
+//    private final CustomUserDetailsService userDetailsService;
+//    private final JwtTokenUtil jwtTokenUtil;
+//    private final JwtRequestFilter jwtRequestFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
