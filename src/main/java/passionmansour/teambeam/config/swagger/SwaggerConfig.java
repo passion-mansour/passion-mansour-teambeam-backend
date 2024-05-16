@@ -5,10 +5,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
+
 
 @OpenAPIDefinition(
     info = @Info(title = "TeamBeam API 명세서",
@@ -27,15 +24,6 @@ public class SwaggerConfig {
         return GroupedOpenApi.builder()
             .group("TeamBram API")
             .pathsToMatch(path)
-            .build();
-    }
-
-    @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
-            .select()
-            .apis(RequestHandlerSelectors.any())
-            .paths(PathSelectors.any())
             .build();
     }
 
