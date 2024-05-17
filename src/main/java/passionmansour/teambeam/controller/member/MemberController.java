@@ -1,4 +1,4 @@
-package passionmansour.teambeam.controller;
+package passionmansour.teambeam.controller.member;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -65,4 +65,10 @@ public class MemberController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @DeleteMapping("/member/{id}")
+    public ResponseEntity<?> deleteMember(@PathVariable(name = "id") Long id) {
+        memberService.deleteMember(id);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }
