@@ -7,6 +7,11 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
   jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        highlight_sql: true
     hibernate:
       ddl-auto: update
   redis:
