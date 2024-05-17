@@ -4,8 +4,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/teambeam
-    username: root
-    password: yeonseolee
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -15,3 +15,9 @@ spring:
 logging:
   level:
     org.springframework.data.redis: DEBUG
+
+jwt:
+  secret: RJjAZR5j+wemQdNpd3XreAcM9yftv14Wfc2e5lFrNf3d6RSnqIYkybdqPTPepVaOqBdTq8xVSwHj5tF88msmZw==
+  refreshSecret: LyqRq32qBcyF3uCCdDOziK52gzdhSjKsmuMtO7tnmpCdqcwwS9KxzwshCVNou4ml6qyRQqXz4DWwomCjtRZxEg==
+  expiration: 600
+  refreshExpiration: 604800
