@@ -1,12 +1,13 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
-@Table
+@Table @Data
 public class ScheduleMember {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="scheduleMemberId")
     private Long scheduleMemberId;
 

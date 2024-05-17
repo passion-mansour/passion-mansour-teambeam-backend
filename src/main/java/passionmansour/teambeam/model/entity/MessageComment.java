@@ -1,14 +1,15 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.Date;
 
 @Entity
-@Table
+@Table @Data
 public class MessageComment {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="messageCommentId")
     private Long messageCommentId;
 
@@ -22,7 +23,7 @@ public class MessageComment {
     @JoinColumn(name = "memberId")
     private Member member;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "messageId")
     private Message message;
 }

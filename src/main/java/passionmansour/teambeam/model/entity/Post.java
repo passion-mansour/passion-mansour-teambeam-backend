@@ -1,15 +1,18 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import passionmansour.teambeam.model.enums.PostType;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
-@Table
+@Table @Data
 public class Post {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="postId")
     private Long postId;
 
@@ -31,4 +34,14 @@ public class Post {
     @ManyToOne
     @JoinColumn(name = "projectId")
     private Project project;
+
+    @ManyToOne
+    @JoinColumn(name = "BoardId")
+    private Board board;
+
+    @OneToMany(mappedBy = "post")
+    private List<Tag> tags = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post")
+    private List<PostComment> postComments = new ArrayList<>();
 }
