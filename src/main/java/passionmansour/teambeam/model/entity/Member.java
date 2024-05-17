@@ -1,20 +1,20 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 import passionmansour.teambeam.model.enums.StartPage;
 
+import java.awt.print.Book;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
-@Setter
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table @Data
 public class Member {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="memberId")
     private Long memberId;
 
@@ -35,5 +35,17 @@ public class Member {
     private StartPage startPage;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<JoinMember> joinMemberList;
+    private List<Verification> verifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<JoinMember> joinMembers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<Bookmark> bookmarks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<Memo> memos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<Notification> notifications = new ArrayList<>();
 }
