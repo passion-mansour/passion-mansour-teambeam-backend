@@ -1,17 +1,17 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import passionmansour.teambeam.model.enums.StartPage;
 
-import java.awt.print.Book;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Entity
-@Table @Data
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,6 +20,7 @@ public class Member {
 
     @Column(nullable = false, unique = true)
     private String mail;
+
     @Column(nullable = false)
     private String password;
 
