@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: beam
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://34.64.81.206:3306
+    username: admin
+    password: teambeam123
+  jpa:
+    hibernate:
+      ddl-auto: update
+  redis:
+    host: 34.47.74.35
+    port: 6379
+logging:
+  level:
+    org.springframework.data.redis: DEBUG
