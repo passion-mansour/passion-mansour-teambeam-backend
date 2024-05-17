@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -60,9 +61,13 @@ public class MemberController {
 
         MemberDto member = memberService.login(loginDto);
 
-        LoginResponseDto response = new LoginResponseDto("Login successful", member.getAccessToken(), member.getRefreshToken(), member.getMemberId());
+        LoginResponseDto response = new LoginResponseDto("Login successful", member.getMemberId());
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", member.getAccessToken());
+        headers.add("RefreshToken", member.getRefreshToken());
+
+        return ResponseEntity.ok().headers(headers).body(response);
     }
 
 }

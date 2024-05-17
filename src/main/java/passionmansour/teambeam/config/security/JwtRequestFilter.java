@@ -29,58 +29,61 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         throws ServletException, IOException {
 
         final String requestTokenHeader = request.getHeader("Authorization");
+        final String refreshTokenHeader = request.getHeader("RefreshToken");
 
         String username = null;
         String jwtToken = null;
-        String refreshToken = null;
 
-        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-            jwtToken = requestTokenHeader.substring(7);
+        if (requestTokenHeader != null) {
+            jwtToken = requestTokenHeader;
             try {
                 username = jwtTokenService.getUsernameFromToken(jwtToken);
-            } catch (IllegalArgumentException e) {
-                System.out.println("Unable to get JWT Token");
-            } catch (ExpiredJwtException e) {
-                System.out.println("JWT Token has expired, checking refresh token");
-
-                // 만료된 액세스 토큰의 경우, 리프레시 토큰을 확인합니다.
-                final String refreshTokenHeader = request.getHeader("RefreshToken");
-                if (refreshTokenHeader != null && refreshTokenHeader.startsWith("Bearer ")) {
-                    refreshToken = refreshTokenHeader.substring(7);
-                    try {
-                        username = jwtTokenService.getUsernameFromToken(refreshToken);
-                        UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-
-                        if (jwtTokenService.validateToken(refreshToken, userDetails)) {
-                            String newToken = jwtTokenService.generateAccessToken(userDetails);
-                            response.setHeader("Authorization", "Bearer " + newToken);
-                        } else {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            return;
-                        }
-                    } catch (IllegalArgumentException ex) {
-                        System.out.println("Unable to get Refresh Token");
-                    }
-                } else {
-                    System.out.println("Refresh Token is missing or invalid");
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    return;
-                }
+            } catch (IllegalArgumentException | ExpiredJwtException e) {
+                username = handleExpiredToken(request, response, refreshTokenHeader);
             }
         } else {
-            logger.warn("JWT Token does not begin with Bearer String");
+            logger.warn("JWT Token does not begin");
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-
-            if (jwtTokenService.validateToken(jwtToken, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-            }
+            authenticateUser(username, jwtToken, request);
         }
+
         chain.doFilter(request, response);
+    }
+
+    private String handleExpiredToken(HttpServletRequest request, HttpServletResponse response, String refreshTokenHeader) throws IOException {
+        if (refreshTokenHeader != null) {
+            String refreshToken = refreshTokenHeader;
+            try {
+                String username = jwtTokenService.getUsernameFromToken(refreshToken);
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
+                if (jwtTokenService.validateToken(refreshToken, userDetails)) {
+                    String newToken = jwtTokenService.generateAccessToken(userDetails);
+                    response.setHeader("Authorization", newToken);
+                    return username;
+                } else {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("Unable to get Refresh Token");
+            }
+        } else {
+            System.out.println("Refresh Token is missing or invalid");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        }
+        return null;
+    }
+
+    private void authenticateUser(String username, String jwtToken, HttpServletRequest request) {
+        UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+
+        if (jwtTokenService.validateToken(jwtToken, userDetails)) {
+            UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        }
     }
 }

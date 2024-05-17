@@ -109,7 +109,7 @@ public class JwtTokenService {
     // 초대 토큰 검증 및 파싱
     public Claims decodeToken(String token) {
         return Jwts.parser()
-            .setSigningKey(secret)
+            .setSigningKey(getSigningKey(secret))
             .parseClaimsJws(token)
             .getBody();
     }
