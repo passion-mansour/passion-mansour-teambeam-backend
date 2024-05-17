@@ -1,5 +1,5 @@
 package passionmansour.teambeam.model.enums;
 
 public enum StartPage {
-    projectSelectionPage, myPage
+    PROJECT_SELECTION_PAGE, MY_PAGE
 }
