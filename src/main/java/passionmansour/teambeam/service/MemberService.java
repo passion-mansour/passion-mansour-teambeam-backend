@@ -38,13 +38,12 @@ public class MemberService {
         String encodedPassword = passwordEncoder.encode(registerDto.getPassword());
         log.info("Encoded password: {}", encodedPassword);
 
-        Member member = Member.builder()
-            .memberName(registerDto.getMemberName())
-            .mail(registerDto.getMail())
-            .password(encodedPassword)
-            .notificationCount(0)
-            .startPage(StartPage.PROJECT_SELECTION_PAGE)
-            .build();
+        Member member = new  Member();
+        member.setMemberName(registerDto.getMemberName());
+        member.setMail(registerDto.getMail());
+        member.setPassword(encodedPassword);
+        member.setNotificationCount(0);
+        member.setStartPage(StartPage.PROJECT_SELECTION_PAGE);
 
         if (registerDto.getToken() != null) {
             //TODO: 초대된 프로젝트에 추가
@@ -125,13 +124,5 @@ public class MemberService {
             throw new TokenGenerationException("Failed to generate token", e);
         }
 
-    }
-
-    @Transactional
-    public String deleteMember(Long id) {
-
-        memberRepository.deleteById(id);
-
-        return "OK";
     }
 }
