@@ -127,11 +127,4 @@ public class MemberService {
 
     }
 
-    @Transactional
-    public String deleteMember(Long id) {
-
-        memberRepository.deleteById(id);
-
-        return "OK";
-    }
 }
