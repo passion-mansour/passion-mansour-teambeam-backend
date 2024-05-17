@@ -1,13 +1,14 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import passionmansour.teambeam.model.enums.MemberRole;
 
 @Entity
-@Table
+@Table @Data
 public class JoinMember {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="joinMemberId")
     private Long joinMemberId;
 

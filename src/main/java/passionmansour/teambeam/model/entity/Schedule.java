@@ -1,14 +1,17 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
-@Table
+@Table @Data
 public class Schedule {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="scheduleId")
     private Long scheduleId;
     private String scheduleTitle;
@@ -32,4 +35,14 @@ public class Schedule {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
+
+    @ManyToOne
+    @JoinColumn(name = "calendarId")
+    private Calendar calendar;
+
+    @OneToMany(mappedBy = "schedule")
+    private List<ScheduleMember> scheduleMembers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "schedule")
+    private List<Tag> tags = new ArrayList<>();
 }

@@ -1,24 +1,22 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table
+@Table @Data
 public class Calendar {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="calenderId")
     private Long calenderId;
 
-    @ManyToOne
-    @JoinColumn(name = "projectId")
-    private Project project;
+    @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL)
+    private List<Schedule> schedules = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "scheduleId")
-    private Schedule schedule;
-
-    @ManyToOne
-    @JoinColumn(name = "topTodoId")
-    private TopTodo topTodo;
+    @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL)
+    private List<TopTodo> topTodos = new ArrayList<>();
 }

@@ -1,12 +1,13 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
-@Table
+@Table @Data
 public class Bookmark {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="bookmarkId")
     private Long bookmarkId;
 
