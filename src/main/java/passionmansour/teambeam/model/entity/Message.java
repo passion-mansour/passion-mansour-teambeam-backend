@@ -1,14 +1,17 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
-@Table
+@Table @Data
 public class Message {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="messageId")
     private Long messageId;
 
@@ -20,4 +23,7 @@ public class Message {
     @OneToOne
     @JoinColumn(name = "memberId")
     private Member member;
+
+    @OneToMany(mappedBy = "message")
+    private List<MessageComment> messageComments = new ArrayList<>();
 }

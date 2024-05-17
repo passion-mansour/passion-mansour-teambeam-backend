@@ -1,14 +1,17 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
-@Table
+@Table @Data
 public class MiddleTodo {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="middleTodoId")
     private Long middleTodoId;
 
@@ -28,4 +31,7 @@ public class MiddleTodo {
     @ManyToOne
     @JoinColumn(name = "topTodoId")
     private TopTodo topTodo;
+
+    @OneToMany(mappedBy = "middleTodo", cascade = CascadeType.ALL)
+    private List<BottomTodo> bottomTodos = new ArrayList<>();
 }
