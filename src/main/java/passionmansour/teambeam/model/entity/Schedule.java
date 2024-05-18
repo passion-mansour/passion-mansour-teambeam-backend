@@ -44,5 +44,5 @@ public class Schedule {
     private List<ScheduleMember> scheduleMembers = new ArrayList<>();
 
     @OneToMany(mappedBy = "schedule")
-    private List<Tag> tags = new ArrayList<>();
+    private List<ScheduleTag> scheduleTags = new ArrayList<>();
 }
