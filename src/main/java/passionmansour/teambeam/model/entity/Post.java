@@ -40,7 +40,7 @@ public class Post {
     private Board board;
 
     @OneToMany(mappedBy = "post")
-    private List<Tag> tags = new ArrayList<>();
+    private List<PostTag> postTags = new ArrayList<>();
 
     @OneToMany(mappedBy = "post")
     private List<PostComment> postComments = new ArrayList<>();
