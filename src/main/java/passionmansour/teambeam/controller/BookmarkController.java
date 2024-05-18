@@ -1,2 +1,4 @@
-package passionmansour.teambeam.controller;public class BookmarkController {
+package passionmansour.teambeam.controller;
+
+public class BookmarkController {
 }

@@ -8,7 +8,7 @@ import passionmansour.teambeam.model.enums.PostType;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostPostDto {
+public class PostPostRequest {
     private String postTitle;
     private String postContent;
     private PostType postType;

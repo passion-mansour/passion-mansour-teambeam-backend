@@ -4,8 +4,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/teambeam
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    username: "root"
+    password: "yeonseolee"
   jpa:
     hibernate:
       ddl-auto: update

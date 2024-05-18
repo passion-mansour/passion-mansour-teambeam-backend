@@ -1,2 +1,4 @@
-package passionmansour.teambeam.repository;public class PostRepositoryImpl {
+package passionmansour.teambeam.repository;
+
+public class PostRepositoryImpl {
 }

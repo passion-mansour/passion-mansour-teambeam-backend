@@ -1,6 +1,7 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import passionmansour.teambeam.model.enums.StartPage;
 
@@ -12,6 +13,7 @@ import java.util.List;
 
 @Entity
 @Table @Data
+@Builder
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
