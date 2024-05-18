@@ -18,10 +18,17 @@ public class Member {
     @Column(name="memberId")
     private Long memberId;
 
+    @Column(nullable = false, unique = true)
     private String mail;
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
     private String memberName;
+
+    private String profileImage;
     // TODO: add image file
+
     private int notificationCount;
 
     @Enumerated(EnumType.STRING)
