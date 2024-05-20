@@ -28,6 +28,8 @@ public class SecurityConfig {
                 authorizeRequests
                     .requestMatchers("/",
                         "/api/**",
+                        "/api/password/send-reset-link",
+                        "/api/reset-password",
                         "/api/login",
                         "/api/register",
                         "/swagger-ui.html",
