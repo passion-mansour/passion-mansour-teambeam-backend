@@ -172,7 +172,7 @@ public class MemberController {
     }
 
     private static MemberInformationResponse getMemberResponse(MemberDto member) {
-        MemberInformationResponse memberResponse = MemberInformationResponse.builder()
+        return MemberInformationResponse.builder()
             .memberId(member.getMemberId())
             .mail(member.getMail())
             .memberName(member.getMemberName())
@@ -180,7 +180,6 @@ public class MemberController {
             .profileImage(member.getProfileImage())
             .notificationCount(member.getNotificationCount())
             .build();
-        return memberResponse;
     }
 
     // 회원 프로필 이미지 조회

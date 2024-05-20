@@ -66,8 +66,7 @@ public class MemberService {
         try {
 
             Member savedMember = memberRepository.save(member);
-            MemberDto res = convertToDto(savedMember);
-            return res;
+            return convertToDto(savedMember);
 
         } catch (EntityExistsException e) {
             throw new UserAlreadyExistsException("User with this mail already exists: " + registerRequest.getMail());
@@ -113,7 +112,7 @@ public class MemberService {
 
             // UserDetails 객체로 변환
             User user = new User(member.getMemberName(), member.getPassword(), new ArrayList<>());
-            log.info("user {}", user.toString());
+            log.info("user {}", user);
 
             // 토큰 생성
             final String accessToken = tokenService.generateAccessToken(user);

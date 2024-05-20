@@ -69,7 +69,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    private String handleExpiredToken(HttpServletRequest request, HttpServletResponse response, String refreshTokenHeader) throws IOException, SignatureException {
+    private String handleExpiredToken(HttpServletRequest request, HttpServletResponse response, String refreshTokenHeader) throws SignatureException {
         if (refreshTokenHeader != null) {
             String refreshToken = refreshTokenHeader;
             try {
