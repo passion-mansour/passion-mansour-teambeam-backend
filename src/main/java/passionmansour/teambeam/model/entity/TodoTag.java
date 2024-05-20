@@ -1,9 +1,14 @@
 package passionmansour.teambeam.model.entity;
 
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
+@Entity
 public class TodoTag {
+
+    @Id
+    @GeneratedValue
+    private Long todoTagId;
+
     @ManyToOne
     @JoinColumn(name = "bottomTodoId")
     private BottomTodo bottomTodo;

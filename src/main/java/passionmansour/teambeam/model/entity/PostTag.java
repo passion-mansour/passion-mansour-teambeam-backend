@@ -1,9 +1,13 @@
 package passionmansour.teambeam.model.entity;
 
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
+@Entity
 public class PostTag {
+    @Id
+    @GeneratedValue
+    private Long postTagId;
+
     @ManyToOne
     @JoinColumn(name = "postId")
     private Post post;

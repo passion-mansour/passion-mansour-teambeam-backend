@@ -1,9 +1,14 @@
 package passionmansour.teambeam.model.entity;
 
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
+@Entity
 public class ScheduleTag {
+
+    @Id
+    @GeneratedValue
+    private Long scheduleTagId;
+
     @ManyToOne
     @JoinColumn(name = "scheduleId")
     private Schedule schedule;
