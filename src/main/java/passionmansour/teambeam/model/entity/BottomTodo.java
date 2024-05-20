@@ -17,7 +17,7 @@ public class BottomTodo {
     private Long bottomTodoId;
 
     private String bottomTodoTitle;
-    private boolean bottomTodoStatus;
+    private boolean bottomTodoStatus = false;
     private String memo;
 
     @Temporal(TemporalType.DATE)
