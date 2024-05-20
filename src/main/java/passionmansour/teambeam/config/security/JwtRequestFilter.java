@@ -71,12 +71,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private String handleExpiredToken(HttpServletRequest request, HttpServletResponse response, String refreshTokenHeader) throws SignatureException {
         if (refreshTokenHeader != null) {
-            String refreshToken = refreshTokenHeader;
             try {
-                String username = jwtTokenService.getUsernameFromToken(refreshToken);
+                String username = jwtTokenService.getUsernameFromToken(refreshTokenHeader);
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-                if (jwtTokenService.validateToken(refreshToken, userDetails)) {
+                if (jwtTokenService.validateToken(refreshTokenHeader, userDetails)) {
                     String newToken = jwtTokenService.generateAccessToken(userDetails);
                     response.setHeader("Authorization", newToken);
                     request.setAttribute("Authorization", newToken);
