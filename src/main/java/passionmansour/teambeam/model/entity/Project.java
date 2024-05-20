@@ -1,29 +1,34 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import passionmansour.teambeam.model.enums.MemberRole;
+import lombok.*;
+import passionmansour.teambeam.model.enums.ProjectStatus;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Entity
-@Table @Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Project {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="projectId")
+    @GeneratedValue
     private Long projectId;
 
     private String projectName;
+
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    private MemberRole memberRole;
+    private LocalDateTime createDate;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
+    @Enumerated(EnumType.STRING)
+    private ProjectStatus projectStatus;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private List<JoinMember> joinMemberList;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<JoinMember> joinMembers = new ArrayList<>();
@@ -34,11 +39,11 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<TopTodo> topTodos = new ArrayList<>();
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calendarId")
     private Calendar calendar;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "message")
     private Message message;
 }
