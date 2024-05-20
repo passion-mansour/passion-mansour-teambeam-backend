@@ -12,6 +12,7 @@ import passionmansour.teambeam.execption.member.TokenGenerationException;
 import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.member.response.ErrorResponse;
 
+import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,5 +65,13 @@ public class GlobalExceptionHandler {
 
         log.error(response.toString());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<ErrorResponse> handleSignatureException(Exception e) {
+        ErrorResponse response = new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value());
+
+        log.error(response.toString());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }
