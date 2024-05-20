@@ -50,6 +50,33 @@ public class MemberController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @PostMapping("/register-request")
+    public ResponseEntity<?> sendRegisterCode(@RequestBody UpdateMemberRequest request) {
+        memberService.sendRegisterCode(request.getMail());
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Email sent successfully");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("/register-code")
+    public ResponseEntity<?> RegisterCode(@RequestBody UpdateMemberRequest request) {
+        boolean mailCode = memberService.registerCode(request.getCode());
+
+        if (mailCode) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Code authentication successful");
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Invalid or expired code");
+
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
     // 로그인
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "로그인 성공",

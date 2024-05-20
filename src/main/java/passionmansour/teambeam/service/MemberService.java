@@ -93,6 +93,47 @@ public class MemberService {
         return memberDto;
     }
 
+    // 회원가입 메일 인증 요청
+    @Transactional
+    public void sendRegisterCode(String mail) {
+
+        Optional<Member> member = memberRepository.findByMail(mail);
+
+        if (member.isPresent()) {
+            throw new UserAlreadyExistsException("User with this mail already exists: " + mail);
+        }
+
+        String subject = "회원가입 메일 인증";
+        String text = "회원가입 메일을 인증";
+
+        sendCode(mail, null, subject, text);
+    }
+
+    // 회원가입 메일 코드 인증
+    @Transactional
+    public boolean registerCode(String code) {
+
+        Optional<Verification> verificationOptional = verificationRepository.findByCode(code);
+        log.info("verification {}", verificationOptional);
+
+        // 존재하는 코드인지 확인
+        if (!verificationOptional.isPresent()) {
+            throw new InvalidTokenException("Invalid code");
+        }
+
+        Verification verification = verificationOptional.get();
+
+        // 코드 만료 확인
+        if (verification.getExpiredDate().isBefore(LocalDateTime.now())) {
+            verificationRepository.delete(verification);
+            throw new InvalidTokenException("Code has expired");
+        }
+
+        verificationRepository.delete(verification);
+        return true;
+
+    }
+
     // 로그인
     public MemberDto login(LoginRequest loginRequest) {
 
@@ -252,6 +293,7 @@ public class MemberService {
         return convertToDto(saved);
     }
 
+    // 메일 수정 코드 요청
     @Transactional
     public void sendUpdateMailCode(String token, String mail) {
         Optional<Member> optionalMember = memberRepository.findByMail(mail);
@@ -262,7 +304,15 @@ public class MemberService {
 
         Member member = getMemberByToken(token);
 
+        String subject = "메일 변경";
+        String text = "메일 주소를 변경";
+
         // 100000 (최소값) 부터 999999 (최대값) 사이의 숫자 생성
+        sendCode(mail, member, subject, text);
+
+    }
+
+    private void sendCode(String mail, Member member, String subject, String text) {
         String code = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1000000));
 
         Verification verification = new Verification();
@@ -273,7 +323,7 @@ public class MemberService {
         verificationRepository.save(verification);
 
         try {
-            emailService.sendEmail(mail, "메일 변경", "안녕하세요,\n\n메일 주소를 변경하려면 아래 코드를 입력하세요:\n\n" + code + "\n\n김시합니다.");
+            emailService.sendEmail(mail, subject, "안녕하세요,\n\n" + text + "하려면 아래 코드를 입력하세요:\n\n" + code + "\n\n김시합니다.");
         } catch (MailAuthenticationException e) {
             log.error("Mail authentication failed: {}", e.getMessage());
             throw new MailAuthenticationException("Authentication failed");
@@ -281,37 +331,35 @@ public class MemberService {
             log.error("Failed to send email: {}", e.getMessage());
             throw new RuntimeException("Failed to send email", e);
         }
-
-
     }
 
-    // 코드 인증
+    // 메일 수정 코드 인증
     public boolean codeAuthentication(String token, UpdateMemberRequest request) {
 
         Optional<Verification> verificationOptional = verificationRepository.findByCode(request.getCode());
         log.info("verification {}", verificationOptional);
 
         // 존재하는 코드인지 확인
-        if (verificationOptional.isPresent()) {
-            Verification verification = verificationOptional.get();
-
-            // 만료된 코드인지 확인
-            if (verification.getExpiredDate().isAfter(LocalDateTime.now())) {
-                MemberDto member = getMember(token);
-
-                // 수정을 요청한 회원과 인증하는 회원의 정보가 같은지 확인
-                if (member.getMemberId().equals(verification.getMember().getMemberId())) {
-                    verificationRepository.delete(verification);
-                    return true;
-                } else {
-                    throw new BadCredentialsException("Requested member does not match the member linked with the verification code.");
-                }
-            } else {
-                throw new InvalidTokenException("code has expired");
-            }
-        } else {
+        if (!verificationOptional.isPresent()) {
             throw new InvalidTokenException("Invalid code");
         }
+
+        Verification verification = verificationOptional.get();
+
+        // 코드 만료 확인
+        if (verification.getExpiredDate().isBefore(LocalDateTime.now())) {
+            verificationRepository.delete(verification);
+            throw new InvalidTokenException("Code has expired");
+        }
+
+        MemberDto member = getMember(token);
+        // 인증 요청 회원과 인증 회원이 같은지 확인
+        if (!member.getMemberId().equals(verification.getMember().getMemberId())) {
+            throw new BadCredentialsException("Requested member does not match the member linked with the verification code.");
+        }
+
+        verificationRepository.delete(verification);
+        return true;
     }
 
     @Transactional
