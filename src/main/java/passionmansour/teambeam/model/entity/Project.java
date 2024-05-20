@@ -44,6 +44,6 @@ public class Project {
     private Calendar calendar;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "message")
+    @JoinColumn(name = "messageId")
     private Message message;
 }
