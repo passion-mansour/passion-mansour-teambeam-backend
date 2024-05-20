@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import passionmansour.teambeam.model.enums.ProjectStatus;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Data
 @Builder

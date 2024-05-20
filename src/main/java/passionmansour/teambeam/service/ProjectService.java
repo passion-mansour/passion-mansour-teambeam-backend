@@ -65,22 +65,19 @@ public class ProjectService {
         String usernameFromToken = tokenService.getUsernameFromToken(token);
 
         // 해당 회원 정보 조회
-        Member member = memberRepository.findByMemberName(usernameFromToken)
+        return memberRepository.findByMemberName(usernameFromToken)
             .orElseThrow(() -> new UsernameNotFoundException("User not found with memberName: " + usernameFromToken));
-        return member;
     }
 
     public ProjectDto convertToDto(Project project) {
 
-        ProjectDto projectDto = ProjectDto.builder()
+        return ProjectDto.builder()
             .projectId(project.getProjectId())
             .projectName(project.getProjectName())
             .projectStatus(project.getProjectStatus())
             .description(project.getDescription())
             .createDate(project.getCreateDate())
             .build();
-
-        return projectDto;
     }
 
     public List<ProjectDto> getProjectList(String token) {
@@ -93,7 +90,7 @@ public class ProjectService {
         //
         List<Project> projects = joinMembers.stream()
             .map(JoinMember::getProject)
-            .collect(Collectors.toList());
+            .toList();
 
         return projects.stream()
             .map(this::convertToDto)
