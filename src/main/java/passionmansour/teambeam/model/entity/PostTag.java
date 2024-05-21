@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 @Entity
 public class PostTag {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postTagId;
 
     @ManyToOne
