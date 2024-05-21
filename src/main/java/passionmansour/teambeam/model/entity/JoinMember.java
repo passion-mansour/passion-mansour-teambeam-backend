@@ -12,7 +12,7 @@ import passionmansour.teambeam.model.enums.MemberRole;
 public class JoinMember {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long joinMemberId;
 
     private MemberRole memberRole;
