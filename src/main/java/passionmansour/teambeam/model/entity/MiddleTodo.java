@@ -16,7 +16,7 @@ public class MiddleTodo {
     private Long middleTodoId;
 
     private String middleTodoTitle;
-    private boolean middleTodoStatus;
+    private boolean middleTodoStatus = false;
 
     @Temporal(TemporalType.DATE)
     private Date startDate;
