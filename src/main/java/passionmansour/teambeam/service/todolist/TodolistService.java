@@ -132,6 +132,7 @@ public class TodolistService {
         bottomTodo.setMiddleTodo(middleTodoOptional.get());
         bottomTodo.setStartDate(request.getStartDate());
         bottomTodo.setEndDate(request.getEndDate());
+        bottomTodo.setContent(request.getContent());
         return bottomTodoRepository.save(bottomTodo);
     }
 

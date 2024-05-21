@@ -15,5 +15,4 @@ public class PostBottomTodoRequest {
     private Date endDate;
     private String memo;
     private Long member;
-
 }

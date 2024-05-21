@@ -13,7 +13,7 @@ public class PatchBottomTodoRequest {
     private Date startDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date endDate;
-    private String memo;
+    private String content;
     private boolean status;
     private Long member;
 

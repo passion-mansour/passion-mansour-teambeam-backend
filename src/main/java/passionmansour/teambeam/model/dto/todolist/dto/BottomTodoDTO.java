@@ -11,6 +11,6 @@ public class BottomTodoDTO {
     private boolean status;
     private Date startDate;
     private Date endDate;
-    private String memo;
+    private String content;
     // getters and setters
 }
