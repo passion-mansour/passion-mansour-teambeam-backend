@@ -8,15 +8,14 @@ import passionmansour.teambeam.model.dto.schedule.PostScheduleRequest;
 @RestController
 @RequestMapping("/api/team")
 public class CalendarController {
-    @GetMapping("/{projectId}/calendar")
-    public ResponseEntity<Void> GetMonthCalendar(@RequestParam(name = "month") Long month,
+    @GetMapping("/{projectId}/calendar/month")
+    public ResponseEntity<Void> GetMonthCalendar(@RequestParam(name = "date") Long month,
                                                  @PathVariable Long projectId) {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/{projectId}/calendar")
-    public ResponseEntity<Void> GetDayCalendar(@RequestParam(name = "month") Long month,
-                                                @RequestParam(name = "day") Long day,
+    @GetMapping("/{projectId}/calendar/day")
+    public ResponseEntity<Void> GetDayCalendar(@RequestParam(name = "date") Long month,
                                                @PathVariable Long projectId) {
         return new ResponseEntity<>(HttpStatus.OK);
     }
