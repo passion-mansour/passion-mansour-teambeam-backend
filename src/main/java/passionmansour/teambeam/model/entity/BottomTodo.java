@@ -39,5 +39,5 @@ public class BottomTodo {
     private MiddleTodo middleTodo;
 
     @OneToMany(mappedBy = "bottomTodo")
-    private List<Tag> tags = new ArrayList<>();
+    private List<TodoTag> todoTags = new ArrayList<>();
 }

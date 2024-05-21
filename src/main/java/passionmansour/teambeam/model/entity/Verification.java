@@ -2,25 +2,24 @@ package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
-@Table @Data
+@Setter @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Verification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="verificationId")
     private Long verificationId;
 
     private String code;
     private String token;
-    private boolean isUsed;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date expiredDate;
+    private LocalDateTime expiredDate;
 
     @ManyToOne
     @JoinColumn(name = "memberId")
