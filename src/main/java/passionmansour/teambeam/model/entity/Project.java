@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class Project {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long projectId;
 
     private String projectName;

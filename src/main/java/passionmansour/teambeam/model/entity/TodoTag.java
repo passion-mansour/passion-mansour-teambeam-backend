@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 public class TodoTag {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long todoTagId;
 
     @ManyToOne
