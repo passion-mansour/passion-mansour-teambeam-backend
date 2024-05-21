@@ -8,14 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.model.dto.todolist.dto.BottomTodoDTO;
 import passionmansour.teambeam.model.dto.todolist.dto.TopTodoDTO;
 import passionmansour.teambeam.model.dto.todolist.request.*;
-import passionmansour.teambeam.model.entity.BottomTodo;
-import passionmansour.teambeam.model.entity.MiddleTodo;
-import passionmansour.teambeam.model.entity.Project;
-import passionmansour.teambeam.model.entity.TopTodo;
-import passionmansour.teambeam.repository.BottomTodoRepository;
-import passionmansour.teambeam.repository.MiddleTodoRepository;
-import passionmansour.teambeam.repository.ProjectRepository;
-import passionmansour.teambeam.repository.TopTodoRepository;
+import passionmansour.teambeam.model.entity.*;
+import passionmansour.teambeam.repository.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,13 +31,38 @@ public class TodolistService {
     private ProjectRepository projectRepository;
 
     @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
     private ConvertTodoService convertTodoService;
 
     private ModelMapper modelMapper;
 
     public List<TopTodoDTO> getTodosByProjectId(Long projectId) {
-        List<TopTodo> todos = topTodoRepository.findAllWithDetailsByProjectId(projectId);
-        return todos.stream()
+        List<TopTodo> topTodos = topTodoRepository.findAllByProjectId(projectId);
+        List<Long> topTodoIds = topTodos.stream().map(TopTodo::getTopTodoId).collect(Collectors.toList());
+
+        List<TopTodo> topTodosWithMiddleTodos = topTodoRepository.findAllWithMiddleTodos(topTodoIds);
+
+        List<Long> middleTodoIds = topTodosWithMiddleTodos.stream()
+                .flatMap(t -> t.getMiddleTodos().stream())
+                .map(MiddleTodo::getMiddleTodoId)
+                .collect(Collectors.toList());
+
+        List<MiddleTodo> middleTodosWithBottomTodos = topTodoRepository.findAllWithBottomTodos(middleTodoIds);
+
+        // 병합 단계 필요
+        for (TopTodo topTodo : topTodosWithMiddleTodos) {
+            for (MiddleTodo middleTodo : topTodo.getMiddleTodos()) {
+                middleTodo.setBottomTodos(
+                        middleTodosWithBottomTodos.stream()
+                                .filter(b -> b.getMiddleTodoId().equals(middleTodo.getMiddleTodoId()))
+                                .flatMap(b -> b.getBottomTodos().stream())
+                                .collect(Collectors.toList())
+                );
+            }
+        }
+        return topTodosWithMiddleTodos.stream()
                 .map(convertTodoService::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -100,6 +119,10 @@ public class TodolistService {
         Optional<Project> projectOptional = projectRepository.findById(projectId);
         if (!projectOptional.isPresent()) {
             throw new RuntimeException("Project 찾지 못했습니다.");
+        }
+        Optional<Member> memberOptional = memberRepository.findById(request.getMember());
+        if (!memberOptional.isPresent()) {
+            throw new RuntimeException("member 찾지 못했습니다.");
         }
 
 
@@ -165,6 +188,13 @@ public class TodolistService {
         }
         if (request.getEndDate() != null) {
             bottomTodo.setEndDate(request.getEndDate());
+        }
+        if (request.getMember() != null){
+            Optional<Member> memberOptional = memberRepository.findById(request.getMember());
+            if (!memberOptional.isPresent()) {
+                throw new RuntimeException("member 찾지 못했습니다.");
+            }
+            bottomTodo.setMember(memberOptional.get());
         }
         return bottomTodoRepository.save(bottomTodo);
     }

@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 public class ScheduleTag {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long scheduleTagId;
 
     @ManyToOne
