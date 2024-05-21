@@ -16,8 +16,6 @@ public class PostBottomTodoRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date endDate;
     private String memo;
-<<<<<<< Updated upstream
-=======
     private Long member;
->>>>>>> Stashed changes
+
 }

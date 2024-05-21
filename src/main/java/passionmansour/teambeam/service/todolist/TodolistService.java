@@ -132,10 +132,7 @@ public class TodolistService {
         bottomTodo.setMiddleTodo(middleTodoOptional.get());
         bottomTodo.setStartDate(request.getStartDate());
         bottomTodo.setEndDate(request.getEndDate());
-<<<<<<< Updated upstream
-=======
         bottomTodo.setMember(memberOptional.get());
->>>>>>> Stashed changes
         return bottomTodoRepository.save(bottomTodo);
     }
 
@@ -195,8 +192,6 @@ public class TodolistService {
         if (request.getEndDate() != null) {
             bottomTodo.setEndDate(request.getEndDate());
         }
-<<<<<<< Updated upstream
-=======
         if (request.getMember() != null){
             Optional<Member> memberOptional = memberRepository.findById(request.getMember());
             if (!memberOptional.isPresent()) {
@@ -204,7 +199,7 @@ public class TodolistService {
             }
             bottomTodo.setMember(memberOptional.get());
         }
->>>>>>> Stashed changes
+
         return bottomTodoRepository.save(bottomTodo);
     }
 
