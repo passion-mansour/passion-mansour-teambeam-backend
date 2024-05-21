@@ -10,5 +10,5 @@ public class PostBottomTodoRequest {
     private String title;
     private Date startDate;
     private Date endDate;
-    private String memo;
+    private String content;
 }

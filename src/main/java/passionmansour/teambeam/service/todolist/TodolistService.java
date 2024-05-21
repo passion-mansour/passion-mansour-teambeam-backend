@@ -109,6 +109,7 @@ public class TodolistService {
         bottomTodo.setMiddleTodo(middleTodoOptional.get());
         bottomTodo.setStartDate(request.getStartDate());
         bottomTodo.setEndDate(request.getEndDate());
+        bottomTodo.setContent(request.getContent());
         return bottomTodoRepository.save(bottomTodo);
     }
 
@@ -165,6 +166,9 @@ public class TodolistService {
         }
         if (request.getEndDate() != null) {
             bottomTodo.setEndDate(request.getEndDate());
+        }
+        if (request.getContent() != null){
+            bottomTodo.setContent(request.getContent());
         }
         return bottomTodoRepository.save(bottomTodo);
     }
