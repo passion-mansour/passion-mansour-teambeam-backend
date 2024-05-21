@@ -12,28 +12,6 @@ spring:
   redis:
     host: 34.47.74.35
     port: 6379
-
-  # Email Configuration
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: teambeam07@gmail.com
-    password: kbjtjuqfhocpshhk
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-        debug: true
-
 logging:
   level:
     org.springframework.data.redis: DEBUG
-
-jwt:
-  secret: RJjAZR5j+wemQdNpd3XreAcM9yftv14Wfc2e5lFrNf3d6RSnqIYkybdqPTPepVaOqBdTq8xVSwHj5tF88msmZw==
-  refreshSecret: LyqRq32qBcyF3uCCdDOziK52gzdhSjKsmuMtO7tnmpCdqcwwS9KxzwshCVNou4ml6qyRQqXz4DWwomCjtRZxEg==
-  expiration: 600
-  refreshExpiration: 604800
