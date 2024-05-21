@@ -3,7 +3,7 @@ spring:
     name: beam
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://34.64.81.206:3306
+    url: jdbc:mysql://34.64.81.206:3306/teambeam
     username: admin
     password: teambeam123
   jpa:
