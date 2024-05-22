@@ -1,8 +1,6 @@
 package passionmansour.teambeam.service;
 
-import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailAuthenticationException;
@@ -72,7 +70,6 @@ public class MemberService {
         log.info("member {}", savedMember);
 
         if (registerRequest.getToken() != null) {
-            //TODO: 초대된 프로젝트에 추가
             Long projectIdFromToken = tokenService.getProjectIdFromToken(registerRequest.getToken());
             Project project = projectRepository.findByProjectId(projectIdFromToken).orElseThrow(() ->
                 new EntityNotFoundException("Project not found with projectId: " + projectIdFromToken));
@@ -83,7 +80,6 @@ public class MemberService {
             joinMember.setHost(false);
 
             JoinMember saved = joinMemberRepository.save(joinMember);
-            log.info("joinMember {}", saved.toString());
         }
 
         return convertToDto(savedMember);
@@ -130,7 +126,7 @@ public class MemberService {
         log.info("verification {}", verificationOptional);
 
         // 존재하는 코드인지 확인
-        if (!verificationOptional.isPresent()) {
+        if (verificationOptional.isEmpty()) {
             throw new InvalidTokenException("Invalid code");
         }
 
@@ -355,7 +351,7 @@ public class MemberService {
         log.info("verification {}", verificationOptional);
 
         // 존재하는 코드인지 확인
-        if (!verificationOptional.isPresent()) {
+        if (verificationOptional.isEmpty()) {
             throw new InvalidTokenException("Invalid code");
         }
 
