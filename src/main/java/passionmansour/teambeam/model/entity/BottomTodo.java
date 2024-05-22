@@ -18,7 +18,7 @@ public class BottomTodo {
 
     private String bottomTodoTitle;
     private boolean bottomTodoStatus = false;
-    private String content;
+    private String memo;
 
     @Temporal(TemporalType.DATE)
     private Date startDate;
