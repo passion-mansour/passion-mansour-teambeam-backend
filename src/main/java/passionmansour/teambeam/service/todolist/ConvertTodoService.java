@@ -45,7 +45,8 @@ public class ConvertTodoService {
         dto.setStatus(bottomTodo.isBottomTodoStatus());
         dto.setStartDate(bottomTodo.getStartDate());
         dto.setEndDate(bottomTodo.getEndDate());
-        dto.setContent(bottomTodo.getContent());
+        dto.setMemo(bottomTodo.getMemo());
+        dto.setMember(bottomTodo.getMember());
         return dto;
     }
 }
