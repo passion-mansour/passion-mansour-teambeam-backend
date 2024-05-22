@@ -22,7 +22,7 @@ public class ProjectDto {
     @NotNull(message = "ProjectName cannot be null")
     private String projectName;
 
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @NotNull(message = "description cannot be null")
     private String description;
 
     private ProjectStatus projectStatus;
