@@ -9,6 +9,7 @@ import java.util.List;
 @Data
 public class MiddleTodoDTO {
     private Long middleTodoId;
+    private Long topTodoId;
     private String title;
     private boolean status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

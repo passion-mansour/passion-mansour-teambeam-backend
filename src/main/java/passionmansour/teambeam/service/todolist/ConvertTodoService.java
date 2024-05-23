@@ -20,33 +20,36 @@ public class ConvertTodoService {
         dto.setStartDate(topTodo.getStartDate());
         dto.setEndDate(topTodo.getEndDate());
         dto.setMiddleTodos(topTodo.getMiddleTodos().stream()
-                .map(this::convertToDto)
+                .map(middleTodo -> convertToDto(middleTodo, topTodo.getTopTodoId()))
                 .collect(Collectors.toList()));
         return dto;
     }
 
-    public MiddleTodoDTO convertToDto(MiddleTodo middleTodo) {
+    public MiddleTodoDTO convertToDto(MiddleTodo middleTodo, Long topTodoId) {
         MiddleTodoDTO dto = new MiddleTodoDTO();
         dto.setMiddleTodoId(middleTodo.getMiddleTodoId());
+        dto.setTopTodoId(topTodoId);
         dto.setTitle(middleTodo.getMiddleTodoTitle());
         dto.setStatus(middleTodo.isMiddleTodoStatus());
         dto.setStartDate(middleTodo.getStartDate());
         dto.setEndDate(middleTodo.getEndDate());
         dto.setBottomTodos(middleTodo.getBottomTodos().stream()
-                .map(this::convertToDto)
+                .map(bottomTodo -> convertToDto(bottomTodo, topTodoId, middleTodo.getMiddleTodoId() ))
                 .collect(Collectors.toList()));
         return dto;
     }
 
-    public BottomTodoDTO convertToDto(BottomTodo bottomTodo) {
+    public BottomTodoDTO convertToDto(BottomTodo bottomTodo,Long topTodoId, Long middleTodoId) {
         BottomTodoDTO dto = new BottomTodoDTO();
         dto.setBottomTodoId(bottomTodo.getBottomTodoId());
+        dto.setMiddleTodoId(middleTodoId);
+        dto.setTopTodoId(topTodoId);
         dto.setTitle(bottomTodo.getBottomTodoTitle());
         dto.setStatus(bottomTodo.isBottomTodoStatus());
         dto.setStartDate(bottomTodo.getStartDate());
         dto.setEndDate(bottomTodo.getEndDate());
         dto.setMemo(bottomTodo.getMemo());
-        dto.setMember(bottomTodo.getMember());
+        dto.setBottomMember(bottomTodo.getMember().getMemberId(),bottomTodo.getMember().getMemberName());
         return dto;
     }
 }

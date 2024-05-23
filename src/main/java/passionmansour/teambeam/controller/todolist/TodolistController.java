@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import passionmansour.teambeam.model.dto.todolist.dto.BottomTodoDTO;
+import passionmansour.teambeam.model.dto.todolist.dto.MiddleTodoDTO;
 import passionmansour.teambeam.model.dto.todolist.dto.TopTodoDTO;
 import passionmansour.teambeam.model.dto.todolist.request.*;
 import passionmansour.teambeam.model.dto.todolist.response.GetBottomTodoResponse;
@@ -42,39 +43,39 @@ public class TodolistController {
     }
 
     @PostMapping("/{projectId}/todo/top")
-    public ResponseEntity<Void> postTopTodo(@PathVariable Long projectId,@RequestBody PostTopTodoRequest postTopTodoRequest){
-        TopTodo topTodo = todolistService.createTopTodo(projectId, postTopTodoRequest);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<TopTodoDTO> postTopTodo(@PathVariable Long projectId, @RequestBody PostTopTodoRequest postTopTodoRequest){
+        TopTodoDTO response = todolistService.createTopTodo(projectId, postTopTodoRequest);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{projectId}/todo/middle")
-    public ResponseEntity<Void> postMiddleTodo(@PathVariable Long projectId, @RequestBody PostMiddleTodoRequest request){
-        MiddleTodo middleTodo = todolistService.createMiddleTodo(projectId, request);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<MiddleTodoDTO> postMiddleTodo(@PathVariable Long projectId, @RequestBody PostMiddleTodoRequest request){
+        MiddleTodoDTO response = todolistService.createMiddleTodo(projectId, request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{projectId}/todo/bottom")
-    public ResponseEntity<Void> postBottomTodo(@PathVariable Long projectId, @RequestBody PostBottomTodoRequest request){
-        BottomTodo bottomTodo = todolistService.createBottomTodo(projectId, request);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<BottomTodoDTO> postBottomTodo(@PathVariable Long projectId, @RequestBody PostBottomTodoRequest request){
+        BottomTodoDTO response = todolistService.createBottomTodo(projectId, request);
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{projectId}/todo/top/{topTodoId}")
-    public ResponseEntity<Void> patchTopTodo(@PathVariable Long projectId, @PathVariable Long topTodoId, @RequestBody PatchTopTodoRequest request) {
-        todolistService.updateTopTodo(projectId, topTodoId, request);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<TopTodo> patchTopTodo(@PathVariable Long projectId, @PathVariable Long topTodoId, @RequestBody PatchTopTodoRequest request) {
+        TopTodo topTodo = todolistService.updateTopTodo(projectId, topTodoId, request);
+        return ResponseEntity.ok(topTodo);
     }
 
     @PatchMapping("/{projectId}/todo/middle/{middleTodoId}")
-    public ResponseEntity<Void> patchMiddleTodo(@PathVariable Long projectId, @PathVariable Long middleTodoId, @RequestBody PatchMiddleTodoRequest request) {
-        todolistService.updateMiddleTodo(projectId, middleTodoId, request);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<MiddleTodo> patchMiddleTodo(@PathVariable Long projectId, @PathVariable Long middleTodoId, @RequestBody PatchMiddleTodoRequest request) {
+        MiddleTodo middleTodo = todolistService.updateMiddleTodo(projectId, middleTodoId, request);
+        return ResponseEntity.ok(middleTodo);
     }
 
     @PatchMapping("/{projectId}/todo/bottom/{bottomTodoId}")
-    public ResponseEntity<Void> patchBottomTodo(@PathVariable Long projectId, @PathVariable Long bottomTodoId, @RequestBody PatchBottomTodoRequest request) {
-        todolistService.updateBottomTodo(projectId, bottomTodoId, request);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<BottomTodo> patchBottomTodo(@PathVariable Long projectId, @PathVariable Long bottomTodoId, @RequestBody PatchBottomTodoRequest request) {
+        BottomTodo bottomTodo = todolistService.updateBottomTodo(projectId, bottomTodoId, request);
+        return ResponseEntity.ok(bottomTodo);
     }
 
     @DeleteMapping("/{projectId}/todo/top/{topTodoId}")
