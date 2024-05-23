@@ -2,10 +2,10 @@ package passionmansour.teambeam.service.todolist;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.model.dto.todolist.dto.BottomTodoDTO;
+import passionmansour.teambeam.model.dto.todolist.dto.MiddleTodoDTO;
 import passionmansour.teambeam.model.dto.todolist.dto.TopTodoDTO;
 import passionmansour.teambeam.model.dto.todolist.request.*;
 import passionmansour.teambeam.model.entity.*;
@@ -68,12 +68,16 @@ public class TodolistService {
     }
 
     public Optional<BottomTodoDTO> findBottomTodoById(Long id) {
-        return bottomTodoRepository.findById(id)
-                .map(convertTodoService::convertToDto);
+        Optional<BottomTodo> bottomTodo = bottomTodoRepository.findById(id);
+        MiddleTodo middleTodo = bottomTodo.get().getMiddleTodo();
+        TopTodo topTodo = middleTodo.getTopTodo();
+        return Optional.ofNullable(convertTodoService
+                .convertToDto(bottomTodo.get(), topTodo.getTopTodoId(), middleTodo.getMiddleTodoId()));
+
     }
 
     @Transactional
-    public TopTodo createTopTodo(Long projectId, PostTopTodoRequest request) {
+    public TopTodoDTO createTopTodo(Long projectId, PostTopTodoRequest request) {
 
         Optional<Project> projectOptional = projectRepository.findById(projectId);
         if (!projectOptional.isPresent()) {
@@ -85,11 +89,12 @@ public class TodolistService {
         topTodo.setProject(projectOptional.get());
         topTodo.setStartDate(request.getStartDate());
         topTodo.setEndDate(request.getEndDate());
-        return topTodoRepository.save(topTodo);
+
+        return convertTodoService.convertToDto(topTodoRepository.save(topTodo));
     }
 
     @Transactional
-    public MiddleTodo createMiddleTodo(Long projectId, PostMiddleTodoRequest request) {
+    public MiddleTodoDTO createMiddleTodo(Long projectId, PostMiddleTodoRequest request) {
 
         Optional<TopTodo> topTodoOptional = topTodoRepository.findById(request.getTopTodoId()); //탑 todo 찾는 로직
         if (!topTodoOptional.isPresent()) {
@@ -106,11 +111,11 @@ public class TodolistService {
         middleTodo.setTopTodo(topTodoOptional.get());
         middleTodo.setStartDate(request.getStartDate());
         middleTodo.setEndDate(request.getEndDate());
-        return middleTodoRepository.save(middleTodo);
+        return convertTodoService.convertToDto(middleTodoRepository.save(middleTodo),topTodoOptional.get().getTopTodoId());
     }
 
     @Transactional
-    public BottomTodo createBottomTodo(Long projectId, PostBottomTodoRequest request) {
+    public BottomTodoDTO createBottomTodo(Long projectId, PostBottomTodoRequest request) {
 
         Optional<MiddleTodo> middleTodoOptional = middleTodoRepository.findById(request.getMiddleTodoId()); //탑 todo 찾는 로직
         if (!middleTodoOptional.isPresent()) {
@@ -133,7 +138,9 @@ public class TodolistService {
         bottomTodo.setStartDate(request.getStartDate());
         bottomTodo.setEndDate(request.getEndDate());
         bottomTodo.setMember(memberOptional.get());
-        return bottomTodoRepository.save(bottomTodo);
+        return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
+                middleTodoOptional.get().getTopTodo().getTopTodoId(),
+                middleTodoOptional.get().getMiddleTodoId());
     }
 
     @Transactional
