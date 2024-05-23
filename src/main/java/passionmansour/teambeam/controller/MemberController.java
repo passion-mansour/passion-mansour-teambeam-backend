@@ -115,10 +115,11 @@ public class MemberController {
     })
     @PostMapping("/password/send-reset-link")
     public ResponseEntity<?> sendResetLink(@RequestBody UpdateMemberRequest request) {
-        memberService.sendPasswordResetLink(request);
+        String link = memberService.sendPasswordResetLink(request);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Email sent successfully");
+        response.put("url", link);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -262,7 +263,7 @@ public class MemberController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Change member information successfully");
-        response.put("updateMember", memberResponse);
+        response.put("updatedMember", memberResponse);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -296,20 +297,6 @@ public class MemberController {
 
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
-    }
-
-    // 메일 수정
-    @PatchMapping("/member/mail")
-    public ResponseEntity<?> updateMail(@RequestHeader("Authorization") String token, @RequestBody UpdateMemberRequest request) {
-        MemberDto member = memberService.updateMail(token, request);
-
-        MemberInformationResponse memberResponse = getMemberResponse(member);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Change password successfully");
-        response.put("updatedMember", memberResponse);
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }

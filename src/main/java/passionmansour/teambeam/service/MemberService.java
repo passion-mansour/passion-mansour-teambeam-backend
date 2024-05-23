@@ -1,7 +1,6 @@
 package passionmansour.teambeam.service;
 
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.PersistenceException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailAuthenticationException;
@@ -16,12 +15,16 @@ import passionmansour.teambeam.execption.member.TokenGenerationException;
 import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.member.request.*;
 import passionmansour.teambeam.model.dto.member.MemberDto;
+import passionmansour.teambeam.model.entity.JoinMember;
 import passionmansour.teambeam.model.entity.Member;
+import passionmansour.teambeam.model.entity.Project;
 import passionmansour.teambeam.model.entity.Verification;
 import passionmansour.teambeam.model.enums.StartPage;
+import passionmansour.teambeam.repository.JoinMemberRepository;
 import passionmansour.teambeam.repository.MemberRepository;
+import passionmansour.teambeam.repository.ProjectRepository;
 import passionmansour.teambeam.repository.VerificationRepository;
-import passionmansour.teambeam.service.security.EmailService;
+import passionmansour.teambeam.service.mail.EmailService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
@@ -41,6 +44,8 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final VerificationRepository verificationRepository;
     private final EmailService emailService;
+    private final ProjectRepository projectRepository;
+    private final JoinMemberRepository joinMemberRepository;
 
     @Transactional
     public MemberDto saveMember(RegisterRequest registerRequest) {
@@ -55,26 +60,30 @@ public class MemberService {
         member.setNotificationCount(member.getNotifications().size());
         member.setStartPage(StartPage.PROJECT_SELECTION_PAGE);
 
-        if (registerRequest.getToken() != null) {
-            //TODO: 초대된 프로젝트에 추가
-        }
+
 
         if (memberRepository.findByMail(registerRequest.getMail()).isPresent()) {
             throw new UserAlreadyExistsException("User with this mail already exists: " + registerRequest.getMail());
         }
 
-        try {
+        Member savedMember = memberRepository.save(member);
+        log.info("member {}", savedMember);
 
-            Member savedMember = memberRepository.save(member);
-            return convertToDto(savedMember);
+        if (registerRequest.getToken() != null) {
+            Long projectIdFromToken = tokenService.getProjectIdFromToken(registerRequest.getToken());
+            Project project = projectRepository.findByProjectId(projectIdFromToken).orElseThrow(() ->
+                new EntityNotFoundException("Project not found with projectId: " + projectIdFromToken));
 
-        } catch (EntityExistsException e) {
-            throw new UserAlreadyExistsException("User with this mail already exists: " + registerRequest.getMail());
-        } catch (PersistenceException e) {
-            throw new RuntimeException("Persistence exception: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new RuntimeException("An unexpected error occurred: " + e.getMessage(), e);
+            JoinMember joinMember = new JoinMember();
+            joinMember.setProject(project);
+            joinMember.setMember(savedMember);
+            joinMember.setHost(false);
+
+            JoinMember saved = joinMemberRepository.save(joinMember);
         }
+
+        return convertToDto(savedMember);
+
     }
 
     public MemberDto convertToDto(Member member) {
@@ -117,7 +126,7 @@ public class MemberService {
         log.info("verification {}", verificationOptional);
 
         // 존재하는 코드인지 확인
-        if (!verificationOptional.isPresent()) {
+        if (verificationOptional.isEmpty()) {
             throw new InvalidTokenException("Invalid code");
         }
 
@@ -178,7 +187,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void sendPasswordResetLink(UpdateMemberRequest request) {
+    public String sendPasswordResetLink(UpdateMemberRequest request) {
 
         Optional<Member> memberOptional = memberRepository.findByMail(request.getMail());
         log.info(memberOptional.toString());
@@ -203,6 +212,7 @@ public class MemberService {
             // 메일 전송
             try {
                 emailService.sendEmail(request.getMail(), "비밀번호 재설정", "안녕하세요,\n\n비밀번호를 재설정하려면 아래 링크를 클릭하세요:\n\n" + resetLink + "\n\n김시합니다.");
+                return resetLink;
             } catch (MailAuthenticationException e) {
                 log.error("Mail authentication failed: {}", e.getMessage());
                 throw new MailAuthenticationException("Authentication failed");
@@ -225,7 +235,6 @@ public class MemberService {
             if (verification.getExpiredDate().isAfter(LocalDateTime.now())) {
                 Member member = verification.getMember();
                 member.setPassword(passwordEncoder.encode(newPassword));
-                memberRepository.save(member);
                 verificationRepository.delete(verification);
 
                 return true;
@@ -268,7 +277,6 @@ public class MemberService {
         }
 
         member.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        memberRepository.save(member);
 
         log.info("updateMember {}", member);
     }
@@ -288,9 +296,12 @@ public class MemberService {
             member.setStartPage(request.getStartPage());
         }
 
-        Member saved = memberRepository.save(member);
+        // 메일이 제공된 경우 업데이트
+        if (request.getMail() != null) {
+            member.setMail(request.getMail());
+        }
 
-        return convertToDto(saved);
+        return convertToDto(member);
     }
 
     // 메일 수정 코드 요청
@@ -340,7 +351,7 @@ public class MemberService {
         log.info("verification {}", verificationOptional);
 
         // 존재하는 코드인지 확인
-        if (!verificationOptional.isPresent()) {
+        if (verificationOptional.isEmpty()) {
             throw new InvalidTokenException("Invalid code");
         }
 
@@ -360,17 +371,5 @@ public class MemberService {
 
         verificationRepository.delete(verification);
         return true;
-    }
-
-    @Transactional
-    public MemberDto updateMail(String token, UpdateMemberRequest request) {
-        Member member = getMemberByToken(token);
-        member.setMail(request.getMail());
-
-        Member savedMember = memberRepository.save(member);
-        log.info("updatedMember {}", savedMember);
-
-        return convertToDto(savedMember);
-
     }
 }
