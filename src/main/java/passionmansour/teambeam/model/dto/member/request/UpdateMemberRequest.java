@@ -17,8 +17,8 @@ public class UpdateMemberRequest {
     @Schema(description = "메일 변경/인증")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String mail;
-    @Schema(description = "메일 변경/인증 코드")
+    @Schema(description = "이름 변경")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private String code;
+    private String memberName;
 
 }
