@@ -61,20 +61,20 @@ public class TodolistController {
     }
 
     @PatchMapping("/{projectId}/todo/top/{topTodoId}")
-    public ResponseEntity<TopTodo> patchTopTodo(@PathVariable Long projectId, @PathVariable Long topTodoId, @RequestBody PatchTopTodoRequest request) {
-        TopTodo topTodo = todolistService.updateTopTodo(projectId, topTodoId, request);
+    public ResponseEntity<TopTodoDTO> patchTopTodo(@PathVariable Long projectId, @PathVariable Long topTodoId, @RequestBody PatchTopTodoRequest request) {
+        TopTodoDTO topTodo = todolistService.updateTopTodo(projectId, topTodoId, request);
         return ResponseEntity.ok(topTodo);
     }
 
     @PatchMapping("/{projectId}/todo/middle/{middleTodoId}")
-    public ResponseEntity<MiddleTodo> patchMiddleTodo(@PathVariable Long projectId, @PathVariable Long middleTodoId, @RequestBody PatchMiddleTodoRequest request) {
-        MiddleTodo middleTodo = todolistService.updateMiddleTodo(projectId, middleTodoId, request);
+    public ResponseEntity<MiddleTodoDTO> patchMiddleTodo(@PathVariable Long projectId, @PathVariable Long middleTodoId, @RequestBody PatchMiddleTodoRequest request) {
+        MiddleTodoDTO middleTodo = todolistService.updateMiddleTodo(projectId, middleTodoId, request);
         return ResponseEntity.ok(middleTodo);
     }
 
     @PatchMapping("/{projectId}/todo/bottom/{bottomTodoId}")
-    public ResponseEntity<BottomTodo> patchBottomTodo(@PathVariable Long projectId, @PathVariable Long bottomTodoId, @RequestBody PatchBottomTodoRequest request) {
-        BottomTodo bottomTodo = todolistService.updateBottomTodo(projectId, bottomTodoId, request);
+    public ResponseEntity<BottomTodoDTO> patchBottomTodo(@PathVariable Long projectId, @PathVariable Long bottomTodoId, @RequestBody PatchBottomTodoRequest request) {
+        BottomTodoDTO bottomTodo = todolistService.updateBottomTodo(projectId, bottomTodoId, request);
         return ResponseEntity.ok(bottomTodo);
     }
 
