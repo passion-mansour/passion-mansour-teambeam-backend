@@ -1,4 +1,4 @@
-package passionmansour.teambeam.controller;
+package passionmansour.teambeam.controller.member;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -52,29 +52,13 @@ public class MemberController {
 
     @PostMapping("/register-request")
     public ResponseEntity<?> sendRegisterCode(@RequestBody UpdateMemberRequest request) {
-        memberService.sendRegisterCode(request.getMail());
+        String code = memberService.sendRegisterCode(request.getMail());
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Email sent successfully");
+        response.put("code", code);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @PostMapping("/register-code")
-    public ResponseEntity<?> RegisterCode(@RequestBody UpdateMemberRequest request) {
-        boolean mailCode = memberService.registerCode(request.getCode());
-
-        if (mailCode) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Code authentication successful");
-
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Invalid or expired code");
-
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }
     }
 
     // 로그인
@@ -115,10 +99,11 @@ public class MemberController {
     })
     @PostMapping("/password/send-reset-link")
     public ResponseEntity<?> sendResetLink(@RequestBody UpdateMemberRequest request) {
-        memberService.sendPasswordResetLink(request);
+        String link = memberService.sendPasswordResetLink(request);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Email sent successfully");
+        response.put("url", link);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -262,52 +247,23 @@ public class MemberController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Change member information successfully");
-        response.put("updateMember", memberResponse);
+        response.put("updatedMember", memberResponse);
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", member.getAccessToken());
+        headers.add("RefreshToken", member.getRefreshToken());
+
+        return ResponseEntity.ok().headers(headers).body(response);
     }
 
     // 메일 주소 수정 코드 전송
     @PostMapping("/member/mail")
     public ResponseEntity<?> sendUpdateMailCode(@RequestHeader("Authorization") String token, @RequestBody UpdateMemberRequest request) {
-        memberService.sendUpdateMailCode(token, request.getMail());
+        String code = memberService.sendUpdateMailCode(token, request.getMail());
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Email sent successfully");
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    // 메일 주소 수정 코드 인증
-    @PostMapping("/member/mail-code")
-    public ResponseEntity<?> codeAuthentication(@RequestHeader("Authorization") String token, @RequestBody UpdateMemberRequest request) {
-        boolean codeAuthentication = memberService.codeAuthentication(token, request);
-
-        // 인증 성공
-        if (codeAuthentication) {
-
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Code authentication successful");
-
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Invalid or expired code");
-
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    // 메일 수정
-    @PatchMapping("/member/mail")
-    public ResponseEntity<?> updateMail(@RequestHeader("Authorization") String token, @RequestBody UpdateMemberRequest request) {
-        MemberDto member = memberService.updateMail(token, request);
-
-        MemberInformationResponse memberResponse = getMemberResponse(member);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Change password successfully");
-        response.put("updatedMember", memberResponse);
+        response.put("code", code);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

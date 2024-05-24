@@ -37,3 +37,7 @@ jwt:
   refreshSecret: LyqRq32qBcyF3uCCdDOziK52gzdhSjKsmuMtO7tnmpCdqcwwS9KxzwshCVNou4ml6qyRQqXz4DWwomCjtRZxEg==
   expiration: 600
   refreshExpiration: 604800
+
+kakao:
+  client-id: 77cdffa48c591cce8c307afbe9c188d9
+  redirect-uri: http://localhost:3000/oauth

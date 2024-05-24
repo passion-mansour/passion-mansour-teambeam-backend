@@ -8,4 +8,8 @@ import java.util.List;
 
 public interface JoinMemberRepository extends JpaRepository<JoinMember, Long> {
     List<JoinMember> findByMember(Member member);
+
+    JoinMember findByMember_MemberIdAndProject_ProjectId(Long memberId, Long projectId);
+
+    JoinMember findByMember_MemberId(Long memberId);
 }

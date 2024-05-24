@@ -15,6 +15,7 @@ public class JoinMember {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long joinMemberId;
 
+    @Enumerated(EnumType.STRING)
     private MemberRole memberRole;
 
     private boolean isHost;

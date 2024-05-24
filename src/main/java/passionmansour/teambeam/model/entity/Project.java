@@ -28,9 +28,6 @@ public class Project {
     private ProjectStatus projectStatus;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    private List<JoinMember> joinMemberList;
-
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<JoinMember> joinMembers = new ArrayList<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
@@ -39,11 +36,13 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<TopTodo> topTodos = new ArrayList<>();
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "calendarId")
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Calendar calendar;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "messageId")
     private Message message;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private List<Tag> tags = new ArrayList<>();
 }

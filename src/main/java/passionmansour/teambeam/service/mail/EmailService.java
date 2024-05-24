@@ -1,4 +1,4 @@
-package passionmansour.teambeam.service.security;
+package passionmansour.teambeam.service.mail;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;

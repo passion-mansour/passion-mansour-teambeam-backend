@@ -1,5 +1,6 @@
 package passionmansour.teambeam.execption;
 
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,6 @@ import passionmansour.teambeam.execption.member.TokenGenerationException;
 import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.member.response.ErrorResponse;
 
-import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
 

@@ -21,7 +21,6 @@ public class Member {
     @Column(nullable = false, unique = true)
     private String mail;
 
-    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)
@@ -34,9 +33,6 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     private StartPage startPage;
-
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Verification> verifications = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<JoinMember> joinMembers = new ArrayList<>();
