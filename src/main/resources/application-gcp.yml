@@ -10,7 +10,7 @@ spring:
     hibernate:
       ddl-auto: create
   redis:
-    host: myredis
+    host: 34.47.74.35
     port: 6379
 
   # Email Configuration
