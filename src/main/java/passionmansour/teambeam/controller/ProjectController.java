@@ -140,12 +140,4 @@ public class ProjectController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    // 프로젝트 초대 수락
-    @PostMapping("/team/{projectId}/invitation")
-    public ResponseEntity<?> tokenAuthentication(@RequestParam("token") String token) {
-
-        TokenAuthenticationResponse response = projectService.tokenAuthentication(token);
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
 }
