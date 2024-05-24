@@ -19,7 +19,7 @@ public class BottomTodoDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date endDate;
     private String memo;
-    private BottomMember member;
+    private BottomMember assignees;
 
     @Data
     public class BottomMember{
@@ -28,9 +28,9 @@ public class BottomTodoDTO {
     }
 
     public void setBottomMember(Long memberId, String memberName){
-        this.member= new BottomMember();
-        this.member.setMemberId(memberId);
-        this.member.setMemberName(memberName);
+        this.assignees= new BottomMember();
+        this.assignees.setMemberId(memberId);
+        this.assignees.setMemberName(memberName);
     }
 }
 
