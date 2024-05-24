@@ -103,7 +103,7 @@ public class JwtTokenService {
     public String generateInvitationToken(String mail, Long projectId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("projectId", projectId);
-        return createToken(claims, mail, refreshExpiration, getSigningKey(secret));
+        return createToken(claims, mail, 1800, getSigningKey(secret));
     }
 
     // 초대 토큰 검증 및 파싱
@@ -119,6 +119,5 @@ public class JwtTokenService {
         Claims claims = decodeToken(token);
         return claims.get("projectId", Long.class);
     }
-
 
 }

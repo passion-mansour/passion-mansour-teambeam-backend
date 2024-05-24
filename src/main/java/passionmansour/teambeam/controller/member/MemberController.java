@@ -1,4 +1,4 @@
-package passionmansour.teambeam.controller;
+package passionmansour.teambeam.controller.member;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -52,29 +52,13 @@ public class MemberController {
 
     @PostMapping("/register-request")
     public ResponseEntity<?> sendRegisterCode(@RequestBody UpdateMemberRequest request) {
-        memberService.sendRegisterCode(request.getMail());
+        String code = memberService.sendRegisterCode(request.getMail());
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Email sent successfully");
+        response.put("code", code);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @PostMapping("/register-code")
-    public ResponseEntity<?> RegisterCode(@RequestBody UpdateMemberRequest request) {
-        boolean mailCode = memberService.registerCode(request.getCode());
-
-        if (mailCode) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Code authentication successful");
-
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Invalid or expired code");
-
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }
     }
 
     // 로그인
@@ -265,38 +249,23 @@ public class MemberController {
         response.put("message", "Change member information successfully");
         response.put("updatedMember", memberResponse);
 
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", member.getAccessToken());
+        headers.add("RefreshToken", member.getRefreshToken());
+
+        return ResponseEntity.ok().headers(headers).body(response);
     }
 
     // 메일 주소 수정 코드 전송
     @PostMapping("/member/mail")
     public ResponseEntity<?> sendUpdateMailCode(@RequestHeader("Authorization") String token, @RequestBody UpdateMemberRequest request) {
-        memberService.sendUpdateMailCode(token, request.getMail());
+        String code = memberService.sendUpdateMailCode(token, request.getMail());
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Email sent successfully");
+        response.put("code", code);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    // 메일 주소 수정 코드 인증
-    @PostMapping("/member/mail-code")
-    public ResponseEntity<?> codeAuthentication(@RequestHeader("Authorization") String token, @RequestBody UpdateMemberRequest request) {
-        boolean codeAuthentication = memberService.codeAuthentication(token, request);
-
-        // 인증 성공
-        if (codeAuthentication) {
-
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Code authentication successful");
-
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Invalid or expired code");
-
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }
     }
 
 }
