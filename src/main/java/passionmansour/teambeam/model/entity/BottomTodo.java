@@ -17,7 +17,7 @@ public class BottomTodo {
     private Long bottomTodoId;
 
     private String bottomTodoTitle;
-    private boolean bottomTodoStatus;
+    private boolean bottomTodoStatus = false;
     private String memo;
 
     @Temporal(TemporalType.DATE)
@@ -39,5 +39,5 @@ public class BottomTodo {
     private MiddleTodo middleTodo;
 
     @OneToMany(mappedBy = "bottomTodo")
-    private List<Tag> tags = new ArrayList<>();
+    private List<TodoTag> todoTags = new ArrayList<>();
 }

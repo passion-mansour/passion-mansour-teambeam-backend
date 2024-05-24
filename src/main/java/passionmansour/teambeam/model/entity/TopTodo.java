@@ -16,7 +16,7 @@ public class TopTodo {
     private Long topTodoId;
 
     private String topTodoTitle;
-    private boolean topTodoStatus;
+    private boolean topTodoStatus = false;
 
     @Temporal(TemporalType.DATE)
     private Date startDate;

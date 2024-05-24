@@ -1,15 +1,18 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import passionmansour.teambeam.model.enums.PostType;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table @Data
+@Builder
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,10 +25,10 @@ public class Post {
     private PostType postType;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
+    private LocalDateTime createDate;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date updateDate;
+    private LocalDateTime updateDate;
 
     @ManyToOne
     @JoinColumn(name = "memberId")
@@ -40,7 +43,7 @@ public class Post {
     private Board board;
 
     @OneToMany(mappedBy = "post")
-    private List<Tag> tags = new ArrayList<>();
+    private List<PostTag> postTags = new ArrayList<>();
 
     @OneToMany(mappedBy = "post")
     private List<PostComment> postComments = new ArrayList<>();

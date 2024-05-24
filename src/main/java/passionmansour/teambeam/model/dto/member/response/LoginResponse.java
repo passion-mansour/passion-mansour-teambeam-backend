@@ -8,10 +8,12 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ErrorResponseDto {
-    @Schema(description = "에러 메시지")
+public class LoginResponse {
+
+    @Schema(description = "응답 메시지")
     private String message;
 
-    @Schema(description = "에러 코드")
-    private int status;
+    @Schema(description = "회원 ID")
+    private Long memberId;
+
 }

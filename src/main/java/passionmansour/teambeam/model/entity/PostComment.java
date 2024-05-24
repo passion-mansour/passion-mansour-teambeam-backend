@@ -1,12 +1,15 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
 @Table @Data
+@Builder
 public class PostComment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,10 +20,14 @@ public class PostComment {
     private String postCommentContent;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
+    private LocalDateTime createDate;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date updateDate;
+    private LocalDateTime updateDate;
+
+    @ManyToOne
+    @JoinColumn(name = "memberId")
+    private Member member;
 
     @ManyToOne
     @JoinColumn(name = "postId")

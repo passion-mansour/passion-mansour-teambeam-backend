@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RegisterResponseDto {
+public class RegisterResponse {
     @Schema(description = "응답 메시지")
     private String message;
 

@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import passionmansour.teambeam.model.enums.TagCategory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table @Data
 public class Tag {
@@ -15,15 +18,12 @@ public class Tag {
     private String tagName;
     private TagCategory tagCategory;
 
-    @ManyToOne
-    @JoinColumn(name = "postId")
-    private Post post;
+    @OneToMany(mappedBy = "tag")
+    private List<PostTag> postTags = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "scheduleId")
-    private Schedule schedule;
+    @OneToMany(mappedBy = "tag")
+    private List<ScheduleTag> scheduleTags = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "bottomTodoId")
-    private BottomTodo bottomTodo;
+    @OneToMany(mappedBy = "tag")
+    private List<TodoTag> todoTags = new ArrayList<>();
 }

@@ -1,25 +1,30 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import passionmansour.teambeam.model.enums.MemberRole;
 
 @Entity
-@Table @Data
+@Getter @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class JoinMember {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="joinMemberId")
     private Long joinMemberId;
 
     private MemberRole memberRole;
+
     private boolean isHost;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "memberId")
     private Member member;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projectId")
     private Project project;
+
 }
