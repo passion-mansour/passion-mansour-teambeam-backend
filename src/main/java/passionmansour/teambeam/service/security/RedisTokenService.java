@@ -15,8 +15,8 @@ public class RedisTokenService {
     private final RedisTemplate redisTemplate;
 
     public void storeInvitationToken(String mail, String token) {
-        // 토큰을 1시간 저장
-        redisTemplate.opsForValue().set("invitation:" + token, mail, 1, TimeUnit.HOURS);
+        // 토큰을 24시간 저장
+        redisTemplate.opsForValue().set("invitation:" + token, mail, 24, TimeUnit.DAYS);
     }
 
     public String getMailByToken(String token) {

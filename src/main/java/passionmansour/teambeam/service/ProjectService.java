@@ -222,7 +222,7 @@ public class ProjectService {
         try {
             emailService.sendEmail(request.getMail(), "프로젝트 초대",
                 "안녕하세요,\n\n프로젝트에 참가하려면 아래 링크를 클릭하세요:\n\n" + resetLink
-                    + "\n\n링크는 1시간 후에 만료됩니다.\n\n" + "\n\n김시합니다.");
+                    + "\n\n링크는 24시간 후에 만료됩니다.\n\n" + "\n\n김시합니다.");
             return resetLink;
         } catch (MailAuthenticationException e) {
             log.error("Mail authentication failed: {}", e.getMessage());
