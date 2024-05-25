@@ -14,11 +14,8 @@ public class PostPostRequest {
     private String content;
     @NotNull
     private PostType postType;
-    @NotNull
     private Long memberId;
-    @NotNull
     private Long projectId;
-    @NotNull
     private Long boardId;
     private List<Long> postTagIds = new ArrayList<>();
 }

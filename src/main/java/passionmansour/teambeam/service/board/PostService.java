@@ -1,8 +1,7 @@
-package passionmansour.teambeam.service;
+package passionmansour.teambeam.service.board;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.model.dto.board.request.PatchPostRequest;
@@ -10,11 +9,9 @@ import passionmansour.teambeam.model.dto.board.request.PostPostRequest;
 import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.model.entity.Board;
-import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.model.entity.Project;
 import passionmansour.teambeam.repository.BoardRepository;
-import passionmansour.teambeam.repository.MemberRepository;
 import passionmansour.teambeam.repository.PostRepository;
 import passionmansour.teambeam.repository.ProjectRepository;
 import passionmansour.teambeam.service.security.JwtTokenService;
@@ -30,16 +27,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class PostService {
+    private final JwtTokenService jwtTokenService;
     private final ProjectRepository projectRepository;
     private final BoardRepository boardRepository;
     private final PostRepository postRepository;
-    private final MemberRepository memberRepository;
-    private final JwtTokenService tokenService;
 
     @Transactional
     public PostResponse createPost(String token, PostPostRequest postPostRequest){
-        Member member = getMemberByToken(token);
-
         Optional<Project> project = projectRepository.findById(postPostRequest.getProjectId());
         if(project.isEmpty()){
             //TODO: 예외처리
@@ -54,7 +48,7 @@ public class PostService {
                 .postContent(postPostRequest.getContent())
                 .postType(postPostRequest.getPostType())
                 .createDate(LocalDateTime.now())
-                .member(member)
+                .member(jwtTokenService.get(token))
                 .project(project.get())
                 .board(board.get())
                 // TODO: tag 서비스 필요
@@ -83,23 +77,35 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public Post getById(Long postId){
-        return postRepository.findById(postId).get();
+        Optional<Post> post = postRepository.findById(postId);
+        if(post.isEmpty()){
+            //TODO: 예외처리
+        }
+
+        return post.get();
     }
 
     @Transactional(readOnly = true)
     public PostResponse getByTitle(String postTitle){
-        return postRepository.findByTitle(postTitle).get();
+        Optional<Post> post = postRepository.findByTitle(postTitle);
+        if(post.isEmpty()){
+            //TODO: 예외처리
+        }
+
+        return new PostResponse().form(post.get());
     }
 
     @Transactional(readOnly = true)
     public PostListResponse getAllByTags(List<Long> tagIds){
         List<PostResponse> postResponses = new ArrayList<>();
 
+        // 각각의 태그가 속한 모든 게시물 조회
         for(Long tagId : tagIds){
-            for(PostResponse postResponse : postRepository.findAllByTag(tagId))
-            postResponses.add(postResponse);
+            for(Post post : postRepository.findAllByTag(tagId))
+            postResponses.add(new PostResponse().form(post));
         }
 
+        // 중복 제거
         List<PostResponse> distinctPostResponses = postResponses.stream()
                 .distinct()
                 .collect(Collectors.toList());
@@ -109,16 +115,12 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public PostListResponse getAllByBoardId(Long boardId){
-        return postRepository.findAllByBoardId(boardId);
-    }
+        List<PostResponse> postResponses = new ArrayList<>();
 
-    @Transactional(readOnly = true)
-    private Member getMemberByToken(String token) {
-        // 토큰에서 회원 이름 확인
-        String usernameFromToken = tokenService.getUsernameFromToken(token);
+        for (Post post : postRepository.findAllByBoardId(boardId)){
+            postResponses.add(new PostResponse().form(post));
+        }
 
-        // 해당 회원 정보 조회
-        return memberRepository.findByMemberName(usernameFromToken)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with memberName: " + usernameFromToken));
+        return new PostListResponse().form(postResponses);
     }
 }

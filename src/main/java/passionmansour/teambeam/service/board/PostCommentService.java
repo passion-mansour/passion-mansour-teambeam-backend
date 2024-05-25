@@ -1,4 +1,4 @@
-package passionmansour.teambeam.service;
+package passionmansour.teambeam.service.board;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,9 +12,11 @@ import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.model.entity.PostComment;
 import passionmansour.teambeam.repository.*;
+import passionmansour.teambeam.service.MemberService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,13 +27,10 @@ import java.util.Optional;
 public class PostCommentService {
     private final PostRepository postRepository;
     private final PostCommentRepository postCommentRepository;
-    private final MemberRepository memberRepository;
-    private final JwtTokenService tokenService;
+    private final MemberService memberService;
 
     @Transactional
     public PostCommentResponse createPostComment(String token, PostPostCommentRequest postPostCommentRequest) {
-        Member member = getMemberByToken(token);
-
         Optional<Post> post = postRepository.findById(postPostCommentRequest.getPostId());
         if (post.isEmpty()) {
             // TODO: 예외처리
@@ -40,7 +39,7 @@ public class PostCommentService {
         PostComment postComment = PostComment.builder()
                 .postCommentContent(postPostCommentRequest.getContent())
                 .createDate(LocalDateTime.now())
-                .member(member)
+                .member(memberService.getMemberByToken(token))
                 .post(post.get())
                 .build();
 
@@ -61,21 +60,22 @@ public class PostCommentService {
 
     @Transactional(readOnly = true)
     public PostComment getById(Long postId) {
-        return postCommentRepository.findById(postId).get();
+        Optional<PostComment> postComment = postCommentRepository.findById(postId);
+        if(postComment.isEmpty()){
+            // TODO: 예외처리
+        }
+
+        return postComment.get();
     }
 
     @Transactional(readOnly = true)
     public List<PostCommentResponse> getAllByPostId(Long postId) {
-        return postCommentRepository.getAllByPostId(postId);
-    }
+        List<PostCommentResponse> postCommentResponses = new ArrayList<>();
 
-    @Transactional(readOnly = true)
-    private Member getMemberByToken(String token) {
-        // 토큰에서 회원 이름 확인
-        String usernameFromToken = tokenService.getUsernameFromToken(token);
+        for(PostComment postComment : postCommentRepository.getAllByPostId(postId)){
+            postCommentResponses.add(new PostCommentResponse().form(postComment));
+        }
 
-        // 해당 회원 정보 조회
-        return memberRepository.findByMemberName(usernameFromToken)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with memberName: " + usernameFromToken));
+        return postCommentResponses;
     }
 }

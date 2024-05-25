@@ -14,11 +14,11 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.postTitle = :postTitle")
-    Optional<PostResponse> findByTitle(String title);
+    Optional<Post> findByTitle(String title);
 
     @Query("SELECT p FROM Post p JOIN p.postTags t WHERE t.postTagId IN :postTagId")
-    List<PostResponse> findAllByTag(@Param("postTagId") Long tagId);
+    List<Post> findAllByTag(@Param("postTagId") Long tagId);
 
     @Query("SELECT p FROM Post p WHERE p.board.boardId = :boardId")
-    PostListResponse findAllByBoardId(@Param("boardId") Long boardId);
+    List<Post> findAllByBoardId(@Param("boardId") Long boardId);
 }

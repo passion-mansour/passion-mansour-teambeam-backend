@@ -7,6 +7,5 @@ import lombok.Data;
 public class PostBoardRequest {
     @NotNull
     private String name;
-    @NotNull
     private Long projectId;
 }

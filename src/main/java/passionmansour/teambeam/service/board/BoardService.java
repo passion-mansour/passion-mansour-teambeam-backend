@@ -1,4 +1,4 @@
-package passionmansour.teambeam.service;
+package passionmansour.teambeam.service.board;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +12,7 @@ import passionmansour.teambeam.model.entity.Project;
 import passionmansour.teambeam.repository.BoardRepository;
 import passionmansour.teambeam.repository.ProjectRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ public class BoardService {
 
     @Transactional
     public BoardResponse createBoard(PostBoardRequest postBoardRequest){
-        Optional<Project> project = projectRepository.findById(postBoardRequest.getProjectId());
+        Optional<Project> project = projectRepository.findByProjectId(postBoardRequest.getProjectId());
         if(project.isEmpty()){
             //TODO: 예외처리
         }
@@ -34,9 +35,7 @@ public class BoardService {
                 .project(project.get())
                 .build();
 
-        log.info(board.toString());
-
-        return new BoardResponse().form(board);
+        return new BoardResponse().form(boardRepository.save(board));
     }
 
     @Transactional(readOnly = true)
@@ -51,6 +50,12 @@ public class BoardService {
 
     @Transactional(readOnly = true)
     public BoardListResponse getAllBoardByProjectId(Long projectId){
-        return boardRepository.getAllBoardByProjectId(projectId);
+        List<BoardResponse> boardResponses = new ArrayList<>();
+
+        for (Board board : boardRepository.getAllBoardByProjectId(projectId)){
+            boardResponses.add(new BoardResponse().form(board));
+        }
+
+        return new BoardListResponse().form(boardResponses);
     }
 }

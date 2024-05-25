@@ -119,5 +119,4 @@ public class JwtTokenService {
         Claims claims = decodeToken(token);
         return claims.get("projectId", Long.class);
     }
-
 }

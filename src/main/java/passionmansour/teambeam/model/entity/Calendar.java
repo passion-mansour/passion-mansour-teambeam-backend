@@ -19,7 +19,6 @@ public class Calendar {
     @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL)
     private List<TopTodo> topTodos = new ArrayList<>();
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "projectId")
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "calendar", cascade = CascadeType.ALL)
     private Project project;
 }

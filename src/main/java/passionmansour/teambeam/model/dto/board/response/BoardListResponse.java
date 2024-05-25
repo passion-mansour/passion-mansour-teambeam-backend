@@ -14,4 +14,10 @@ import java.util.List;
 @AllArgsConstructor
 public class BoardListResponse {
     List<BoardResponse> boardResponses = new ArrayList<>();
+
+    public BoardListResponse form(List<BoardResponse> boardResponses){
+        return BoardListResponse.builder()
+                .boardResponses(boardResponses)
+                .build();
+    }
 }

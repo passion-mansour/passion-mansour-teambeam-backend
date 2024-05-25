@@ -9,14 +9,11 @@ import java.util.List;
 
 @Data
 public class PatchPostRequest {
-    @NotNull
     private Long postId;
     @NotNull
     private String title;
     private String content;
     @NotNull
     private PostType postType;
-    @NotNull
-    private Long memberId;
     private List<Long> postTagIds = new ArrayList<>();
 }

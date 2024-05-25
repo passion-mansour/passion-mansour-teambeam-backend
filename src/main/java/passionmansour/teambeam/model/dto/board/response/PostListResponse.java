@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import passionmansour.teambeam.model.entity.Post;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,5 +14,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostListResponse {
-    List<PostResponse> postListResponses = new ArrayList<>();
+    List<PostResponse> postResponses = new ArrayList<>();
+
+    public PostListResponse form(List<PostResponse> postResponses){
+        return PostListResponse.builder()
+                .postResponses(postResponses)
+                .build();
+    }
 }
