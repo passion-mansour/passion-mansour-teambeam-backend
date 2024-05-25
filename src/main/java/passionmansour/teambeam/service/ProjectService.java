@@ -43,7 +43,7 @@ public class ProjectService {
     @Transactional
     public ProjectDto createProject(String token, ProjectDto projectDto) {
 
-        Member member = getMemberByToken(token);
+        Member member = tokenService.getMemberByToken(token);
 
         // 프로젝트 생성
         Project project = new Project();
@@ -70,14 +70,7 @@ public class ProjectService {
         return converted;
     }
 
-    private Member getMemberByToken(String token) {
-        // 토큰에서 회원 메일 확인
-        String usernameFromToken = tokenService.getUsernameFromToken(token);
 
-        // 해당 회원 정보 조회
-        return memberRepository.findByMail(usernameFromToken)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with memberName: " + usernameFromToken));
-    }
 
     public ProjectDto convertToDto(Project project) {
 
@@ -92,7 +85,7 @@ public class ProjectService {
 
     public List<ProjectDto> getProjectList(String token) {
 
-        Member member = getMemberByToken(token);
+        Member member = tokenService.getMemberByToken(token);
 
         // 멤버 정보를 통해 참여 정보 조회
         List<JoinMember> joinMembers = joinMemberRepository.findByMember(member);
@@ -178,7 +171,7 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
 
-        Member memberByToken = getMemberByToken(token);
+        Member memberByToken = tokenService.getMemberByToken(token);
         JoinMember member = joinMemberRepository.findByMember_MemberIdAndProject_ProjectId(memberByToken.getMemberId(),
             projectId);
         member.setHost(false);
