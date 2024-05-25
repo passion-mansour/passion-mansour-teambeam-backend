@@ -200,7 +200,7 @@ public class MemberService {
     public boolean resetPassword(String token, String newPassword) {
 
         if (redisTokenService.isTrue(token)) {
-            Member member = getMemberByToken(token);
+            Member member = tokenService.getMemberByToken(token);
             member.setPassword(passwordEncoder.encode(newPassword));
             redisTokenService.deleteResetToken(token);
 
@@ -212,19 +212,9 @@ public class MemberService {
     }
 
     public MemberDto getMember(String token) {
-        Member member = getMemberByToken(token);
+        Member member = tokenService.getMemberByToken(token);
 
         return convertToDto(member);
-    }
-
-    private Member getMemberByToken(String token) {
-        // 토큰에서 회원 메일 추출
-        String usernameFromToken = tokenService.getUsernameFromToken(token);
-
-        // 해당 회원 정보 조회
-        return memberRepository.findByMail(usernameFromToken)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with memberName: " + usernameFromToken));
-
     }
 
     @Transactional
@@ -235,7 +225,7 @@ public class MemberService {
 
     @Transactional
     public void updatePassword(String token, UpdatePasswordRequest request) {
-        Member member = getMemberByToken(token);
+        Member member = tokenService.getMemberByToken(token);
 
         if (!passwordEncoder.matches(request.getOldPassword(), member.getPassword())) {
             throw new BadCredentialsException("Invalid credentials provided");
@@ -249,7 +239,7 @@ public class MemberService {
     @Transactional
     public MemberDto updateMember(String token, UpdateMemberRequest request) {
 
-        Member member = getMemberByToken(token);
+        Member member = tokenService.getMemberByToken(token);
 
         // 프로필 이미지가 제공된 경우 업데이트
         if (request.getProfileImage() != null) {
@@ -300,7 +290,7 @@ public class MemberService {
             throw new UserAlreadyExistsException("Mail already exists");
         }
 
-        Member member = getMemberByToken(token);
+        Member member = tokenService.getMemberByToken(token);
 
         String subject = "메일 주소 변경";
         String text = "메일 주소를 변경";

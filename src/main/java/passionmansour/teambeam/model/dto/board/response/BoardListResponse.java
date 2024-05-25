@@ -13,11 +13,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BoardListResponse {
-    List<BoardResponse> boardResponses = new ArrayList<>();
+    private List<BoardResponse> boardResponses = new ArrayList<>();;
 
     public BoardListResponse form(List<BoardResponse> boardResponses){
-        return BoardListResponse.builder()
-                .boardResponses(boardResponses)
-                .build();
+        this.setBoardResponses(boardResponses);
+        return this;
     }
 }

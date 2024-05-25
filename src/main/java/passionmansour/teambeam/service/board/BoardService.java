@@ -38,6 +38,11 @@ public class BoardService {
         return new BoardResponse().form(boardRepository.save(board));
     }
 
+    @Transactional
+    public void deleteBookmark(String token, Long postId){
+        // TODO: 기능 구현
+    }
+
     @Transactional(readOnly = true)
     public BoardResponse getBoardById(Long boardId){
         Optional<Board> board = boardRepository.findById(boardId);

@@ -25,9 +25,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional
 public class PostCommentService {
+    private final JwtTokenService jwtTokenService;
     private final PostRepository postRepository;
     private final PostCommentRepository postCommentRepository;
-    private final MemberService memberService;
 
     @Transactional
     public PostCommentResponse createPostComment(String token, PostPostCommentRequest postPostCommentRequest) {
@@ -39,7 +39,7 @@ public class PostCommentService {
         PostComment postComment = PostComment.builder()
                 .postCommentContent(postPostCommentRequest.getContent())
                 .createDate(LocalDateTime.now())
-                .member(memberService.getMemberByToken(token))
+                .member(jwtTokenService.getMemberByToken(token))
                 .post(post.get())
                 .build();
 
@@ -58,9 +58,14 @@ public class PostCommentService {
         return new PostCommentResponse().form(postCommentRepository.save(postComment));
     }
 
+    @Transactional
+    public void deleteComment(Long postCommentId){
+        // TODO: 기능 구현
+    }
+
     @Transactional(readOnly = true)
-    public PostComment getById(Long postId) {
-        Optional<PostComment> postComment = postCommentRepository.findById(postId);
+    public PostComment getById(Long postCommentId) {
+        Optional<PostComment> postComment = postCommentRepository.findById(postCommentId);
         if(postComment.isEmpty()){
             // TODO: 예외처리
         }

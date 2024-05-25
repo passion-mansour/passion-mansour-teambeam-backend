@@ -48,7 +48,7 @@ public class PostService {
                 .postContent(postPostRequest.getContent())
                 .postType(postPostRequest.getPostType())
                 .createDate(LocalDateTime.now())
-                .member(jwtTokenService.get(token))
+                .member(jwtTokenService.getMemberByToken(token))
                 .project(project.get())
                 .board(board.get())
                 // TODO: tag 서비스 필요
@@ -73,6 +73,11 @@ public class PostService {
 //        post.setPostTags();
 
         return new PostResponse().form(postRepository.save(post));
+    }
+
+    @Transactional
+    public void deletePost(Long postId){
+        // TODO: 기능 구현
     }
 
     @Transactional(readOnly = true)

@@ -10,7 +10,6 @@ import passionmansour.teambeam.model.enums.PostType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Data
@@ -26,11 +25,13 @@ public class PostResponse {
     private LocalDateTime createDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime updateDate;
-    private Member member;
-    private Project project;
-    private Board board;
-    private List<PostTag> postTags = new ArrayList<>();
-    private List<PostComment> postComments = new ArrayList<>();
+    private Long memberId;
+    private String memberName;
+    private Long projectId;
+    private Long boardId;
+    private String boardName;
+    private List<PostTag> postTags = new ArrayList<>();;
+    private List<PostCommentResponse> postComments = new ArrayList<>();;
 
     public PostResponse form(Post post){
         return PostResponse.builder()
@@ -40,11 +41,13 @@ public class PostResponse {
                 .postType(post.getPostType())
                 .createDate(post.getCreateDate())
                 .updateDate(post.getUpdateDate())
-                .member(post.getMember())
-                .project(post.getProject())
-                .board(post.getBoard())
+                .memberId(post.getMember().getMemberId())
+                .memberName(post.getMember().getMemberName())
+                .projectId(post.getProject().getProjectId())
+                .boardId(post.getBoard().getBoardId())
+                .boardName(post.getBoard().getBoardName())
                 .postTags(post.getPostTags())
-                .postComments(post.getPostComments())
+                .postComments(new PostCommentListResponse().entityToForm(post.getPostComments()).getPostCommentResponseList())
                 .build();
     }
 }

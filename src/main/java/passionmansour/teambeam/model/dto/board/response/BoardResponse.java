@@ -5,10 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import passionmansour.teambeam.model.entity.Board;
-import passionmansour.teambeam.model.entity.Post;
-import passionmansour.teambeam.model.entity.Project;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -18,15 +15,15 @@ import java.util.List;
 public class BoardResponse {
     private Long boardId;
     private String name;
-    private Project project;
-    private List<Post> posts = new ArrayList<>();
+    private Long projectId;
+    private List<PostResponse> posts;
 
     public BoardResponse form(Board board){
         return BoardResponse.builder()
                 .boardId(board.getBoardId())
                 .name(board.getBoardName())
-                .project(board.getProject())
-                .posts(board.getPosts())
+                .projectId(board.getProject().getProjectId())
+                .posts(new PostListResponse().entityToForm(board.getPosts()).getPostResponses())
                 .build();
     }
 }

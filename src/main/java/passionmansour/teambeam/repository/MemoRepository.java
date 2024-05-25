@@ -8,6 +8,6 @@ import passionmansour.teambeam.model.entity.Memo;
 import java.util.List;
 
 public interface MemoRepository extends JpaRepository<Memo, Long> {
-    @Query("SELECT m FROM Memo m WHERE m.memberId IN :memberId")
+    @Query("SELECT m FROM Memo m WHERE m.member.memberId IN :memberId")
     List<Memo> findAllByMemberId(@Param("memberId") Long memberId);
 }

@@ -10,9 +10,11 @@ import passionmansour.teambeam.model.dto.board.response.BookmarkResponse;
 import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.model.entity.Bookmark;
+import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.repository.BookmarkRepository;
 import passionmansour.teambeam.repository.PostRepository;
+import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.awt.print.Book;
 import java.util.ArrayList;
@@ -25,9 +27,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class BookmarkService {
+    private final JwtTokenService jwtTokenService;
     private final BookmarkRepository bookmarkRepository;
     private final PostRepository postRepository;
-    private final MemberService memberService;
 
     @Transactional
     public BookmarkResponse saveBookmark(String token, Long postId){
@@ -37,7 +39,7 @@ public class BookmarkService {
         }
 
         Bookmark bookmark = Bookmark.builder()
-                .member(memberService.getMemberByToken(token))
+                .member(jwtTokenService.getMemberByToken(token))
                 .post(post.get())
                 .build();
 
@@ -46,15 +48,34 @@ public class BookmarkService {
 
     @Transactional
     public void deleteBookmark(String token, Long postId){
+        // TODO: 기능 구현
+    }
 
+    @Transactional(readOnly = true)
+    public Bookmark findById(Long bookmarkId){
+        Optional<Bookmark> bookmark = bookmarkRepository.findById(bookmarkId);
+        if(bookmark.isEmpty()){
+            // TODO: 예외 처리
+        }
+
+        return bookmark.get();
+    }
+
+    public PostResponse sendToPost(Long bookmarkId){
+        Optional<Bookmark> bookmark = bookmarkRepository.findById(bookmarkId);
+        if(bookmark.isEmpty()){
+            // TODO: 예외 처리
+        }
+
+        return new PostResponse().form(bookmark.get().getPost());
     }
 
     @Transactional(readOnly = true)
     public BookmarkListResponse findAllByToken(String token){
+        Member member = jwtTokenService.getMemberByToken(token);
         List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
 
-        // 각각의 태그가 속한 모든 북마크 조회
-        for(Bookmark bookmark : bookmarkRepository.findAllByMemberId(memberService.getMemberByToken(token).getMemberId())){
+        for(Bookmark bookmark : member.getBookmarks()){
             bookmarkResponses.add(new BookmarkResponse().form(bookmark));
         }
 
@@ -67,7 +88,7 @@ public class BookmarkService {
 
         // 각각의 태그가 속한 모든 북마크 조회
         for(Long tagId : tagIds){
-            for(Bookmark bookmark : bookmarkRepository.findAllByTag(memberService.getMemberByToken(token).getMemberId(), tagId))
+            for(Bookmark bookmark : bookmarkRepository.findAllByTag(jwtTokenService.getMemberByToken(token).getMemberId(), tagId))
                 bookmarkResponses.add(new BookmarkResponse().form(bookmark));
         }
 

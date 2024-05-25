@@ -5,10 +5,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import passionmansour.teambeam.model.entity.Member;
+import passionmansour.teambeam.repository.MemberRepository;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -17,8 +21,11 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class JwtTokenService {
+
+    private final MemberRepository memberRepository;
 
     @Value("${jwt.secret}")
     private String secret;
@@ -118,5 +125,15 @@ public class JwtTokenService {
     public Long getProjectIdFromToken(String token) {
         Claims claims = decodeToken(token);
         return claims.get("projectId", Long.class);
+    }
+
+    // 토큰에서 추출한 메일로 멤버 조회
+    public Member getMemberByToken(String token) {
+        // 토큰에서 회원 메일 확인
+        String usernameFromToken = getUsernameFromToken(token);
+
+        // 해당 회원 정보 조회
+        return memberRepository.findByMail(usernameFromToken)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with memberName: " + usernameFromToken));
     }
 }

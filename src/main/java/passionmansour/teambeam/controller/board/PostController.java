@@ -49,13 +49,14 @@ public class PostController {
 
     // 제목으로 게시물 조회
     @GetMapping("/title")
-    public ResponseEntity<PostResponse> getPostByTitle(@PathVariable("title") String title){
+    public ResponseEntity<PostResponse> getPostByTitle(@RequestParam("title") String title){
         return ResponseEntity.ok(postService.getByTitle(title));
     }
 
+
     // 태그들로 게시물들 조회
-    @GetMapping("/tags")
-    public ResponseEntity<PostListResponse> getPostsByTags(@PathVariable("postId") List<Long> tags){
+    @GetMapping("/tags/{tags}")
+    public ResponseEntity<PostListResponse> getPostsByTags(@PathVariable("tags") List<Long> tags){
         return ResponseEntity.ok(postService.getAllByTags(tags));
     }
 
