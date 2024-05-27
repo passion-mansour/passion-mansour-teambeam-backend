@@ -39,9 +39,9 @@ public class Schedule {
     @JoinColumn(name = "calendarId")
     private Calendar calendar;
 
-    @OneToMany(mappedBy = "schedule")
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ScheduleMember> scheduleMembers = new ArrayList<>();
 
-    @OneToMany(mappedBy = "schedule")
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ScheduleTag> scheduleTags = new ArrayList<>();
 }
