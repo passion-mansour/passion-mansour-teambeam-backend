@@ -236,7 +236,7 @@ public class ProjectService {
 
         // 메일로 멤버 조회
         Optional<Member> member = memberRepository.findByMail(mail);
-        log.info("mail {}", mail);
+        log.info("member {}", member);
 
         // 회원
         if (member.isPresent()) {
@@ -265,13 +265,12 @@ public class ProjectService {
             return response;
         }
         // 비회원
-        else {
-            TokenAuthenticationResponse response = new TokenAuthenticationResponse();
-            response.setMessage("Membership registration required");
-            response.setMember(false);
-            response.setToken(token);
+        TokenAuthenticationResponse response = new TokenAuthenticationResponse();
+        response.setMessage("Membership registration required");
+        response.setMember(false);
+        response.setToken(token);
 
-            return response;
-        }
+        return response;
+
     }
 }
