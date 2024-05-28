@@ -7,7 +7,6 @@ import org.springframework.mail.MailAuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import passionmansour.teambeam.execption.member.InvalidTokenException;
 import passionmansour.teambeam.model.dto.project.ProjectDto;
 import passionmansour.teambeam.model.dto.project.ProjectJoinMemberDto;
 import passionmansour.teambeam.model.dto.project.request.LinkRequest;
@@ -20,9 +19,9 @@ import passionmansour.teambeam.model.enums.ProjectStatus;
 import passionmansour.teambeam.repository.*;
 import passionmansour.teambeam.service.mail.EmailService;
 import passionmansour.teambeam.service.security.JwtTokenService;
+import passionmansour.teambeam.service.security.RedisTokenService;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,13 +37,13 @@ public class ProjectService {
     private final JwtTokenService tokenService;
     private final JoinMemberRepository joinMemberRepository;
     private final TagRepository tagRepository;
-    private final VerificationRepository verificationRepository;
     private final EmailService emailService;
+    private final RedisTokenService redisTokenService;
 
     @Transactional
     public ProjectDto createProject(String token, ProjectDto projectDto) {
 
-        Member member = getMemberByToken(token);
+        Member member = tokenService.getMemberByToken(token);
 
         // 프로젝트 생성
         Project project = new Project();
@@ -52,6 +51,13 @@ public class ProjectService {
         project.setDescription(projectDto.getDescription());
         project.setProjectStatus(ProjectStatus.PROGRESS);
         project.setCreateDate(LocalDateTime.now());
+
+        //캘린더 생성 알고리즘
+        Calendar calendar = new Calendar();
+        project.setCalendar(calendar);
+
+        //기본 투두리스트 생성
+
 
         Project savedProject = projectRepository.save(project);
 
@@ -71,14 +77,7 @@ public class ProjectService {
         return converted;
     }
 
-    private Member getMemberByToken(String token) {
-        // 토큰에서 회원 이름 확인
-        String usernameFromToken = tokenService.getUsernameFromToken(token);
 
-        // 해당 회원 정보 조회
-        return memberRepository.findByMemberName(usernameFromToken)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with memberName: " + usernameFromToken));
-    }
 
     public ProjectDto convertToDto(Project project) {
 
@@ -93,12 +92,12 @@ public class ProjectService {
 
     public List<ProjectDto> getProjectList(String token) {
 
-        Member member = getMemberByToken(token);
+        Member member = tokenService.getMemberByToken(token);
 
         // 멤버 정보를 통해 참여 정보 조회
         List<JoinMember> joinMembers = joinMemberRepository.findByMember(member);
 
-        //
+        // 멤버의 참여 프로젝트 조회
         List<Project> projects = joinMembers.stream()
             .map(JoinMember::getProject)
             .toList();
@@ -179,8 +178,9 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
 
-        Member memberByToken = getMemberByToken(token);
-        JoinMember member = joinMemberRepository.findByMember_MemberIdAndProject_ProjectId(memberByToken.getMemberId(), projectId);
+        Member memberByToken = tokenService.getMemberByToken(token);
+        JoinMember member = joinMemberRepository.findByMember_MemberIdAndProject_ProjectId(memberByToken.getMemberId(),
+            projectId);
         member.setHost(false);
 
         JoinMember target = joinMemberRepository.findByMember_MemberIdAndProject_ProjectId(memberId, projectId);
@@ -199,7 +199,8 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
 
-        JoinMember joinMember = joinMemberRepository.findByMember_MemberIdAndProject_ProjectId(request.getMemberId(), projectId);
+        JoinMember joinMember = joinMemberRepository.findByMember_MemberIdAndProject_ProjectId(request.getMemberId(),
+            projectId);
         joinMemberRepository.delete(joinMember);
     }
 
@@ -208,24 +209,20 @@ public class ProjectService {
         Project project = projectRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
 
+        // 인증 정보 생성, 저장
         String token = tokenService.generateInvitationToken(request.getMail(), id);
 
-        // 인증 정보 생성
-        Verification verification = new Verification();
-        verification.setToken(token);
-        verification.setExpiredDate(tokenService.getExpirationDateFromToken(token)
-            .toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        redisTokenService.storeInvitationToken(request.getMail(), token);
 
-        log.info("Token: {}", verification.getToken());
-        log.info("Expired Date: {}", verification.getExpiredDate());
-        verificationRepository.save(verification);
+        log.info("token {}", token);
 
         // 초대 링크 생성
-        String resetLink = "http://localhost:3000/accept-invitation?token=" + token;
+        String resetLink = "http://34.22.108.250:8080/accept-invitation?token=" + token;
         // 메일 전송
         try {
             emailService.sendEmail(request.getMail(), "프로젝트 초대",
-                "안녕하세요,\n\n프로젝트에 참가하려면 아래 링크를 클릭하세요:\n\n" + resetLink + "\n\n김시합니다.");
+                "안녕하세요,\n\n프로젝트에 참가하려면 아래 링크를 클릭하세요:\n\n" + resetLink
+                    + "\n\n링크는 24시간 후에 만료됩니다.\n\n" + "\n\n김시합니다.");
             return resetLink;
         } catch (MailAuthenticationException e) {
             log.error("Mail authentication failed: {}", e.getMessage());
@@ -239,16 +236,21 @@ public class ProjectService {
 
     @Transactional
     public TokenAuthenticationResponse tokenAuthentication(String token) {
-        Verification verification = verificationRepository.findByToken(token)
-            .orElseThrow(() -> new InvalidTokenException("Authentication failed"));
 
-        Optional<Member> member = memberRepository.findByMail(tokenService.getUsernameFromToken(token));
-        log.info("mail {}", tokenService.getUsernameFromToken(token));
+        // 토큰에서 메일 추출
+        String mail = redisTokenService.getMailByToken(token);
+        log.info("redisTokenService.getMailByToken(token) {}", mail);
+
+        // 메일로 멤버 조회
+        Optional<Member> member = memberRepository.findByMail(mail);
+        log.info("member {}", member);
 
         // 회원
         if (member.isPresent()) {
+            // 토큰에서 프로젝트 아이디 추출
             Long projectIdFromToken = tokenService.getProjectIdFromToken(token);
 
+            // 해당 프로젝트 조회
             Project project = projectRepository.findByProjectId(projectIdFromToken)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectIdFromToken));
 
@@ -265,16 +267,17 @@ public class ProjectService {
             response.setMessage("Successful Project Participation");
             response.setMember(true);
 
-            return response;
-        }
-        // 비회원
-        else {
-            TokenAuthenticationResponse response = new TokenAuthenticationResponse();
-            response.setMessage("Membership registration required");
-            response.setMember(false);
-            response.setToken(token);
+            redisTokenService.deleteInvitationToken(token);
 
             return response;
         }
+        // 비회원
+        TokenAuthenticationResponse response = new TokenAuthenticationResponse();
+        response.setMessage("Membership registration required");
+        response.setMember(false);
+        response.setToken(token);
+
+        return response;
+
     }
 }

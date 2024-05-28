@@ -60,8 +60,8 @@ public class ScheduleService {
                 .map(schedule -> convertSchedule.convertSchedule(schedule))
                 .collect(Collectors.toList());
 
-        List<TopTodoDTO> topTodos = topTodoRepository.findTopTodosByMonth(project, startDate, endDate).stream()
-                .map(topTodo -> convertTodoService.convertToDto(topTodo))
+        List<ScheduleTopTodoDTO> topTodos = topTodoRepository.findTopTodosByMonth(project, startDate, endDate).stream()
+                .map(topTodo -> convertSchedule.convertTopTodo(topTodo))
                 .collect(Collectors.toList());
 
         return new GetCalendarResponse("200", topTodos, schedules);

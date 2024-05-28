@@ -23,9 +23,9 @@ public class InvitationController {
         log.info("response {}", response);
         
         if (response.isMember()) {
-            return "redirect:http://localhost:3000/login";
+            return "redirect:http://localhost:3000/user/login";
         } else {
-            return "redirect:http://localhost:3000/signup?token=" + response.getToken();
+            return "redirect:http://localhost:3000/user/join?token=" + response.getToken();
         }
     }
 

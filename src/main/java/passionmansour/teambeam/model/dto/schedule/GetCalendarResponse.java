@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class GetCalendarResponse {
     private String status;
-    private List<TopTodoDTO> topTodos;
+    private List<ScheduleTopTodoDTO> topTodos;
     private List<ScheduleDTO> schedules;
 
 }

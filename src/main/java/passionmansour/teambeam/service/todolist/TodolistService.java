@@ -89,6 +89,7 @@ public class TodolistService {
         topTodo.setProject(projectOptional.get());
         topTodo.setStartDate(request.getStartDate());
         topTodo.setEndDate(request.getEndDate());
+        topTodo.setCalendar(projectOptional.get().getCalendar());
 
         return convertTodoService.convertToDto(topTodoRepository.save(topTodo));
     }
@@ -144,7 +145,7 @@ public class TodolistService {
     }
 
     @Transactional
-    public TopTodo updateTopTodo(Long projectId, Long topTodoId, PatchTopTodoRequest request) {
+    public TopTodoDTO updateTopTodo(Long projectId, Long topTodoId, PatchTopTodoRequest request) {
         TopTodo topTodo = topTodoRepository.findById(topTodoId)
                 .orElseThrow(() -> new RuntimeException("TopTodo 찾지 못했습니다."));
         if (request.getTitle() != null) {
@@ -159,11 +160,11 @@ public class TodolistService {
         if (request.getEndDate() != null) {
             topTodo.setEndDate(request.getEndDate());
         }
-        return topTodoRepository.save(topTodo);
+        return convertTodoService.convertToDto(topTodoRepository.save(topTodo));
     }
 
     @Transactional
-    public MiddleTodo updateMiddleTodo(Long projectId, Long middleTodoId, PatchMiddleTodoRequest request) {
+    public MiddleTodoDTO updateMiddleTodo(Long projectId, Long middleTodoId, PatchMiddleTodoRequest request) {
         MiddleTodo middleTodo = middleTodoRepository.findById(middleTodoId)
                 .orElseThrow(() -> new RuntimeException("MiddleTodo 찾지 못했습니다."));
         if (request.getTitle() != null) {
@@ -178,11 +179,11 @@ public class TodolistService {
         if (request.getEndDate() != null) {
             middleTodo.setEndDate(request.getEndDate());
         }
-        return middleTodoRepository.save(middleTodo);
+        return convertTodoService.convertToDto(middleTodoRepository.save(middleTodo),middleTodo.getTopTodo().getTopTodoId());
     }
 
     @Transactional
-    public BottomTodo updateBottomTodo(Long projectId, Long bottomTodoId, PatchBottomTodoRequest request) {
+    public BottomTodoDTO updateBottomTodo(Long projectId, Long bottomTodoId, PatchBottomTodoRequest request) {
         BottomTodo bottomTodo = bottomTodoRepository.findById(bottomTodoId)
                 .orElseThrow(() -> new RuntimeException("BottomTodo 찾지 못했습니다."));
         if (request.getTitle() != null) {
@@ -204,7 +205,9 @@ public class TodolistService {
             }
             bottomTodo.setMember(memberOptional.get());
         }
-        return bottomTodoRepository.save(bottomTodo);
+        return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
+                bottomTodo.getMiddleTodo().getTopTodo().getTopTodoId(),
+                bottomTodo.getMiddleTodo().getMiddleTodoId());
     }
 
     @Transactional
@@ -221,6 +224,5 @@ public class TodolistService {
     public void deleteBottomTodo(Long bottomTodoId) {
         bottomTodoRepository.deleteById(bottomTodoId);
     }
-
 
 }
