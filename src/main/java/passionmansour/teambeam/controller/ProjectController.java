@@ -22,7 +22,6 @@ import passionmansour.teambeam.model.dto.project.request.UpdateProjectRequest;
 import passionmansour.teambeam.model.dto.project.request.UpdateRoleRequest;
 import passionmansour.teambeam.model.dto.project.response.ProjectJoinMemberResponse;
 import passionmansour.teambeam.model.dto.project.response.ProjectResponse;
-import passionmansour.teambeam.model.dto.project.response.TokenAuthenticationResponse;
 import passionmansour.teambeam.service.ProjectService;
 
 import java.util.HashMap;
