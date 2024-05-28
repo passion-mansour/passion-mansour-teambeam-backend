@@ -52,6 +52,13 @@ public class ProjectService {
         project.setProjectStatus(ProjectStatus.PROGRESS);
         project.setCreateDate(LocalDateTime.now());
 
+        //캘린더 생성 알고리즘
+        Calendar calendar = new Calendar();
+        project.setCalendar(calendar);
+
+        //기본 투두리스트 생성
+
+
         Project savedProject = projectRepository.save(project);
 
         // 참여 회원 생성
@@ -236,7 +243,7 @@ public class ProjectService {
 
         // 메일로 멤버 조회
         Optional<Member> member = memberRepository.findByMail(mail);
-        log.info("mail {}", mail);
+        log.info("member {}", member);
 
         // 회원
         if (member.isPresent()) {
@@ -265,13 +272,12 @@ public class ProjectService {
             return response;
         }
         // 비회원
-        else {
-            TokenAuthenticationResponse response = new TokenAuthenticationResponse();
-            response.setMessage("Membership registration required");
-            response.setMember(false);
-            response.setToken(token);
+        TokenAuthenticationResponse response = new TokenAuthenticationResponse();
+        response.setMessage("Membership registration required");
+        response.setMember(false);
+        response.setToken(token);
 
-            return response;
-        }
+        return response;
+
     }
 }

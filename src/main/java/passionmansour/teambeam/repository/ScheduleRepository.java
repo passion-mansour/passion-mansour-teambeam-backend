@@ -17,4 +17,7 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     @Query("SELECT s FROM Schedule s WHERE s.calendar.calendarId = :calendarId AND s.scheduleTime BETWEEN :startDate AND :endDate")
     List<Schedule> findSchedulesBetweenDates(Long calendarId, LocalDateTime startDate, LocalDateTime endDate);
 
+    @Query("SELECT s FROM Schedule s WHERE s.calendar IN :calendars AND YEAR(s.scheduleTime) = :year AND MONTH(s.scheduleTime) = :month")
+    List<Schedule> findSchedulesByCalendarIdsAndYearAndMonth(@Param("calendars") List<Calendar> calendars, @Param("year") int year, @Param("month") int month);
+
 }
