@@ -52,6 +52,13 @@ public class ProjectService {
         project.setProjectStatus(ProjectStatus.PROGRESS);
         project.setCreateDate(LocalDateTime.now());
 
+        //캘린더 생성 알고리즘
+        Calendar calendar = new Calendar();
+        project.setCalendar(calendar);
+
+        //기본 투두리스트 생성
+
+
         Project savedProject = projectRepository.save(project);
 
         // 참여 회원 생성
