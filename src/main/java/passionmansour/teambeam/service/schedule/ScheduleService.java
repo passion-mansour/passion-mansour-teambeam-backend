@@ -40,7 +40,7 @@ public class ScheduleService {
     @Autowired
     private ConvertTodoService convertTodoService;
 
-    public GetCalendarResponse getMonthCalendar(Long projectId,int year, int month){
+    public GetCalendarResponse getMonthCalendar(Long projectId){
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
@@ -49,19 +49,27 @@ public class ScheduleService {
             throw new RuntimeException("Calendar not found for the project");
         }
 
-        LocalDate startDate = LocalDate.of(year, month, 1);
-        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+//        LocalDate startDate = LocalDate.of(year, month, 1);
+//        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+//        LocalDateTime startDateTime = startDate.atStartOfDay();
+//        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
 
         // Fetch schedules and top todos using queries
-        List<ScheduleDTO> schedules = scheduleRepository.findSchedulesBetweenDates(calendar.getCalendarId(), startDateTime, endDateTime)
-                .stream()
-                .map(schedule -> convertSchedule.convertSchedule(schedule))
-                .collect(Collectors.toList());
+//        List<ScheduleDTO> schedules = scheduleRepository.findSchedulesBetweenDates(calendar.getCalendarId(), startDateTime, endDateTime)
+//                .stream()
+//                .map(schedule -> convertSchedule.convertSchedule(schedule))
+//                .collect(Collectors.toList());
+//
+//        List<ScheduleTopTodoDTO> topTodos = topTodoRepository.findTopTodosByMonth(project, startDate, endDate).stream()
+//                .map(topTodo -> convertSchedule.convertTopTodo(topTodo))
+//                .collect(Collectors.toList());
 
-        List<ScheduleTopTodoDTO> topTodos = topTodoRepository.findTopTodosByMonth(project, startDate, endDate).stream()
-                .map(topTodo -> convertSchedule.convertTopTodo(topTodo))
+        List<ScheduleDTO> schedules = scheduleRepository.findScheduleByCalendar(calendar)
+                .stream()
+                .map(schedule -> convertSchedule.convertSchedule(schedule)).collect(Collectors.toList());
+        List<TopTodo> todos = topTodoRepository.findTopTodosByCalendar(calendar);
+
+        List<ScheduleTopTodoDTO> topTodos = todos.stream().map(topTodo -> convertSchedule.convertTopTodo(topTodo))
                 .collect(Collectors.toList());
 
         return new GetCalendarResponse("200", topTodos, schedules);
