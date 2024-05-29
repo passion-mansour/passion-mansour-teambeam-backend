@@ -2,12 +2,11 @@ package passionmansour.teambeam.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import passionmansour.teambeam.model.dto.Tag.request.PostTagRequest;
-import passionmansour.teambeam.model.dto.Tag.response.TagListResponse;
-import passionmansour.teambeam.model.dto.Tag.response.TagResponse;
+import passionmansour.teambeam.model.dto.tag.request.PostTagRequest;
+import passionmansour.teambeam.model.dto.tag.response.TagListResponse;
+import passionmansour.teambeam.model.dto.tag.response.TagResponse;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.model.enums.TagCategory;
 import passionmansour.teambeam.repository.*;

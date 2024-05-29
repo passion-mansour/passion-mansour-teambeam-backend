@@ -1,9 +1,8 @@
-package passionmansour.teambeam.model.dto.Tag.response;
+package passionmansour.teambeam.model.dto.tag.response;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.model.entity.Tag;
 import passionmansour.teambeam.model.enums.TagCategory;
 

@@ -1,13 +1,10 @@
-package passionmansour.teambeam.model.dto.Memo.response;
+package passionmansour.teambeam.model.dto.memo.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import passionmansour.teambeam.model.dto.board.response.PostListResponse;
-import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.model.entity.Memo;
-import passionmansour.teambeam.model.entity.Post;
 
 import java.util.ArrayList;
 import java.util.List;
