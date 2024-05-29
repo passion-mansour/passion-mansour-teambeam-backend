@@ -38,6 +38,6 @@ public class BottomTodo {
     @JoinColumn(name = "middleTodoId")
     private MiddleTodo middleTodo;
 
-    @OneToMany(mappedBy = "bottomTodo")
+    @OneToMany(mappedBy = "todo")
     private List<TodoTag> todoTags = new ArrayList<>();
 }

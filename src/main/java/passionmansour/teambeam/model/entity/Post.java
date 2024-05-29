@@ -27,6 +27,7 @@ public class Post {
     @Lob
     private String postContent;
     private PostType postType;
+    private boolean notice;
 
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createDate;

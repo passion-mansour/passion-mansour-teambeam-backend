@@ -47,8 +47,8 @@ public class BookmarkService {
     }
 
     @Transactional
-    public void deleteBookmark(String token, Long postId){
-        // TODO: 기능 구현
+    public void deleteBookmark(Long bookmarkId){
+
     }
 
     @Transactional(readOnly = true)
@@ -83,20 +83,9 @@ public class BookmarkService {
     }
 
     @Transactional(readOnly = true)
-    public BookmarkListResponse findAllByTag(String token, List<Long> tagIds){
-        List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
+    public BookmarkListResponse getAllByTags(String token, List<Long> tagIds){
+        Member member = jwtTokenService.getMemberByToken(token);
 
-        // 각각의 태그가 속한 모든 북마크 조회
-        for(Long tagId : tagIds){
-            for(Bookmark bookmark : bookmarkRepository.findAllByTag(jwtTokenService.getMemberByToken(token).getMemberId(), tagId))
-                bookmarkResponses.add(new BookmarkResponse().form(bookmark));
-        }
-
-        // 중복 제거
-        List<BookmarkResponse> distinctBookmarkResponses = bookmarkResponses.stream()
-                .distinct()
-                .collect(Collectors.toList());
-
-        return new BookmarkListResponse().form(distinctBookmarkResponses);
+        return new BookmarkListResponse().entityToForm(bookmarkRepository.findAllByTagIds(member.getMemberId(), tagIds, tagIds.size()));
     }
 }

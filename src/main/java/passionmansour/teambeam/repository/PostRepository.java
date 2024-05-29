@@ -16,8 +16,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.postTitle = :postTitle")
     Optional<Post> findByTitle(String title);
 
-    @Query("SELECT p FROM Post p JOIN p.postTags t WHERE t.postTagId IN :postTagId")
-    List<Post> findAllByTag(@Param("postTagId") Long tagId);
+    @Query(value = "SELECT p.* " +
+            "FROM Post p " +
+            "JOIN Post_Tag pt ON p.post_Id = pt.post_Id " +
+            "WHERE pt.tag_Id IN (:tagIds) " +
+            "GROUP BY p.post_Id " +
+            "HAVING COUNT(DISTINCT pt.tag_Id) = :tagCount",
+            nativeQuery = true)
+    List<Post> findAllByTagIds(@Param("tagIds") List<Long> tagIds, @Param("tagCount") int tagCount);
 
     @Query("SELECT p FROM Post p WHERE p.board.boardId = :boardId")
     List<Post> findAllByBoardId(@Param("boardId") Long boardId);

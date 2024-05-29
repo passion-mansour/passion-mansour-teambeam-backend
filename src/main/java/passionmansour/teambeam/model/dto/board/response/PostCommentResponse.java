@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import passionmansour.teambeam.model.dto.member.response.CreatorInfoResponse;
+import passionmansour.teambeam.model.dto.member.response.MemberInformationResponse;
 import passionmansour.teambeam.model.entity.PostComment;
 
 import java.time.LocalDateTime;
@@ -22,8 +24,7 @@ public class PostCommentResponse {
     private LocalDateTime updateDate;
     private Long postId;
     private String postTitle;
-    private Long memberId;
-    private String memberName;
+    private CreatorInfoResponse member;
 
     public PostCommentResponse form(PostComment comment){
         return PostCommentResponse.builder()
@@ -33,8 +34,7 @@ public class PostCommentResponse {
                 .updateDate(comment.getUpdateDate())
                 .postId(comment.getPost().getPostId())
                 .postTitle(comment.getPost().getPostTitle())
-                .memberId(comment.getMember().getMemberId())
-                .memberName(comment.getMember().getMemberName())
+                .member(new CreatorInfoResponse().form(comment.getMember()))
                 .build();
     }
 }

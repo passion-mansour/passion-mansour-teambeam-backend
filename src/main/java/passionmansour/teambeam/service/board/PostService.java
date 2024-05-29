@@ -8,12 +8,11 @@ import passionmansour.teambeam.model.dto.board.request.PatchPostRequest;
 import passionmansour.teambeam.model.dto.board.request.PostPostRequest;
 import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
-import passionmansour.teambeam.model.entity.Board;
-import passionmansour.teambeam.model.entity.Post;
-import passionmansour.teambeam.model.entity.Project;
+import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.BoardRepository;
 import passionmansour.teambeam.repository.PostRepository;
 import passionmansour.teambeam.repository.ProjectRepository;
+import passionmansour.teambeam.service.TagService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
@@ -28,6 +27,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class PostService {
     private final JwtTokenService jwtTokenService;
+    private final TagService tagService;
     private final ProjectRepository projectRepository;
     private final BoardRepository boardRepository;
     private final PostRepository postRepository;
@@ -47,17 +47,23 @@ public class PostService {
                 .postTitle(postPostRequest.getTitle())
                 .postContent(postPostRequest.getContent())
                 .postType(postPostRequest.getPostType())
+                .notice(postPostRequest.isNotice())
                 .createDate(LocalDateTime.now())
                 .member(jwtTokenService.getMemberByToken(token))
                 .project(project.get())
                 .board(board.get())
-                // TODO: tag 서비스 필요
-//                .postTags(postPostRequest.getPostTagIds().stream()
-//                        .map()
-//                        .toList())
                 .build();
 
-        return new PostResponse().form(postRepository.save(post));
+        Post save = postRepository.save(post);
+
+        // tag 저장
+        List<PostTag> postTags = new ArrayList<>();
+        for (Long postTagId : postPostRequest.getPostTagIds()){
+            postTags.add(tagService.addPostTag(postTagId, save.getPostId()));
+        }
+        save.setPostTags(postTags);
+
+        return new PostResponse().form(save);
     }
 
     @Transactional
@@ -69,15 +75,20 @@ public class PostService {
         post.setPostContent(patchPostRequest.getContent());
         post.setPostType(patchPostRequest.getPostType());
         post.setUpdateDate(LocalDateTime.now());
-        // TODO: tag 서비스 필요
-//        post.setPostTags();
+
+        // tag 저장
+        List<PostTag> postTags = new ArrayList<>();
+        for (Long tagId : patchPostRequest.getPostTagIds()){
+            postTags.add(tagService.addPostTag(tagId, patchPostRequest.getPostId()));
+        }
+        post.setPostTags(postTags);
 
         return new PostResponse().form(postRepository.save(post));
     }
 
     @Transactional
     public void deletePost(Long postId){
-        // TODO: 기능 구현
+
     }
 
     @Transactional(readOnly = true)
@@ -102,30 +113,11 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public PostListResponse getAllByTags(List<Long> tagIds){
-        List<PostResponse> postResponses = new ArrayList<>();
-
-        // 각각의 태그가 속한 모든 게시물 조회
-        for(Long tagId : tagIds){
-            for(Post post : postRepository.findAllByTag(tagId))
-            postResponses.add(new PostResponse().form(post));
-        }
-
-        // 중복 제거
-        List<PostResponse> distinctPostResponses = postResponses.stream()
-                .distinct()
-                .collect(Collectors.toList());
-
-        return new PostListResponse(distinctPostResponses);
+        return new PostListResponse().entityToForm(postRepository.findAllByTagIds(tagIds, tagIds.size()));
     }
 
     @Transactional(readOnly = true)
     public PostListResponse getAllByBoardId(Long boardId){
-        List<PostResponse> postResponses = new ArrayList<>();
-
-        for (Post post : postRepository.findAllByBoardId(boardId)){
-            postResponses.add(new PostResponse().form(post));
-        }
-
-        return new PostListResponse().form(postResponses);
+        return new PostListResponse().entityToForm(postRepository.findAllByBoardId(boardId));
     }
 }

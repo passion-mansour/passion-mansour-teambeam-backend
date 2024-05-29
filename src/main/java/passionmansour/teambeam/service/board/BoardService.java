@@ -39,8 +39,8 @@ public class BoardService {
     }
 
     @Transactional
-    public void deleteBookmark(String token, Long postId){
-        // TODO: 기능 구현
+    public void deleteBoard(Long boardId){
+
     }
 
     @Transactional(readOnly = true)

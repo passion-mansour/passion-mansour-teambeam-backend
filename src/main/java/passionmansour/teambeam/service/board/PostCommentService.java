@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.model.dto.board.request.PatchPostCommentRequest;
 import passionmansour.teambeam.model.dto.board.request.PostPostCommentRequest;
+import passionmansour.teambeam.model.dto.board.response.PostCommentListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostCommentResponse;
 import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Post;
@@ -60,7 +61,7 @@ public class PostCommentService {
 
     @Transactional
     public void deleteComment(Long postCommentId){
-        // TODO: 기능 구현
+
     }
 
     @Transactional(readOnly = true)
@@ -74,13 +75,7 @@ public class PostCommentService {
     }
 
     @Transactional(readOnly = true)
-    public List<PostCommentResponse> getAllByPostId(Long postId) {
-        List<PostCommentResponse> postCommentResponses = new ArrayList<>();
-
-        for(PostComment postComment : postCommentRepository.getAllByPostId(postId)){
-            postCommentResponses.add(new PostCommentResponse().form(postComment));
-        }
-
-        return postCommentResponses;
+    public PostCommentListResponse getAllByPostId(Long postId) {
+        return new PostCommentListResponse().entityToForm(postCommentRepository.getAllByPostId(postId));
     }
 }

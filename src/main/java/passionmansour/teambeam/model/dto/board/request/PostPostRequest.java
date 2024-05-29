@@ -14,6 +14,7 @@ public class PostPostRequest {
     private String content;
     @NotNull
     private PostType postType;
+    private boolean notice;
     private Long memberId;
     private Long projectId;
     private Long boardId;

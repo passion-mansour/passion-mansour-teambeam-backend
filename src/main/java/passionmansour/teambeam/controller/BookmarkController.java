@@ -2,8 +2,8 @@ package passionmansour.teambeam.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import passionmansour.teambeam.model.dto.board.response.BookmarkListResponse;
@@ -11,7 +11,9 @@ import passionmansour.teambeam.model.dto.board.response.BookmarkResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.service.BookmarkService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Bookmark Controller", description = "북마크 관련 API입니다.")
 @RestController
@@ -28,7 +30,16 @@ public class BookmarkController {
         return ResponseEntity.ok(bookmarkService.saveBookmark(token, postId));
     }
 
-    // TODO: 북마크 삭제
+    // 북마크 삭제
+    @DeleteMapping("/{bookmarkId}")
+    public ResponseEntity<?> deleteBookmark(@PathVariable("bookmarkId") Long bookmarkId){
+        bookmarkService.deleteBookmark(bookmarkId);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Delete bookmark successfully");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
     // 북마크 상세조회
     @GetMapping("/{bookmarkId}")
@@ -39,8 +50,8 @@ public class BookmarkController {
     // 태그들로 북마크들 조회
     @GetMapping("/tags")
     public ResponseEntity<BookmarkListResponse> getBookmarksByTags(@RequestHeader("Authorization") String token,
-                                                                   @PathVariable("postId") List<Long> tags){
-        return ResponseEntity.ok(bookmarkService.findAllByTag(token, tags));
+                                                                   @RequestParam("tags") List<Long> tags){
+        return ResponseEntity.ok(bookmarkService.getAllByTags(token, tags));
     }
 
     // 유저 일련번호로 모든 북마크들 조회

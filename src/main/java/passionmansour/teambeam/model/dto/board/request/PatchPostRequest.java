@@ -15,5 +15,6 @@ public class PatchPostRequest {
     private String content;
     @NotNull
     private PostType postType;
+    private boolean notice;
     private List<Long> postTagIds = new ArrayList<>();
 }

@@ -4,15 +4,19 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import passionmansour.teambeam.model.dto.board.request.PatchPostRequest;
 import passionmansour.teambeam.model.dto.board.request.PostPostRequest;
 import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
+import passionmansour.teambeam.service.TagService;
 import passionmansour.teambeam.service.board.PostService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Post Controller", description = "게시물 관련 API입니다.")
 @RestController
@@ -21,6 +25,8 @@ import java.util.List;
 public class PostController {
     @Autowired
     public final PostService postService;
+    @Autowired
+    public final TagService tagService;
 
     // 게시물 생성
     @PostMapping("/")
@@ -30,7 +36,9 @@ public class PostController {
                                                    @Valid @RequestBody PostPostRequest postPostRequest){
         postPostRequest.setProjectId(projectId);
         postPostRequest.setBoardId(boardId);
-        return ResponseEntity.ok(postService.createPost(token, postPostRequest));
+        PostResponse postResponse = postService.createPost(token, postPostRequest);
+
+        return ResponseEntity.ok(postResponse);
     }
 
     // 게시물 업데이트
@@ -39,6 +47,17 @@ public class PostController {
                                                    @Valid @RequestBody PatchPostRequest patchPostRequest){
         patchPostRequest.setPostId(postId);
         return ResponseEntity.ok(postService.updatePost(patchPostRequest));
+    }
+
+    // 게시물 댓글 삭제
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<?> deletePost(@PathVariable("postId") Long postId){
+        postService.deletePost(postId);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Delete post successfully");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 일련번호로 게시물 조회
@@ -55,8 +74,8 @@ public class PostController {
 
 
     // 태그들로 게시물들 조회
-    @GetMapping("/tags/{tags}")
-    public ResponseEntity<PostListResponse> getPostsByTags(@PathVariable("tags") List<Long> tags){
+    @GetMapping("/tags")
+    public ResponseEntity<PostListResponse> getPostsByTags(@RequestParam("tags") List<Long> tags){
         return ResponseEntity.ok(postService.getAllByTags(tags));
     }
 
