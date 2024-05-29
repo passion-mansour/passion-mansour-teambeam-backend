@@ -136,5 +136,4 @@ public class JwtTokenService {
         return memberRepository.findByMail(usernameFromToken)
             .orElseThrow(() -> new UsernameNotFoundException("User not found with memberName: " + usernameFromToken));
     }
-
 }

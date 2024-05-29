@@ -11,6 +11,7 @@ import java.util.List;
 public class Calendar {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="calendarId")
     private Long calendarId;
 
     @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL)
@@ -19,7 +20,6 @@ public class Calendar {
     @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL)
     private List<TopTodo> topTodos = new ArrayList<>();
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "projectId")
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "calendar", cascade = CascadeType.ALL)
     private Project project;
 }
