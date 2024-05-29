@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import passionmansour.teambeam.model.enums.TagCategory;
 
 import java.util.ArrayList;
@@ -15,6 +17,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE tag SET is_deleted = true WHERE tag_id = ?")
+@SQLRestriction("is_deleted = false")
 public class Tag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,4 +42,6 @@ public class Tag {
 
     @OneToMany(mappedBy = "tag")
     private List<TodoTag> todoTags = new ArrayList<>();
+
+    private boolean is_deleted = false;
 }

@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -14,6 +16,8 @@ import java.util.Date;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE post_comment SET is_deleted = true WHERE post_comment_id = ?")
+@SQLRestriction("is_deleted = false")
 public class PostComment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,4 +40,6 @@ public class PostComment {
     @ManyToOne
     @JoinColumn(name = "postId")
     private Post post;
+
+    private boolean is_deleted = false;
 }

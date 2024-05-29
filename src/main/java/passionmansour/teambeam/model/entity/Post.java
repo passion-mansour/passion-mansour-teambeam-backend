@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import passionmansour.teambeam.model.enums.PostType;
 
 import java.time.LocalDateTime;
@@ -17,6 +19,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE post SET is_deleted = true WHERE post_id = ?")
+@SQLRestriction("is_deleted = false")
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,4 +56,6 @@ public class Post {
 
     @OneToMany(mappedBy = "post")
     private List<PostComment> postComments = new ArrayList<>();
+
+    private boolean is_deleted = false;
 }
