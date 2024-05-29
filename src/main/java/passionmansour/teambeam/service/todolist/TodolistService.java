@@ -89,6 +89,7 @@ public class TodolistService {
         topTodo.setProject(projectOptional.get());
         topTodo.setStartDate(request.getStartDate());
         topTodo.setEndDate(request.getEndDate());
+        topTodo.setCalendar(projectOptional.get().getCalendar());
 
         return convertTodoService.convertToDto(topTodoRepository.save(topTodo));
     }
@@ -223,6 +224,5 @@ public class TodolistService {
     public void deleteBottomTodo(Long bottomTodoId) {
         bottomTodoRepository.deleteById(bottomTodoId);
     }
-
 
 }
