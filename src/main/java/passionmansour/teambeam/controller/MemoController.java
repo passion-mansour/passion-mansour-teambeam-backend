@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import passionmansour.teambeam.model.dto.Memo.request.PatchMemoRequest;
-import passionmansour.teambeam.model.dto.Memo.request.PostMemoRequest;
-import passionmansour.teambeam.model.dto.Memo.response.MemoListResponse;
-import passionmansour.teambeam.model.dto.Memo.response.MemoResponse;
+import passionmansour.teambeam.model.dto.memo.request.PatchMemoRequest;
+import passionmansour.teambeam.model.dto.memo.request.PostMemoRequest;
+import passionmansour.teambeam.model.dto.memo.response.MemoListResponse;
+import passionmansour.teambeam.model.dto.memo.response.MemoResponse;
 import passionmansour.teambeam.service.MemoService;
 
 import java.util.HashMap;
