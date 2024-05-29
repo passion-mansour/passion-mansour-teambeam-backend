@@ -13,9 +13,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    @Query("SELECT p FROM Post p WHERE p.postTitle = :postTitle")
-    Optional<Post> findByTitle(String title);
-
     @Query(value = "SELECT p.* " +
             "FROM Post p " +
             "JOIN Post_Tag pt ON p.post_Id = pt.post_Id " +

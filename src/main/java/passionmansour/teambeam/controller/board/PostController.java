@@ -66,13 +66,6 @@ public class PostController {
         return ResponseEntity.ok(new PostResponse().form(postService.getById(postId)));
     }
 
-    // 제목으로 게시물 조회
-    @GetMapping("/title")
-    public ResponseEntity<PostResponse> getPostByTitle(@RequestParam("title") String title){
-        return ResponseEntity.ok(postService.getByTitle(title));
-    }
-
-
     // 태그들로 게시물들 조회
     @GetMapping("/tags")
     public ResponseEntity<PostListResponse> getPostsByTags(@RequestParam("tags") List<Long> tags){

@@ -102,16 +102,6 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PostResponse getByTitle(String postTitle){
-        Optional<Post> post = postRepository.findByTitle(postTitle);
-        if(post.isEmpty()){
-            //TODO: 예외처리
-        }
-
-        return new PostResponse().form(post.get());
-    }
-
-    @Transactional(readOnly = true)
     public PostListResponse getAllByTags(List<Long> tagIds){
         return new PostListResponse().entityToForm(postRepository.findAllByTagIds(tagIds, tagIds.size()));
     }
