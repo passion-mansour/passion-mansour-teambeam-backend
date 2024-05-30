@@ -74,11 +74,10 @@ public class ProjectService {
         BoardResponse board = boardService.createBoard(postBoardRequest);
 
         // 참여 회원 생성
-        JoinMember joinMember = JoinMember.builder()
-            .member(member)
-            .isHost(true)
-            .project(savedProject)
-            .build();
+        JoinMember joinMember = new JoinMember();
+        joinMember.setMember(member);
+        joinMember.setHost(true);
+        joinMember.setProject(savedProject);
 
         JoinMember saved = joinMemberRepository.save(joinMember);
         log.info(saved.toString());
@@ -314,7 +313,7 @@ public class ProjectService {
         log.info("redisTokenService.getMailByToken(token) {}", mail);
 
         // 메일로 멤버 조회
-        Optional<Member> member = memberRepository.findByMail(mail);
+        Optional<Member> member = memberRepository.findByMailAndIsDeletedFalse(mail);
         log.info("member {}", member);
 
         // 회원
