@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -14,6 +16,8 @@ import java.util.Date;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE memo SET is_deleted = true WHERE memo_id = ?")
+@SQLRestriction("is_deleted = false")
 public class Memo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,4 +38,6 @@ public class Memo {
     @ManyToOne
     @JoinColumn(name = "memberId")
     private Member member;
+
+    private boolean is_deleted = false;
 }

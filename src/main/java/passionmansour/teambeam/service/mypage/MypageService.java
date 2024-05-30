@@ -77,7 +77,7 @@ public class MypageService {
         List<ScheduleDTO> allSchedules = new ArrayList<>();
 
         joinMemberList.forEach(joinMember -> {
-            GetCalendarResponse calendarResponse = scheduleService.getMonthCalendar(joinMember.getProject().getProjectId(), year, month);
+            GetCalendarResponse calendarResponse = scheduleService.getMonthCalendar(joinMember.getProject().getProjectId());
             allTopTodos.addAll(calendarResponse.getTopTodos());
             allSchedules.addAll(calendarResponse.getSchedules());
         });

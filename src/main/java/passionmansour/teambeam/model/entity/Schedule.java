@@ -2,6 +2,8 @@ package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -15,6 +17,8 @@ import java.util.List;
 @Entity
 @Table @Data
 @EntityListeners(AuditingEntityListener.class)
+@SQLDelete(sql = "UPDATE schedule SET is_deleted = true WHERE schedule_id = ?")
+@SQLRestriction("is_deleted = false")
 public class Schedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,4 +48,6 @@ public class Schedule {
 
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ScheduleTag> scheduleTags = new ArrayList<>();
+
+    private boolean is_deleted = false;
 }

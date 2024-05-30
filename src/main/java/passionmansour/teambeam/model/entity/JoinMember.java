@@ -2,6 +2,8 @@ package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import passionmansour.teambeam.model.enums.MemberRole;
 
 @Entity
@@ -9,6 +11,8 @@ import passionmansour.teambeam.model.enums.MemberRole;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE join_member SET is_deleted = true WHERE join_member_id = ?")
+@SQLRestriction("is_deleted = false")
 public class JoinMember {
 
     @Id
@@ -27,5 +31,7 @@ public class JoinMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projectId")
     private Project project;
+
+    private boolean is_deleted = false;
 
 }
