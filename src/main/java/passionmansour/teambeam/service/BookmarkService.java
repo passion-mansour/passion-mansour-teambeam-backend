@@ -14,6 +14,7 @@ import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.repository.BookmarkRepository;
 import passionmansour.teambeam.repository.PostRepository;
+import passionmansour.teambeam.service.board.PostService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.awt.print.Book;
@@ -28,19 +29,16 @@ import java.util.stream.Collectors;
 @Transactional
 public class BookmarkService {
     private final JwtTokenService jwtTokenService;
+    private final PostService postService;
     private final BookmarkRepository bookmarkRepository;
-    private final PostRepository postRepository;
 
     @Transactional
     public BookmarkResponse saveBookmark(String token, Long postId){
-        Optional<Post> post = postRepository.findById(postId);
-        if(post.isEmpty()){
-            // TODO: 예외처리
-        }
+        Post post = postService.getById(postId);
 
         Bookmark bookmark = Bookmark.builder()
                 .member(jwtTokenService.getMemberByToken(token))
-                .post(post.get())
+                .post(post)
                 .build();
 
         return new BookmarkResponse().form(bookmarkRepository.save(bookmark));
@@ -71,21 +69,27 @@ public class BookmarkService {
     }
 
     @Transactional(readOnly = true)
-    public BookmarkListResponse findAllByToken(String token){
+    public PostListResponse findAllByToken(String token){
         Member member = jwtTokenService.getMemberByToken(token);
-        List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
+        List<PostResponse> postResponses = new ArrayList<>();
 
         for(Bookmark bookmark : member.getBookmarks()){
-            bookmarkResponses.add(new BookmarkResponse().form(bookmark));
+            postResponses.add(new PostResponse().form(bookmark.getPost()));
         }
 
-        return new BookmarkListResponse().form(bookmarkResponses);
+        return new PostListResponse().form(postResponses);
     }
 
     @Transactional(readOnly = true)
-    public BookmarkListResponse getAllByTags(String token, List<Long> tagIds){
+    public PostListResponse getAllByTags(String token, List<Long> tagIds){
         Member member = jwtTokenService.getMemberByToken(token);
 
-        return new BookmarkListResponse().entityToForm(bookmarkRepository.findAllByTagIds(member.getMemberId(), tagIds, tagIds.size()));
+        List<PostResponse> postResponses = new ArrayList<>();
+
+        for(Bookmark bookmark : bookmarkRepository.findAllByTagIds(member.getMemberId(), tagIds, tagIds.size())){
+            postResponses.add(new PostResponse().form(bookmark.getPost()));
+        }
+
+        return new PostListResponse().form(postResponses);
     }
 }

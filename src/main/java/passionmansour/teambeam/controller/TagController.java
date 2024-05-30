@@ -51,19 +51,19 @@ public class TagController {
 
     // 프로젝트 post 전체 태그 조회
     @GetMapping("/post/tag")
-    public ResponseEntity<TagListResponse> getTagByPostId(@RequestParam("postId") Long postId) {
-        return ResponseEntity.ok(tagService.getAllByTagCategory(postId, TagCategory.post));
+    public ResponseEntity<TagListResponse> getTagByPostId(@PathVariable("projectId") Long projectId) {
+        return ResponseEntity.ok(tagService.getAllByTagCategory(projectId, TagCategory.post));
     }
 
     // 프로젝트 schedule 전체 태그 조회
     @GetMapping("/schedule/tag")
-    public ResponseEntity<TagListResponse> getTagByScheduleId(@RequestParam("scheduleId") Long scheduleId){
-        return ResponseEntity.ok(tagService.getAllByTagCategory(scheduleId, TagCategory.schedule));
+    public ResponseEntity<TagListResponse> getTagByScheduleId(@PathVariable("projectId") Long projectId){
+        return ResponseEntity.ok(tagService.getAllByTagCategory(projectId, TagCategory.schedule));
     }
 
     // 프로젝트 t0d0 전체 태그 조회
     @GetMapping("/todo/tag")
-    public ResponseEntity<TagListResponse> getTagByTodoId(@RequestParam("todoId") Long todoId){
-        return ResponseEntity.ok(tagService.getAllByTagCategory(todoId, TagCategory.todo));
+    public ResponseEntity<TagListResponse> getTagByTodoId(@PathVariable("projectId") Long projectId){
+        return ResponseEntity.ok(tagService.getAllByTagCategory(projectId, TagCategory.todo));
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import passionmansour.teambeam.model.dto.board.response.BookmarkListResponse;
 import passionmansour.teambeam.model.dto.board.response.BookmarkResponse;
+import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.service.BookmarkService;
 
@@ -49,14 +50,14 @@ public class BookmarkController {
 
     // 태그들로 북마크들 조회
     @GetMapping("/tags")
-    public ResponseEntity<BookmarkListResponse> getBookmarksByTags(@RequestHeader("Authorization") String token,
+    public ResponseEntity<PostListResponse> getBookmarksByTags(@RequestHeader("Authorization") String token,
                                                                    @RequestParam("tags") List<Long> tags){
         return ResponseEntity.ok(bookmarkService.getAllByTags(token, tags));
     }
 
     // 유저 일련번호로 모든 북마크들 조회
     @GetMapping("/")
-    public ResponseEntity<BookmarkListResponse> getBookmarksByToken(@RequestHeader("Authorization") String token){
+    public ResponseEntity<PostListResponse> getBookmarksByToken(@RequestHeader("Authorization") String token){
         return ResponseEntity.ok(bookmarkService.findAllByToken(token));
     }
 }

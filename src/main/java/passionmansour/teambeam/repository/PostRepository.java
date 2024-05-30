@@ -14,11 +14,11 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = "SELECT p.* " +
-            "FROM Post p " +
-            "JOIN Post_Tag pt ON p.post_Id = pt.post_Id " +
-            "WHERE pt.tag_Id IN (:tagIds) " +
-            "GROUP BY p.post_Id " +
-            "HAVING COUNT(DISTINCT pt.tag_Id) = :tagCount",
+            "FROM post p " +
+            "JOIN post_tag pt ON p.post_id = pt.post_id " +
+            "WHERE pt.tag_id IN (:tagIds) " +
+            "GROUP BY p.post_id " +
+            "HAVING COUNT(DISTINCT pt.tag_id) = :tagCount",
             nativeQuery = true)
     List<Post> findAllByTagIds(@Param("tagIds") List<Long> tagIds, @Param("tagCount") int tagCount);
 
