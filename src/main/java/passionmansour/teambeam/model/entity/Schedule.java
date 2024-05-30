@@ -2,13 +2,23 @@ package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table @Data
+@EntityListeners(AuditingEntityListener.class)
+@SQLDelete(sql = "UPDATE schedule SET is_deleted = true WHERE schedule_id = ?")
+@SQLRestriction("is_deleted = false")
 public class Schedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,28 +31,23 @@ public class Schedule {
     @Lob
     private String scheduleContent;
 
-    @Temporal(TemporalType.TIME)
-    private Date scheduleTime;
+    private LocalDateTime scheduleTime;
 
-    @Temporal(TemporalType.DATE)
-    private Date startDate;
+    @CreatedDate
+    private LocalDateTime createDate;
 
-    @Temporal(TemporalType.DATE)
-    private Date endDate;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updateDate;
+    @LastModifiedDate
+    private LocalDateTime updateDate;
 
     @ManyToOne
     @JoinColumn(name = "calendarId")
     private Calendar calendar;
 
-    @OneToMany(mappedBy = "schedule")
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ScheduleMember> scheduleMembers = new ArrayList<>();
 
-    @OneToMany(mappedBy = "schedule")
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ScheduleTag> scheduleTags = new ArrayList<>();
+
+    private boolean is_deleted = false;
 }

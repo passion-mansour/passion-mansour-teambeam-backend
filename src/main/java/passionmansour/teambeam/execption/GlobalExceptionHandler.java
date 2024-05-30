@@ -1,5 +1,6 @@
 package passionmansour.teambeam.execption;
 
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import passionmansour.teambeam.execption.member.TokenGenerationException;
 import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
-import passionmansour.teambeam.model.dto.member.response.ErrorResponseDto;
+import passionmansour.teambeam.model.dto.member.response.ErrorResponse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +21,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDto> handleValidationExceptions(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException e) {
         Map<String, String> errors = new HashMap<>();
         e.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
@@ -30,39 +31,47 @@ public class GlobalExceptionHandler {
 
         log.error(errors.toString());
 
-        ErrorResponseDto response = new ErrorResponseDto("Validation Failed", HttpStatus.BAD_REQUEST.value());
+        ErrorResponse response = new ErrorResponse("Validation Failed", HttpStatus.BAD_REQUEST.value());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponseDto> handleUserAlreadyExistsException(UserAlreadyExistsException e) {
-        ErrorResponseDto response = new ErrorResponseDto(e.getMessage(), HttpStatus.CONFLICT.value());
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException e) {
+        ErrorResponse response = new ErrorResponse(e.getMessage(), HttpStatus.CONFLICT.value());
 
         log.error(response.toString());
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(TokenGenerationException.class)
-    public ResponseEntity<ErrorResponseDto> handleTokenGenerationException(TokenGenerationException e) {
-        ErrorResponseDto response = new ErrorResponseDto(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
+    public ResponseEntity<ErrorResponse> handleTokenGenerationException(TokenGenerationException e) {
+        ErrorResponse response = new ErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
 
         log.error(response.toString());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponseDto> handleBadCredentialsException(BadCredentialsException e) {
-        ErrorResponseDto response = new ErrorResponseDto(e.getMessage(), HttpStatus.UNAUTHORIZED.value());
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException e) {
+        ErrorResponse response = new ErrorResponse(e.getMessage(), HttpStatus.UNAUTHORIZED.value());
 
         log.error(response.toString());
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDto> handleGeneralException(Exception e) {
-        ErrorResponseDto response = new ErrorResponseDto(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception e) {
+        ErrorResponse response = new ErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
 
         log.error(response.toString());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<ErrorResponse> handleSignatureException(Exception e) {
+        ErrorResponse response = new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value());
+
+        log.error(response.toString());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }
