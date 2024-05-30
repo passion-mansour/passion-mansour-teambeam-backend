@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -21,7 +22,10 @@ public class MessageComment {
     private String messageCommentContent;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
+    private LocalDateTime createDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime updateDate;
 
     @ManyToOne
     @JoinColumn(name = "memberId")

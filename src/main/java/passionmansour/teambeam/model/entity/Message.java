@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,6 +24,9 @@ public class Message {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date createDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime updateDate;
 
     @OneToOne
     @JoinColumn(name = "memberId")
