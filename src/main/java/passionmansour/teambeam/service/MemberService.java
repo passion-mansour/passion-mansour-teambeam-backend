@@ -51,38 +51,54 @@ public class MemberService {
         String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
         log.info("Encoded password: {}", encodedPassword);
 
-        Member member = new Member();
-        member.setMemberName(registerRequest.getMemberName());
-        member.setMail(registerRequest.getMail());
-        member.setPassword(encodedPassword);
-        member.setNotificationCount(member.getNotifications().size());
-        member.setStartPage(StartPage.PROJECT_SELECTION_PAGE);
+        Optional<Member> existingMember = memberRepository.findByMail(registerRequest.getMail());
 
-
-
-        if (memberRepository.findByMail(registerRequest.getMail()).isPresent()) {
-            throw new UserAlreadyExistsException("User with this mail already exists: " + registerRequest.getMail());
+        Member member;
+        if (existingMember.isPresent()) {
+            member = existingMember.get();
+            if (member.isDeleted()) {
+                // 논리 삭제된 계정을 재사용하여 업데이트
+                member.setDeleted(false);
+                member.setMemberName(registerRequest.getMemberName());
+                member.setPassword(encodedPassword);
+                member.setNotificationCount(0); // 초기화
+                member.setStartPage(StartPage.PROJECT_SELECTION_PAGE);
+            } else {
+                throw new UserAlreadyExistsException("User with this mail already exists: " + registerRequest.getMail());
+            }
+        } else {
+            member = new Member();
+            member.setMemberName(registerRequest.getMemberName());
+            member.setMail(registerRequest.getMail());
+            member.setPassword(encodedPassword);
+            member.setNotificationCount(0); // 초기화
+            member.setStartPage(StartPage.PROJECT_SELECTION_PAGE);
         }
 
+        // 멤버 저장
         Member savedMember = memberRepository.save(member);
-        log.info("member {}", savedMember);
+        log.info("Saved member {}", savedMember);
 
+        // 프로젝트 참가 처리
         if (registerRequest.getToken() != null) {
-            Long projectIdFromToken = tokenService.getProjectIdFromToken(registerRequest.getToken());
-            Project project = projectRepository.findByProjectId(projectIdFromToken).orElseThrow(() ->
-                new EntityNotFoundException("Project not found with projectId: " + projectIdFromToken));
-
-            JoinMember joinMember = new JoinMember();
-            joinMember.setProject(project);
-            joinMember.setMember(savedMember);
-            joinMember.setHost(false);
-
-            JoinMember saved = joinMemberRepository.save(joinMember);
-            log.info("JoinMember {}", saved);
+            joinProjectWithToken(registerRequest.getToken(), savedMember);
         }
 
         return convertToDto(savedMember);
+    }
 
+    private void joinProjectWithToken(String token, Member member) {
+        Long projectIdFromToken = tokenService.getProjectIdFromToken(token);
+        Project project = projectRepository.findByProjectId(projectIdFromToken).orElseThrow(() ->
+            new EntityNotFoundException("Project not found with projectId: " + projectIdFromToken));
+
+        JoinMember joinMember = new JoinMember();
+        joinMember.setProject(project);
+        joinMember.setMember(member);
+        joinMember.setHost(false);
+
+        JoinMember savedJoinMember = joinMemberRepository.save(joinMember);
+        log.info("JoinMember {}", savedJoinMember);
     }
 
     public MemberDto convertToDto(Member member) {
@@ -105,7 +121,7 @@ public class MemberService {
     @Transactional
     public String sendRegisterCode(String mail) {
 
-        Optional<Member> member = memberRepository.findByMail(mail);
+        Optional<Member> member = memberRepository.findByMailAndIsDeletedFalse(mail);
 
         if (member.isPresent()) {
             throw new UserAlreadyExistsException("User with this mail already exists: " + mail);
@@ -126,7 +142,7 @@ public class MemberService {
 
         try {
             // mail 로 사용자 정보 조회
-            Member member = memberRepository.findByMail(loginRequest.getMail())
+            Member member = memberRepository.findByMailAndIsDeletedFalse(loginRequest.getMail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with mail: " + loginRequest.getMail()));
 
             log.info("Stored encoded password: {}", member.getPassword());
@@ -165,7 +181,7 @@ public class MemberService {
     @Transactional
     public String sendPasswordResetLink(UpdateMemberRequest request) {
 
-        Optional<Member> memberOptional = memberRepository.findByMail(request.getMail());
+        Optional<Member> memberOptional = memberRepository.findByMailAndIsDeletedFalse(request.getMail());
         log.info(memberOptional.toString());
 
         if (memberOptional.isPresent()) {
@@ -284,7 +300,7 @@ public class MemberService {
     // 메일 수정 코드 요청
     @Transactional
     public String sendUpdateMailCode(String token, String mail) {
-        Optional<Member> optionalMember = memberRepository.findByMail(mail);
+        Optional<Member> optionalMember = memberRepository.findByMailAndIsDeletedFalse(mail);
 
         if (optionalMember.isPresent()) {
             throw new UserAlreadyExistsException("Mail already exists");
