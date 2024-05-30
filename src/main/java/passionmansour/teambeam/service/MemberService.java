@@ -177,7 +177,7 @@ public class MemberService {
             log.info("token {}", token);
 
             // 재설정 링크 생성
-            String resetLink = "http://localhost:3000/reset-password?token=" + token;
+            String resetLink = "http://localhost:3000/user/settingPassword?token=" + token;
             // 메일 전송
             try {
                 emailService.sendEmail(request.getMail(), "비밀번호 재설정",
