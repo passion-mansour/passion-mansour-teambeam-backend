@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = "SELECT DISTINCT p.* " +
-            "FROM post p" +
+            "FROM post p " +
             "JOIN post_tag pt ON p.post_id = pt.post_id " +
             "WHERE p.is_deleted = false " +
             "AND pt.tag_id IN (:tagIds)",
