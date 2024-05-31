@@ -15,11 +15,10 @@ import passionmansour.teambeam.repository.ProjectRepository;
 import passionmansour.teambeam.service.TagService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
+import java.awt.print.Book;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,14 +33,10 @@ public class PostService {
 
     @Transactional
     public PostResponse createPost(String token, PostPostRequest postPostRequest){
-        Optional<Project> project = projectRepository.findById(postPostRequest.getProjectId());
-        if(project.isEmpty()){
-            //TODO: 예외처리
-        }
-        Optional<Board> board = boardRepository.findById(postPostRequest.getBoardId());
-        if(board.isEmpty()){
-            //TODO: 예외처리
-        }
+        Project project = projectRepository.findById(postPostRequest.getProjectId())
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+        Board board = boardRepository.findById(postPostRequest.getBoardId())
+                .orElseThrow(() -> new RuntimeException("Board not found"));
 
         Post post = Post.builder()
                 .postTitle(postPostRequest.getTitle())
@@ -50,8 +45,8 @@ public class PostService {
                 .notice(postPostRequest.isNotice())
                 .createDate(LocalDateTime.now())
                 .member(jwtTokenService.getMemberByToken(token))
-                .project(project.get())
-                .board(board.get())
+                .project(project)
+                .board(board)
                 .build();
 
         Post save = postRepository.save(post);
@@ -88,17 +83,16 @@ public class PostService {
 
     @Transactional
     public void deletePost(Long postId){
-
+        Post post = getById(postId);
+        postRepository.delete(post);
     }
 
     @Transactional(readOnly = true)
     public Post getById(Long postId){
-        Optional<Post> post = postRepository.findById(postId);
-        if(post.isEmpty()){
-            //TODO: 예외처리
-        }
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        return post.get();
+        return post;
     }
 
     @Transactional(readOnly = true)
@@ -107,7 +101,26 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PostListResponse getAllByBoardId(Long boardId){
-        return new PostListResponse().entityToForm(postRepository.findAllByBoardId(boardId));
+    public PostListResponse getAllByBoardId(String token, Long boardId){
+        List<PostResponse> postResponses = new ArrayList<>();
+        PostResponse postResponse = new PostResponse();
+
+        for(Post post : postRepository.findAllByBoardId(boardId)){
+            postResponse.form(post);
+            postResponse.setBookmark(isBookmark(token, post.getPostId()));
+            postResponses.add(postResponse);
+        }
+
+        return new PostListResponse().form(postResponses);
+    }
+
+    public boolean isBookmark(String token, Long postId){
+        Post post = getById(postId);
+        Member member = jwtTokenService.getMemberByToken(token);
+
+        for(Bookmark bookmark : member.getBookmarks()){
+            if(post.equals(bookmark.getPost())) return true;
+        }
+        return false;
     }
 }
