@@ -56,10 +56,17 @@ public class ProjectService {
         project.setDescription(projectDto.getDescription());
         project.setProjectStatus(ProjectStatus.PROGRESS);
         project.setCreateDate(LocalDateTime.now());
+        Project savedProject = projectRepository.save(project);
 
         //캘린더 생성 알고리즘
         Calendar calendar = new Calendar();
-        project.setCalendar(calendar);
+        calendar.setProject(savedProject);
+        Calendar savedCalendar = calendarRepository.save(calendar);
+
+        // 프로젝트에 캘린더 설정
+        savedProject.setCalendar(savedCalendar);
+        projectRepository.save(savedProject);
+
 
         //기본 투두리스트 생성
 
