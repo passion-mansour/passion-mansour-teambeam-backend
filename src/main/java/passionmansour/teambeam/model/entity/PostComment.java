@@ -41,5 +41,6 @@ public class PostComment {
     @JoinColumn(name = "postId")
     private Post post;
 
+    @Builder.Default
     private boolean is_deleted = false;
 }
