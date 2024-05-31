@@ -16,9 +16,8 @@ import passionmansour.teambeam.service.TagService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -70,10 +69,31 @@ public class PostService {
         post.setPostType(patchPostRequest.getPostType());
         post.setUpdateDate(LocalDateTime.now());
 
-        // tag 저장
+        // postTag 업데이트
         List<PostTag> postTags = new ArrayList<>();
-        for (Long tagId : patchPostRequest.getPostTagIds()){
-            postTags.add(tagService.addPostTag(tagId, patchPostRequest.getPostId()));
+
+        Set<Long> existingPostTagIds = post.getPostTags().stream()
+                .map(postTag -> postTag.getTag().getTagId())
+                .collect(Collectors.toSet());
+
+        // !주의 : request로 넘어오는 id는 tagId기 때문에 postTagId가 아닌 tagId로 비교해야 한다.
+        Set<Long> newPostTagIds = new HashSet<>(patchPostRequest.getPostTagIds());
+
+        // 새로운 태그 추가
+        for (Long postTagId : newPostTagIds) {
+            if (!existingPostTagIds.contains(postTagId)) {
+                PostTag newPostTag = tagService.addPostTag(postTagId, patchPostRequest.getPostId());
+                postTags.add(newPostTag);
+                log.info("PostTag 저장: " + postTagId);
+            }
+        }
+
+        // 기존 태그 삭제
+        for (PostTag postTag : post.getPostTags()) {
+            if (!newPostTagIds.contains(postTag.getTag().getTagId())) {
+                tagService.deletePostTag(postTag);
+                log.info("PostTag 삭제: " + postTag.getPostTagId());
+            } else postTags.add(postTag);
         }
         post.setPostTags(postTags);
 
@@ -96,7 +116,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public PostListResponse getAllByTags(List<Long> tagIds){
-        return new PostListResponse().entityToForm(postRepository.findAllByTagIds(tagIds, tagIds.size()));
+        return new PostListResponse().entityToForm(postRepository.findAllByTagIds(tagIds));
     }
 
     @Transactional(readOnly = true)
@@ -112,6 +132,7 @@ public class PostService {
         return new PostListResponse().form(postResponses);
     }
 
+    @Transactional(readOnly = true)
     public boolean isBookmark(String token, Long postId){
         Post post = getById(postId);
         Member member = jwtTokenService.getMemberByToken(token);
@@ -122,10 +143,9 @@ public class PostService {
         return false;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public PostListResponse getNoticePost(Long projectId){
         Optional<Project> projectOptional = projectRepository.findById(projectId);
         return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional.get()));
-
     }
 }
