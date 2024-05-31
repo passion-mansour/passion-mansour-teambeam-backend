@@ -188,17 +188,18 @@ public class MemberService {
             String token = UUID.randomUUID().toString();
 
             // 인증 정보 저장
-            redisTokenService.storeResetToken(token);
+            redisTokenService.storeResetToken(token, request.getMail());
 
             log.info("token {}", token);
 
             // 재설정 링크 생성
             String resetLink = "http://localhost:3000/user/settingPassword?token=" + token;
+            String emailBody = "<html><body><p>안녕하세요,</p><p>비밀번호를 재설정하려면 아래 링크를 클릭하세요:</p>" +
+                "<a href='" + resetLink + "'>비밀번호 재설정</a><p>링크는 30분 후에 만료됩니다.</p></body></html>";
+
             // 메일 전송
             try {
-                emailService.sendEmail(request.getMail(), "비밀번호 재설정",
-                    "안녕하세요,\n\n비밀번호를 재설정하려면 아래 링크를 클릭하세요:\n\n" + resetLink
-                        + "\n\n링크는 30분 후에 만료됩니다.\n\n" + "\n\n김시합니다.");
+                emailService.sendHtmlEmail(request.getMail(), "비밀번호 재설정", emailBody);
                 return resetLink;
             } catch (MailAuthenticationException e) {
                 log.error("Mail authentication failed: {}", e.getMessage());
@@ -215,16 +216,25 @@ public class MemberService {
     @Transactional
     public boolean resetPassword(String token, String newPassword) {
 
-        if (redisTokenService.isTrue(token)) {
-            Member member = tokenService.getMemberByToken(token);
-            member.setPassword(passwordEncoder.encode(newPassword));
-            redisTokenService.deleteResetToken(token);
+        String mail = null;
+        try {
+            mail = redisTokenService.getMailByResetToken(token);
+            log.info("mail {}", mail);
+        } catch (Exception e) {
+            return false;
+        }
 
-            return true;
-        }
-        else {
-            throw new InvalidTokenException("Token has expired");
-        }
+        String finalMail = mail;
+        Member member = memberRepository.findByMailAndIsDeletedFalse(mail)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with mail: " + finalMail));
+        log.info("member {}", member);
+
+        member.setPassword(passwordEncoder.encode(newPassword));
+        redisTokenService.deleteResetToken(token);
+
+        log.info("savedMember {}", member);
+//            memberRepository.save(member);
+        return true;
     }
 
     public MemberDto getMember(String token) {
