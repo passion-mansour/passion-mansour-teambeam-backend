@@ -25,6 +25,7 @@ import passionmansour.teambeam.service.board.BoardService;
 import passionmansour.teambeam.service.mail.EmailService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 import passionmansour.teambeam.service.security.RedisTokenService;
+import passionmansour.teambeam.service.todolist.TodolistService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,6 +45,10 @@ public class ProjectService {
     private final EmailService emailService;
     private final RedisTokenService redisTokenService;
     private final BoardService boardService;
+
+    private final CalendarRepository calendarRepository;
+
+    private final TodolistService todolistService;
 
     @Transactional
     public ProjectResponse createProject(String token, ProjectDto projectDto) {
@@ -69,8 +74,8 @@ public class ProjectService {
 
 
         //기본 투두리스트 생성
+        todolistService.createSampleTodolist(project);
 
-        Project savedProject = projectRepository.save(project);
 
         // 게시판 요청 Dto 생성
         PostBoardRequest postBoardRequest = new PostBoardRequest();
