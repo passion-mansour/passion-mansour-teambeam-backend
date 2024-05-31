@@ -70,11 +70,11 @@ public class ProjectService {
 
         // 프로젝트에 캘린더 설정
         savedProject.setCalendar(savedCalendar);
-        projectRepository.save(savedProject);
+        savedProject = projectRepository.save(savedProject);
 
 
         //기본 투두리스트 생성
-        todolistService.createSampleTodolist(project);
+        todolistService.createSampleTodolist(savedProject);
 
 
         // 게시판 요청 Dto 생성
