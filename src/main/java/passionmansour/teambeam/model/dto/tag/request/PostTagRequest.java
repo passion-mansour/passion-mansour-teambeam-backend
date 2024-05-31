@@ -1,4 +1,4 @@
-package passionmansour.teambeam.model.dto.Tag.request;
+package passionmansour.teambeam.model.dto.tag.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

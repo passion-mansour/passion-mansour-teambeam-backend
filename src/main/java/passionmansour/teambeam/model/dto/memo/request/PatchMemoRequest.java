@@ -1,4 +1,4 @@
-package passionmansour.teambeam.model.dto.Memo.request;
+package passionmansour.teambeam.model.dto.memo.request;
 
 import lombok.Data;
 

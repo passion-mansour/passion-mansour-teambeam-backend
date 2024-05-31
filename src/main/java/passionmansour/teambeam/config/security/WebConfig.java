@@ -15,6 +15,7 @@ public class WebConfig implements WebMvcConfigurer {
                 "https://passion-mansour-teambeam-frontend-alpha.vercel.app/")
             .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             .allowedHeaders("*")
+            .exposedHeaders("Authorization", "RefreshToken")
             .allowCredentials(true);
     }
 }

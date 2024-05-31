@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import passionmansour.teambeam.model.dto.Tag.request.PostTagRequest;
-import passionmansour.teambeam.model.dto.Tag.response.TagListResponse;
-import passionmansour.teambeam.model.dto.Tag.response.TagResponse;
+import passionmansour.teambeam.model.dto.tag.request.PostTagRequest;
+import passionmansour.teambeam.model.dto.tag.response.TagListResponse;
+import passionmansour.teambeam.model.dto.tag.response.TagResponse;
 import passionmansour.teambeam.model.enums.TagCategory;
 import passionmansour.teambeam.service.TagService;
 
@@ -51,19 +51,19 @@ public class TagController {
 
     // 프로젝트 post 전체 태그 조회
     @GetMapping("/post/tag")
-    public ResponseEntity<TagListResponse> getTagByPostId(@RequestParam("postId") Long postId) {
-        return ResponseEntity.ok(tagService.getAllByTagCategory(postId, TagCategory.post));
+    public ResponseEntity<TagListResponse> getTagByPostId(@PathVariable("projectId") Long projectId) {
+        return ResponseEntity.ok(tagService.getAllByTagCategory(projectId, TagCategory.post));
     }
 
     // 프로젝트 schedule 전체 태그 조회
     @GetMapping("/schedule/tag")
-    public ResponseEntity<TagListResponse> getTagByScheduleId(@RequestParam("scheduleId") Long scheduleId){
-        return ResponseEntity.ok(tagService.getAllByTagCategory(scheduleId, TagCategory.schedule));
+    public ResponseEntity<TagListResponse> getTagByScheduleId(@PathVariable("projectId") Long projectId){
+        return ResponseEntity.ok(tagService.getAllByTagCategory(projectId, TagCategory.schedule));
     }
 
     // 프로젝트 t0d0 전체 태그 조회
     @GetMapping("/todo/tag")
-    public ResponseEntity<TagListResponse> getTagByTodoId(@RequestParam("todoId") Long todoId){
-        return ResponseEntity.ok(tagService.getAllByTagCategory(todoId, TagCategory.todo));
+    public ResponseEntity<TagListResponse> getTagByTodoId(@PathVariable("projectId") Long projectId){
+        return ResponseEntity.ok(tagService.getAllByTagCategory(projectId, TagCategory.todo));
     }
 }

@@ -1,4 +1,4 @@
-package passionmansour.teambeam.model.dto.Memo.response;
+package passionmansour.teambeam.model.dto.memo.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class MemoResponse {
     private Long memoId;
-    private String memoTile;
+    private String memoTitle;
     private String memoContent;
     private LocalDateTime createDate;
     private LocalDateTime updateDate;
@@ -24,7 +24,7 @@ public class MemoResponse {
     public MemoResponse form(Memo memo){
         return MemoResponse.builder()
                 .memoId(memo.getMemoId())
-                .memoTile(memo.getMemoTile())
+                .memoTitle(memo.getMemoTile())
                 .memoContent(memo.getMemoContent())
                 .createDate(memo.getCreateDate())
                 .updateDate(memo.getUpdateDate())

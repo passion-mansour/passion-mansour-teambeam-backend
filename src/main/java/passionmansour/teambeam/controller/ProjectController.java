@@ -51,9 +51,7 @@ public class ProjectController {
     public ResponseEntity<ProjectResponse> createProject(@RequestHeader("Authorization") String token,
                                                          @Valid @RequestBody ProjectDto projectDto) {
 
-        ProjectDto project = projectService.createProject(token, projectDto);
-
-        ProjectResponse response = new ProjectResponse("Project creation successful", project, null);
+        ProjectResponse response = projectService.createProject(token, projectDto);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -69,7 +67,7 @@ public class ProjectController {
     public ResponseEntity<ProjectResponse> getProjectList(@RequestHeader("Authorization") String token) {
         List<ProjectDto> projectList = projectService.getProjectList(token);
 
-        ProjectResponse response = new ProjectResponse("Successfully retrieved list", null, projectList);
+        ProjectResponse response = new ProjectResponse("Successfully retrieved list", null, projectList, null);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -87,7 +85,7 @@ public class ProjectController {
                                                       @PathVariable("projectId") Long id) {
         ProjectDto project = projectService.getProject(token, id);
 
-        ProjectResponse response = new ProjectResponse("Successfully retrieved project details", project, null);
+        ProjectResponse response = new ProjectResponse("Successfully retrieved project details", project, null, null);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -124,7 +122,7 @@ public class ProjectController {
                                                          @RequestBody UpdateProjectRequest request) {
         ProjectDto project = projectService.updateProject(token, id, request);
 
-        ProjectResponse response = new ProjectResponse("Successfully updated project details", project, null);
+        ProjectResponse response = new ProjectResponse("Successfully updated project details", project, null, null);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
