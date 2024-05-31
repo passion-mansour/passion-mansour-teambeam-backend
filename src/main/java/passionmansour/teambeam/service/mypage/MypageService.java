@@ -8,6 +8,7 @@ import passionmansour.teambeam.model.dto.schedule.GetCalendarResponse;
 import passionmansour.teambeam.model.dto.schedule.ScheduleDTO;
 import passionmansour.teambeam.model.dto.schedule.ScheduleTopTodoDTO;
 import passionmansour.teambeam.model.dto.todolist.dto.BottomTodoDTO;
+import passionmansour.teambeam.model.dto.todolist.request.PatchBottomTodoRequest;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.BottomTodoRepository;
 import passionmansour.teambeam.repository.JoinMemberRepository;
@@ -69,7 +70,7 @@ public class MypageService {
                 })
                 .collect(Collectors.toList());
     }
-    public List<GetCalendarResponse> getMyCalendar(Long userId, int year, int month){
+    public List<GetCalendarResponse> getMyCalendar(Long userId){
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Member not found"));
         List<JoinMember> joinMemberList = joinMemberRepository.findByMember(member);
@@ -89,6 +90,27 @@ public class MypageService {
 
 
         return Collections.singletonList(combinedResponse);
+    }
+
+    public Optional<BottomTodoDTO> findBottomTodoById(Long id) {
+        Optional<BottomTodo> bottomTodo = bottomTodoRepository.findById(id);
+        MiddleTodo middleTodo = bottomTodo.get().getMiddleTodo();
+        TopTodo topTodo = middleTodo.getTopTodo();
+        return Optional.ofNullable(convertTodoService
+                .convertToDto(bottomTodo.get(), topTodo.getTopTodoId(), middleTodo.getMiddleTodoId()));
+
+    }
+
+    @Transactional
+    public BottomTodoDTO updateBottomTodoMemo(Long bottomTodoId, PatchBottomTodoRequest request) {
+        BottomTodo bottomTodo = bottomTodoRepository.findById(bottomTodoId)
+                .orElseThrow(() -> new RuntimeException("BottomTodo 찾지 못했습니다."));
+        if (request.getMemo() != null) {
+            bottomTodo.setMemo(request.getMemo());
+        }
+        return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
+                bottomTodo.getMiddleTodo().getTopTodo().getTopTodoId(),
+                bottomTodo.getMiddleTodo().getMiddleTodoId());
     }
 
 }

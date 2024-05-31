@@ -49,4 +49,6 @@ public class CalendarController {
         scheduleService.deleteSchedule(projectId,scheduleId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+
 }

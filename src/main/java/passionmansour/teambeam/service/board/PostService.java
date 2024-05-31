@@ -110,4 +110,11 @@ public class PostService {
     public PostListResponse getAllByBoardId(Long boardId){
         return new PostListResponse().entityToForm(postRepository.findAllByBoardId(boardId));
     }
+
+    @Transactional
+    public PostListResponse getNoticePost(Long projectId){
+        Optional<Project> projectOptional = projectRepository.findById(projectId);
+        return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional.get()));
+
+    }
 }
