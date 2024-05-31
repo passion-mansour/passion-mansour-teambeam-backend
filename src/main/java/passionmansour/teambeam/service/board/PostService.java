@@ -123,4 +123,11 @@ public class PostService {
         }
         return false;
     }
+
+    @Transactional
+    public PostListResponse getNoticePost(Long projectId){
+        Optional<Project> projectOptional = projectRepository.findById(projectId);
+        return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional.get()));
+
+    }
 }

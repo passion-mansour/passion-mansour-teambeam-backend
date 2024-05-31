@@ -8,6 +8,7 @@ import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.model.entity.Bookmark;
 import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Post;
+import passionmansour.teambeam.model.entity.Project;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,4 +25,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p FROM Post p WHERE p.board.boardId = :boardId")
     List<Post> findAllByBoardId(@Param("boardId") Long boardId);
+
+    List<Post> findAllByNoticeIsTrueAndProject(Project project);
 }

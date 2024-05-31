@@ -18,6 +18,8 @@ import passionmansour.teambeam.model.dto.project.request.UpdateProjectRequest;
 import passionmansour.teambeam.model.dto.project.request.UpdateRoleRequest;
 import passionmansour.teambeam.model.dto.project.response.ProjectResponse;
 import passionmansour.teambeam.model.dto.project.response.TokenAuthenticationResponse;
+import passionmansour.teambeam.model.dto.todolist.dto.TopTodoDTO;
+import passionmansour.teambeam.model.dto.todolist.request.PostBottomTodoRequest;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.model.enums.ProjectStatus;
 import passionmansour.teambeam.repository.*;
@@ -25,6 +27,7 @@ import passionmansour.teambeam.service.board.BoardService;
 import passionmansour.teambeam.service.mail.EmailService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 import passionmansour.teambeam.service.security.RedisTokenService;
+import passionmansour.teambeam.service.todolist.TodolistService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,6 +48,10 @@ public class ProjectService {
     private final RedisTokenService redisTokenService;
     private final BoardService boardService;
 
+    private final TodolistService todolistService;
+
+    private final CalendarRepository calendarRepository;
+
     @Transactional
     public ProjectResponse createProject(String token, ProjectDto projectDto) {
 
@@ -57,13 +64,21 @@ public class ProjectService {
         project.setProjectStatus(ProjectStatus.PROGRESS);
         project.setCreateDate(LocalDateTime.now());
 
-        //캘린더 생성 알고리즘
+        // 캘린더 생성
         Calendar calendar = new Calendar();
+        calendar.setProject(project);
+
+        // 프로젝트에 캘린더 설정
         project.setCalendar(calendar);
 
-        //기본 투두리스트 생성
-
+        // 프로젝트 저장
         Project savedProject = projectRepository.save(project);
+
+        // 캘린더 저장 (필요한 경우)
+        calendarRepository.save(calendar);
+
+        //기본 투두리스트 생성
+        todolistService.createSampleTodolist(project);
 
         // 게시판 요청 Dto 생성
         PostBoardRequest postBoardRequest = new PostBoardRequest();
