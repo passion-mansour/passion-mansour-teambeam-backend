@@ -23,12 +23,13 @@ public class PostCommentListResponse {
     }
 
     public PostCommentListResponse entityToForm(List<PostComment> comments){
+        List<PostCommentResponse> postCommentResponseList = new ArrayList<>();
         if(comments != null) {
-            System.out.println("===========여기==============");
             for (PostComment comment : comments) {
-                this.postCommentResponseList.add(new PostCommentResponse().form(comment));
+                postCommentResponseList.add(new PostCommentResponse().form(comment));
             }
         }
+        this.setPostCommentResponseList(postCommentResponseList);
 
         return this;
     }

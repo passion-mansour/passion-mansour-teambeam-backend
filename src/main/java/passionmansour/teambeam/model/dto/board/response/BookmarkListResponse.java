@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookmarkListResponse {
-    private List<BookmarkResponse> bookmarkResponses = new ArrayList<>();;
+    private List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
 
     public BookmarkListResponse form(List<BookmarkResponse> bookmarkResponses){
         this.setBookmarkResponses(bookmarkResponses);
@@ -25,11 +25,13 @@ public class BookmarkListResponse {
     }
 
     public BookmarkListResponse entityToForm(List<Bookmark> bookmarks){
+        List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
         if(bookmarks != null) {
             for (Bookmark bookmark : bookmarks) {
                 this.bookmarkResponses.add(new BookmarkResponse().form(bookmark));
             }
         }
+        this.setBookmarkResponses(bookmarkResponses);
 
         return this;
     }

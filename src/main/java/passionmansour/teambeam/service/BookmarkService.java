@@ -46,26 +46,22 @@ public class BookmarkService {
 
     @Transactional
     public void deleteBookmark(Long bookmarkId){
-
+        Bookmark bookmark = getById(bookmarkId);
+        bookmarkRepository.delete(bookmark);
     }
 
     @Transactional(readOnly = true)
-    public Bookmark findById(Long bookmarkId){
-        Optional<Bookmark> bookmark = bookmarkRepository.findById(bookmarkId);
-        if(bookmark.isEmpty()){
-            // TODO: 예외 처리
-        }
+    public Bookmark getById(Long bookmarkId){
+        Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
+                .orElseThrow(() -> new RuntimeException("Bookmark not found"));
 
-        return bookmark.get();
+        return bookmark;
     }
 
     public PostResponse sendToPost(Long bookmarkId){
-        Optional<Bookmark> bookmark = bookmarkRepository.findById(bookmarkId);
-        if(bookmark.isEmpty()){
-            // TODO: 예외 처리
-        }
+        Bookmark bookmark = getById(bookmarkId);
 
-        return new PostResponse().form(bookmark.get().getPost());
+        return new PostResponse().form(bookmark.getPost());
     }
 
     @Transactional(readOnly = true)

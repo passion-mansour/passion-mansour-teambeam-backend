@@ -14,15 +14,13 @@ import passionmansour.teambeam.model.entity.Bookmark;
 public class BookmarkResponse {
     private Long bookmarkId;
     private CreatorInfoResponse member;
-    private Long postId;
-    private String postTitle;
+    private PostResponse post;
 
     public BookmarkResponse form(Bookmark bookmark){
         return BookmarkResponse.builder()
                 .bookmarkId(bookmark.getBookmarkId())
                 .member(new CreatorInfoResponse().form(bookmark.getMember()))
-                .postId(bookmark.getPost().getPostId())
-                .postTitle(bookmark.getPost().getPostTitle())
+                .post(new PostResponse().form(bookmark.getPost()))
                 .build();
     }
 }

@@ -2,24 +2,18 @@ package passionmansour.teambeam.service.board;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.model.dto.board.request.PatchPostCommentRequest;
 import passionmansour.teambeam.model.dto.board.request.PostPostCommentRequest;
 import passionmansour.teambeam.model.dto.board.response.PostCommentListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostCommentResponse;
-import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.model.entity.PostComment;
 import passionmansour.teambeam.repository.*;
-import passionmansour.teambeam.service.MemberService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -32,16 +26,14 @@ public class PostCommentService {
 
     @Transactional
     public PostCommentResponse createPostComment(String token, PostPostCommentRequest postPostCommentRequest) {
-        Optional<Post> post = postRepository.findById(postPostCommentRequest.getPostId());
-        if (post.isEmpty()) {
-            // TODO: 예외처리
-        }
+        Post post = postRepository.findById(postPostCommentRequest.getPostId())
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
         PostComment postComment = PostComment.builder()
                 .postCommentContent(postPostCommentRequest.getContent())
                 .createDate(LocalDateTime.now())
                 .member(jwtTokenService.getMemberByToken(token))
-                .post(post.get())
+                .post(post)
                 .build();
 
         return new PostCommentResponse().form(postCommentRepository.save(postComment));
@@ -61,17 +53,16 @@ public class PostCommentService {
 
     @Transactional
     public void deleteComment(Long postCommentId){
-
+        PostComment postComment = getById(postCommentId);
+        postCommentRepository.delete(postComment);
     }
 
     @Transactional(readOnly = true)
     public PostComment getById(Long postCommentId) {
-        Optional<PostComment> postComment = postCommentRepository.findById(postCommentId);
-        if(postComment.isEmpty()){
-            // TODO: 예외처리
-        }
+        PostComment postComment = postCommentRepository.findById(postCommentId)
+                .orElseThrow(() -> new RuntimeException("PostComment not found"));
 
-        return postComment.get();
+        return postComment;
     }
 
     @Transactional(readOnly = true)

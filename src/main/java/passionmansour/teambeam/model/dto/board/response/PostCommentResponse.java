@@ -18,9 +18,7 @@ import java.time.LocalDateTime;
 public class PostCommentResponse {
     private Long postCommentId;
     private String content;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime createDate;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime updateDate;
     private Long postId;
     private String postTitle;
