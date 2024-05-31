@@ -18,8 +18,6 @@ import passionmansour.teambeam.model.dto.project.request.UpdateProjectRequest;
 import passionmansour.teambeam.model.dto.project.request.UpdateRoleRequest;
 import passionmansour.teambeam.model.dto.project.response.ProjectResponse;
 import passionmansour.teambeam.model.dto.project.response.TokenAuthenticationResponse;
-import passionmansour.teambeam.model.dto.todolist.dto.TopTodoDTO;
-import passionmansour.teambeam.model.dto.todolist.request.PostBottomTodoRequest;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.model.enums.ProjectStatus;
 import passionmansour.teambeam.repository.*;
@@ -27,7 +25,6 @@ import passionmansour.teambeam.service.board.BoardService;
 import passionmansour.teambeam.service.mail.EmailService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 import passionmansour.teambeam.service.security.RedisTokenService;
-import passionmansour.teambeam.service.todolist.TodolistService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -48,10 +45,6 @@ public class ProjectService {
     private final RedisTokenService redisTokenService;
     private final BoardService boardService;
 
-    private final TodolistService todolistService;
-
-    private final CalendarRepository calendarRepository;
-
     @Transactional
     public ProjectResponse createProject(String token, ProjectDto projectDto) {
 
@@ -65,7 +58,7 @@ public class ProjectService {
         project.setCreateDate(LocalDateTime.now());
         Project savedProject = projectRepository.save(project);
 
-        // 캘린더 생성
+        //캘린더 생성 알고리즘
         Calendar calendar = new Calendar();
         calendar.setProject(savedProject);
         Calendar savedCalendar = calendarRepository.save(calendar);
@@ -76,7 +69,8 @@ public class ProjectService {
 
 
         //기본 투두리스트 생성
-        todolistService.createSampleTodolist(project);
+
+        Project savedProject = projectRepository.save(project);
 
         // 게시판 요청 Dto 생성
         PostBoardRequest postBoardRequest = new PostBoardRequest();
@@ -301,13 +295,14 @@ public class ProjectService {
         log.info("token {}", linkToken);
 
         // 초대 링크 생성
-        String resetLink = "http://34.22.108.250:8080/accept-invitation?token=" + linkToken;
+        String link = "http://34.22.108.250:8080/accept-invitation?token=" + linkToken;
+        String emailBody = "<html><body><p>안녕하세요,</p><p>프로젝트에 참가하려면 아래 링크를 클릭하세요:</p>" +
+            "<a href='" + link + "'>프로젝트 참가</a><p>링크는 24시간 후에 만료됩니다.</p></body></html>";
+
         // 메일 전송
         try {
-            emailService.sendEmail(request.getMail(), "프로젝트 초대",
-                "안녕하세요,\n\n프로젝트에 참가하려면 아래 링크를 클릭하세요:\n\n" + resetLink
-                    + "\n\n링크는 24시간 후에 만료됩니다.\n\n" + "\n\n김시합니다.");
-            return resetLink;
+            emailService.sendHtmlEmail(request.getMail(), "프로젝트 초대", emailBody);
+            return link;
         } catch (MailAuthenticationException e) {
             log.error("Mail authentication failed: {}", e.getMessage());
             throw new MailAuthenticationException("Authentication failed");

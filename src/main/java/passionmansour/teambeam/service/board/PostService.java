@@ -15,7 +15,6 @@ import passionmansour.teambeam.repository.ProjectRepository;
 import passionmansour.teambeam.service.TagService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
-import java.awt.print.Book;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +63,6 @@ public class PostService {
 
     @Transactional
     public PostResponse updatePost(PatchPostRequest patchPostRequest){
-        // TODO: 생성자인 경우에만 수정 가능한지 여부 확인 필요
         Post post = getById(patchPostRequest.getPostId());
 
         post.setPostTitle(patchPostRequest.getTitle());
@@ -104,10 +102,9 @@ public class PostService {
     @Transactional(readOnly = true)
     public PostListResponse getAllByBoardId(String token, Long boardId){
         List<PostResponse> postResponses = new ArrayList<>();
-        PostResponse postResponse = new PostResponse();
 
         for(Post post : postRepository.findAllByBoardId(boardId)){
-            postResponse.form(post);
+            PostResponse postResponse = new PostResponse().form(post);
             postResponse.setBookmark(isBookmark(token, post.getPostId()));
             postResponses.add(postResponse);
         }
