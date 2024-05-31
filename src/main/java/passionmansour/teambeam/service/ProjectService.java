@@ -63,19 +63,17 @@ public class ProjectService {
         project.setDescription(projectDto.getDescription());
         project.setProjectStatus(ProjectStatus.PROGRESS);
         project.setCreateDate(LocalDateTime.now());
+        Project savedProject = projectRepository.save(project);
 
         // 캘린더 생성
         Calendar calendar = new Calendar();
-        calendar.setProject(project);
+        calendar.setProject(savedProject);
+        Calendar savedCalendar = calendarRepository.save(calendar);
 
         // 프로젝트에 캘린더 설정
-        project.setCalendar(calendar);
+        savedProject.setCalendar(savedCalendar);
+        projectRepository.save(savedProject);
 
-        // 프로젝트 저장
-        Project savedProject = projectRepository.save(project);
-
-        // 캘린더 저장 (필요한 경우)
-        calendarRepository.save(calendar);
 
         //기본 투두리스트 생성
         todolistService.createSampleTodolist(project);

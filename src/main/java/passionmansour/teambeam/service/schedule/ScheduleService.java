@@ -98,23 +98,34 @@ public class ScheduleService {
         Schedule schedule = new Schedule();
         schedule.setScheduleTitle(request.getTitle());
         schedule.setScheduleTime(request.getTime());
-        schedule.setScheduleLocate(request.getLocation());
-        schedule.setScheduleContent(request.getContent());
-        schedule.setScheduleLink(request.getLink());
+        if (request.getLocation() != null) {
+            schedule.setScheduleLocate(request.getLocation());
+        }
+        if(request.getContent() != null){
+            schedule.setScheduleContent(request.getContent());
+        }
+
+        if (request.getLink() != null) {
+            schedule.setScheduleLink(request.getLink());
+        }
+
         schedule.setCalendar(calendar);
 
-        List<ScheduleMember> scheduleMembers = request.getMemberId().stream()
-                .map(memberId -> {
-                    Member member = memberRepository.findById(memberId)
-                            .orElseThrow(() -> new IllegalArgumentException("Invalid member ID: " + memberId));
-                    ScheduleMember scheduleMember = new ScheduleMember();
-                    scheduleMember.setMember(member);
-                    scheduleMember.setSchedule(schedule);
-                    return scheduleMember;
-                })
-                .collect(Collectors.toList());
+        if(request.getMemberId() != null){
+            List<ScheduleMember> scheduleMembers = request.getMemberId().stream()
+                    .map(memberId -> {
+                        Member member = memberRepository.findById(memberId)
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid member ID: " + memberId));
+                        ScheduleMember scheduleMember = new ScheduleMember();
+                        scheduleMember.setMember(member);
+                        scheduleMember.setSchedule(schedule);
+                        return scheduleMember;
+                    })
+                    .collect(Collectors.toList());
 
-        schedule.setScheduleMembers(scheduleMembers);
+            schedule.setScheduleMembers(scheduleMembers);
+        }
+
 
         return convertSchedule.convertSchedule(scheduleRepository.save(schedule));
     }
