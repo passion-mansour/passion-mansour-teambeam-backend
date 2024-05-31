@@ -75,7 +75,7 @@ public class BookmarkService {
         Member member = jwtTokenService.getMemberByToken(token);
         List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
 
-        for(Bookmark bookmark : bookmarkRepository.findAllByTagIds(member.getMemberId(), tagIds, tagIds.size())){
+        for(Bookmark bookmark : bookmarkRepository.findAllByTagIds(member.getMemberId(), tagIds)){
             bookmarkResponses.add(new BookmarkResponse().form(bookmark));
         }
 
