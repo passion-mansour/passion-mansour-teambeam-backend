@@ -43,5 +43,6 @@ public class Tag {
     @OneToMany(mappedBy = "tag")
     private List<TodoTag> todoTags = new ArrayList<>();
 
+    @Builder.Default
     private boolean is_deleted = false;
 }

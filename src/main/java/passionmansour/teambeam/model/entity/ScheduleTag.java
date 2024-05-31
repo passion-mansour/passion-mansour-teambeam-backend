@@ -29,5 +29,6 @@ public class ScheduleTag {
     @JoinColumn(name = "tagId")
     private Tag tag;
 
+    @Builder.Default
     private boolean is_deleted = false;
 }
