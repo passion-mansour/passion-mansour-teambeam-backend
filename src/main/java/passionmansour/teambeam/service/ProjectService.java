@@ -8,16 +8,20 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import passionmansour.teambeam.model.dto.board.request.PostBoardRequest;
+import passionmansour.teambeam.model.dto.board.response.BoardResponse;
 import passionmansour.teambeam.model.dto.project.ProjectDto;
 import passionmansour.teambeam.model.dto.project.ProjectJoinMemberDto;
 import passionmansour.teambeam.model.dto.project.request.LinkRequest;
 import passionmansour.teambeam.model.dto.project.request.MasterRequest;
 import passionmansour.teambeam.model.dto.project.request.UpdateProjectRequest;
 import passionmansour.teambeam.model.dto.project.request.UpdateRoleRequest;
+import passionmansour.teambeam.model.dto.project.response.ProjectResponse;
 import passionmansour.teambeam.model.dto.project.response.TokenAuthenticationResponse;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.model.enums.ProjectStatus;
 import passionmansour.teambeam.repository.*;
+import passionmansour.teambeam.service.board.BoardService;
 import passionmansour.teambeam.service.mail.EmailService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 import passionmansour.teambeam.service.security.RedisTokenService;
@@ -39,9 +43,10 @@ public class ProjectService {
     private final JoinMemberRepository joinMemberRepository;
     private final EmailService emailService;
     private final RedisTokenService redisTokenService;
+    private final BoardService boardService;
 
     @Transactional
-    public ProjectDto createProject(String token, ProjectDto projectDto) {
+    public ProjectResponse createProject(String token, ProjectDto projectDto) {
 
         Member member = tokenService.getMemberByToken(token);
 
@@ -58,23 +63,36 @@ public class ProjectService {
 
         //기본 투두리스트 생성
 
-
         Project savedProject = projectRepository.save(project);
 
+        // 게시판 요청 Dto 생성
+        PostBoardRequest postBoardRequest = new PostBoardRequest();
+        postBoardRequest.setProjectId(savedProject.getProjectId());
+        postBoardRequest.setName("게시판");
+
+        // 게시판 생성
+        BoardResponse board = boardService.createBoard(postBoardRequest);
+
         // 참여 회원 생성
-        JoinMember joinMember = JoinMember.builder()
-            .member(member)
-            .isHost(true)
-            .project(savedProject)
-            .build();
+        JoinMember joinMember = new JoinMember();
+        joinMember.setMember(member);
+        joinMember.setHost(true);
+        joinMember.setProject(savedProject);
 
         JoinMember saved = joinMemberRepository.save(joinMember);
         log.info(saved.toString());
 
         ProjectDto converted = convertToDto(project);
 
+        ProjectResponse response = new ProjectResponse();
+
+        response.setMessage("Project creation successful");
+        response.setProject(converted);
+        response.setProjectList(null);
+        response.setBoardId(board.getBoardId());
+
         log.info(converted.toString());
-        return converted;
+        return response;
     }
 
     public ProjectDto convertToDto(Project project) {
@@ -295,7 +313,7 @@ public class ProjectService {
         log.info("redisTokenService.getMailByToken(token) {}", mail);
 
         // 메일로 멤버 조회
-        Optional<Member> member = memberRepository.findByMail(mail);
+        Optional<Member> member = memberRepository.findByMailAndIsDeletedFalse(mail);
         log.info("member {}", member);
 
         // 회원

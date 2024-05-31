@@ -133,7 +133,7 @@ public class JwtTokenService {
         String usernameFromToken = getUsernameFromToken(token);
 
         // 해당 회원 정보 조회
-        return memberRepository.findByMail(usernameFromToken)
+        return memberRepository.findByMailAndIsDeletedFalse(usernameFromToken)
             .orElseThrow(() -> new UsernameNotFoundException("User not found with memberName: " + usernameFromToken));
     }
 }
