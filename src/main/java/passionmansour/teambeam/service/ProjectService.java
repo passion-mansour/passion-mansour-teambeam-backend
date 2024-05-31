@@ -4,19 +4,24 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailAuthenticationException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import passionmansour.teambeam.model.dto.board.request.PostBoardRequest;
+import passionmansour.teambeam.model.dto.board.response.BoardResponse;
 import passionmansour.teambeam.model.dto.project.ProjectDto;
 import passionmansour.teambeam.model.dto.project.ProjectJoinMemberDto;
 import passionmansour.teambeam.model.dto.project.request.LinkRequest;
 import passionmansour.teambeam.model.dto.project.request.MasterRequest;
 import passionmansour.teambeam.model.dto.project.request.UpdateProjectRequest;
 import passionmansour.teambeam.model.dto.project.request.UpdateRoleRequest;
+import passionmansour.teambeam.model.dto.project.response.ProjectResponse;
 import passionmansour.teambeam.model.dto.project.response.TokenAuthenticationResponse;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.model.enums.ProjectStatus;
 import passionmansour.teambeam.repository.*;
+import passionmansour.teambeam.service.board.BoardService;
 import passionmansour.teambeam.service.mail.EmailService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 import passionmansour.teambeam.service.security.RedisTokenService;
@@ -36,12 +41,12 @@ public class ProjectService {
     private final MemberRepository memberRepository;
     private final JwtTokenService tokenService;
     private final JoinMemberRepository joinMemberRepository;
-    private final TagRepository tagRepository;
     private final EmailService emailService;
     private final RedisTokenService redisTokenService;
+    private final BoardService boardService;
 
     @Transactional
-    public ProjectDto createProject(String token, ProjectDto projectDto) {
+    public ProjectResponse createProject(String token, ProjectDto projectDto) {
 
         Member member = tokenService.getMemberByToken(token);
 
@@ -52,25 +57,43 @@ public class ProjectService {
         project.setProjectStatus(ProjectStatus.PROGRESS);
         project.setCreateDate(LocalDateTime.now());
 
+        //캘린더 생성 알고리즘
+        Calendar calendar = new Calendar();
+        project.setCalendar(calendar);
+
+        //기본 투두리스트 생성
+
         Project savedProject = projectRepository.save(project);
 
+        // 게시판 요청 Dto 생성
+        PostBoardRequest postBoardRequest = new PostBoardRequest();
+        postBoardRequest.setProjectId(savedProject.getProjectId());
+        postBoardRequest.setName("게시판");
+
+        // 게시판 생성
+        BoardResponse board = boardService.createBoard(postBoardRequest);
+
         // 참여 회원 생성
-        JoinMember joinMember = JoinMember.builder()
-            .member(member)
-            .isHost(true)
-            .project(savedProject)
-            .build();
+        JoinMember joinMember = new JoinMember();
+        joinMember.setMember(member);
+        joinMember.setHost(true);
+        joinMember.setProject(savedProject);
 
         JoinMember saved = joinMemberRepository.save(joinMember);
         log.info(saved.toString());
 
         ProjectDto converted = convertToDto(project);
 
+        ProjectResponse response = new ProjectResponse();
+
+        response.setMessage("Project creation successful");
+        response.setProject(converted);
+        response.setProjectList(null);
+        response.setBoardId(board.getBoardId());
+
         log.info(converted.toString());
-        return converted;
+        return response;
     }
-
-
 
     public ProjectDto convertToDto(Project project) {
 
@@ -100,19 +123,39 @@ public class ProjectService {
             .collect(Collectors.toList());
     }
 
-    public ProjectDto getProject(Long id) {
-        Project project = projectRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
+    public ProjectDto getProject(String token, Long projectId) {
 
-        List<Tag> tagList = tagRepository.findByProject_ProjectId(id);
+        Project project = projectRepository.findById(projectId)
+            .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
+
+        boolean verified = verifyPermissions(token, project);
+        log.info("verified {}", verified);
+
+        if (!verified) {
+            throw new BadCredentialsException("Member is not join of the project.");
+        }
 
         return convertToDto(project);
     }
 
+    public boolean verifyPermissions(String token, Project project) {
+
+        Member member = tokenService.getMemberByToken(token);
+
+        return joinMemberRepository.existsByMember_MemberIdAndProject_ProjectId(member.getMemberId(), project.getProjectId());
+    }
+
     @Transactional
-    public ProjectDto updateProject(Long id, UpdateProjectRequest request) {
-        Project project = projectRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
+    public ProjectDto updateProject(String token, Long projectId, UpdateProjectRequest request) {
+        Project project = projectRepository.findById(projectId)
+            .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
+
+        boolean verified = verifyPermissions(token, project);
+        log.info("verified {}", verified);
+
+        if (!verified) {
+            throw new BadCredentialsException("Member is not join of the project.");
+        }
 
         if (request.getProjectName() != null) {
             project.setProjectName(request.getProjectName());
@@ -127,9 +170,16 @@ public class ProjectService {
         return convertToDto(project);
     }
 
-    public List<ProjectJoinMemberDto> getProjectJoinMembers(Long id) {
-        Project project = projectRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
+    public List<ProjectJoinMemberDto> getProjectJoinMembers(String token, Long projectId) {
+        Project project = projectRepository.findById(projectId)
+            .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
+
+        boolean verified = verifyPermissions(token, project);
+        log.info("verified {}", verified);
+
+        if (!verified) {
+            throw new BadCredentialsException("Member is not join of the project.");
+        }
 
         List<JoinMember> joinMembers = project.getJoinMembers();
 
@@ -147,9 +197,16 @@ public class ProjectService {
     }
 
     @Transactional
-    public List<ProjectJoinMemberDto> updateMemberRole(Long id, UpdateRoleRequest request) {
+    public List<ProjectJoinMemberDto> updateMemberRole(String token, Long id, UpdateRoleRequest request) {
         Project project = projectRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
+
+        boolean verified = verifyPermissions(token, project);
+        log.info("verified {}", verified);
+
+        if (!verified) {
+            throw new BadCredentialsException("Member is not join of the project.");
+        }
 
         for (UpdateRoleRequest.MemberRoles memberRoles : request.getMembers()) {
             JoinMember joinMember = joinMemberRepository.findByMember_MemberIdAndProject_ProjectId(memberRoles.getMemberId(), id);
@@ -171,6 +228,13 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
 
+        boolean verified = verifyPermissions(token, project);
+        log.info("verified {}", verified);
+
+        if (!verified) {
+            throw new BadCredentialsException("Member is not join of the project.");
+        }
+
         Member memberByToken = tokenService.getMemberByToken(token);
         JoinMember member = joinMemberRepository.findByMember_MemberIdAndProject_ProjectId(memberByToken.getMemberId(),
             projectId);
@@ -188,9 +252,16 @@ public class ProjectService {
     }
 
     @Transactional
-    public void deleteJoinMember(Long projectId, MasterRequest request) {
+    public void deleteJoinMember(String token, Long projectId, MasterRequest request) {
         Project project = projectRepository.findById(projectId)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
+
+        boolean verified = verifyPermissions(token, project);
+        log.info("verified {}", verified);
+
+        if (!verified) {
+            throw new BadCredentialsException("Member is not join of the project.");
+        }
 
         JoinMember joinMember = joinMemberRepository.findByMember_MemberIdAndProject_ProjectId(request.getMemberId(),
             projectId);
@@ -198,19 +269,26 @@ public class ProjectService {
     }
 
     @Transactional
-    public String sendLink(Long id, LinkRequest request) {
+    public String sendLink(String token, Long id, LinkRequest request) {
         Project project = projectRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
 
+        boolean verified = verifyPermissions(token, project);
+        log.info("verified {}", verified);
+
+        if (!verified) {
+            throw new BadCredentialsException("Member is not join of the project.");
+        }
+
         // 인증 정보 생성, 저장
-        String token = tokenService.generateInvitationToken(request.getMail(), id);
+        String linkToken = tokenService.generateInvitationToken(request.getMail(), id);
 
-        redisTokenService.storeInvitationToken(request.getMail(), token);
+        redisTokenService.storeInvitationToken(request.getMail(), linkToken);
 
-        log.info("token {}", token);
+        log.info("token {}", linkToken);
 
         // 초대 링크 생성
-        String resetLink = "http://34.22.108.250:8080/accept-invitation?token=" + token;
+        String resetLink = "http://34.22.108.250:8080/accept-invitation?token=" + linkToken;
         // 메일 전송
         try {
             emailService.sendEmail(request.getMail(), "프로젝트 초대",
@@ -235,8 +313,8 @@ public class ProjectService {
         log.info("redisTokenService.getMailByToken(token) {}", mail);
 
         // 메일로 멤버 조회
-        Optional<Member> member = memberRepository.findByMail(mail);
-        log.info("mail {}", mail);
+        Optional<Member> member = memberRepository.findByMailAndIsDeletedFalse(mail);
+        log.info("member {}", member);
 
         // 회원
         if (member.isPresent()) {
@@ -265,13 +343,27 @@ public class ProjectService {
             return response;
         }
         // 비회원
-        else {
-            TokenAuthenticationResponse response = new TokenAuthenticationResponse();
-            response.setMessage("Membership registration required");
-            response.setMember(false);
-            response.setToken(token);
+        TokenAuthenticationResponse response = new TokenAuthenticationResponse();
+        response.setMessage("Membership registration required");
+        response.setMember(false);
+        response.setToken(token);
 
-            return response;
+        return response;
+
+    }
+
+    @Transactional
+    public void deleteProject(String token, Long projectId) {
+        Project project = projectRepository.findById(projectId)
+            .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
+
+        boolean verified = verifyPermissions(token, project);
+        log.info("verified {}", verified);
+
+        if (!verified) {
+            throw new BadCredentialsException("Member is not join of the project.");
         }
+
+        projectRepository.delete(project);
     }
 }

@@ -32,7 +32,7 @@ public class KakaoService {
     @Transactional
     public ResponseEntity<?> kakaoLogin(String mail, String nickname) {
         // 카카오 메일 회원 여부 확인
-        Optional<Member> optionalMember = memberRepository.findByMail(mail);
+        Optional<Member> optionalMember = memberRepository.findByMailAndIsDeletedFalse(mail);
 
         // 회원
         if (optionalMember.isPresent()) {

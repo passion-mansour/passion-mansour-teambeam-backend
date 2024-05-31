@@ -1,15 +1,26 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import passionmansour.teambeam.model.enums.PostType;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@SQLDelete(sql = "UPDATE post SET is_deleted = true WHERE post_id = ?")
+@SQLRestriction("is_deleted = false")
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,12 +31,13 @@ public class Post {
     @Lob
     private String postContent;
     private PostType postType;
+    private boolean notice;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createDate;
+    private LocalDateTime createDate;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date updateDate;
+    private LocalDateTime updateDate;
 
     @ManyToOne
     @JoinColumn(name = "memberId")
@@ -44,4 +56,6 @@ public class Post {
 
     @OneToMany(mappedBy = "post")
     private List<PostComment> postComments = new ArrayList<>();
+
+    private boolean is_deleted = false;
 }

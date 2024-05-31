@@ -2,6 +2,7 @@ package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 import passionmansour.teambeam.model.enums.StartPage;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@SQLDelete(sql = "UPDATE member SET is_deleted = true WHERE member_id = ?")
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,4 +47,6 @@ public class Member {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Notification> notifications = new ArrayList<>();
+
+    private boolean isDeleted = false;
 }

@@ -18,10 +18,8 @@ public class CalendarController {
     @Autowired
     private ScheduleService scheduleService;
     @GetMapping("/{projectId}/calendar/month")
-    public ResponseEntity<GetCalendarResponse> GetMonthCalendar(@RequestParam(name = "month") int month,
-                                                 @RequestParam(name = "year") int year,
-                                                 @PathVariable Long projectId) {
-        GetCalendarResponse response = scheduleService.getMonthCalendar(projectId, year, month);
+    public ResponseEntity<GetCalendarResponse> GetMonthCalendar(@PathVariable Long projectId) {
+        GetCalendarResponse response = scheduleService.getMonthCalendar(projectId);
         return ResponseEntity.ok(response);
     }
 

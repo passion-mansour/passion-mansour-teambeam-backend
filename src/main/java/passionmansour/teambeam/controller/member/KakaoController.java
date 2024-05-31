@@ -1,5 +1,6 @@
 package passionmansour.teambeam.controller.member;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import passionmansour.teambeam.service.kakao.KakaoService;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api")
+@Tag(name = "KAKAO Controller", description = "카카오 관련 API입니다.")
 @Slf4j
 public class KakaoController {
 

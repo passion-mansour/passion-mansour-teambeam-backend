@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import passionmansour.teambeam.model.entity.Calendar;
 import passionmansour.teambeam.model.entity.MiddleTodo;
 import passionmansour.teambeam.model.entity.Project;
 import passionmansour.teambeam.model.entity.TopTodo;
@@ -27,5 +28,8 @@ public interface TopTodoRepository extends JpaRepository<TopTodo, Long> {
     List<TopTodo> findTopTodosByMonth(@Param("project") Project project,
                                       @Param("startDate") LocalDate startDate,
                                       @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT t FROM TopTodo t WHERE t.calendar = :calendar")
+    List<TopTodo> findTopTodosByCalendar(@Param("calendar") Calendar calendar);
 
 }

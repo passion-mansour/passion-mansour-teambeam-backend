@@ -11,5 +11,5 @@ public interface JoinMemberRepository extends JpaRepository<JoinMember, Long> {
 
     JoinMember findByMember_MemberIdAndProject_ProjectId(Long memberId, Long projectId);
 
-    JoinMember findByMember_MemberId(Long memberId);
+    boolean existsByMember_MemberIdAndProject_ProjectId(Long memberId, Long projectId);
 }

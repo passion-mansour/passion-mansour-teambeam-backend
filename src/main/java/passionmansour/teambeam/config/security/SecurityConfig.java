@@ -30,6 +30,7 @@ public class SecurityConfig {
                         "/api/**",
                         "/api/password/send-reset-link",
                         "/api/reset-password",
+                        "/kakao/**",
                         "/api/login",
                         "/api/register",
                         "/accept-invitation",
@@ -40,7 +41,13 @@ public class SecurityConfig {
                         "/webjars/**",
                         "/swagger-ui/index.html",
                         "/public/**",
-                        "/error/**").permitAll()
+                        "/error/**",
+                        "/favicon.ico",
+                        "/public/**",
+                        "/css/**",
+                        "/js/**",
+                        "/images/**",
+                        "/webjars/**").permitAll()
                     .anyRequest().authenticated()
             )
             .sessionManagement(sessionManagement ->

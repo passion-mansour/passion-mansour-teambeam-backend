@@ -2,11 +2,15 @@ package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.Date;
 
 @Entity
 @Table @Data
+@SQLDelete(sql = "UPDATE message_comment SET is_deleted = true WHERE message_comment_id = ?")
+@SQLRestriction("is_deleted = false")
 public class MessageComment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,4 +30,6 @@ public class MessageComment {
     @ManyToOne
     @JoinColumn(name = "messageId")
     private Message message;
+
+    private boolean is_deleted = false;
 }

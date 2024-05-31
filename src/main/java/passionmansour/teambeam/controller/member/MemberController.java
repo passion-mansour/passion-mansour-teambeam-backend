@@ -1,5 +1,6 @@
 package passionmansour.teambeam.controller.member;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,6 +32,7 @@ public class MemberController {
     private final MemberService memberService;
 
     // 회원가입
+    @Operation(summary = "회원가입", description = "사용자가 회원가입을 위해 필수 정보를 입력합니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "회원 가입 성공",
             content = @Content(schema = @Schema(implementation = RegisterResponse.class))),
@@ -50,6 +52,13 @@ public class MemberController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "회원가입 메일 인증", description = "사용자가 회원가입을 위한 메일 주소 인증 코드 메일 발송을 요청합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "메일 발송 성공",
+            content = @Content(schema = @Schema(implementation = RegisterResponse.class))),
+        @ApiResponse(responseCode = "500", description = "서버 오류",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PostMapping("/register-request")
     public ResponseEntity<?> sendRegisterCode(@RequestBody UpdateMemberRequest request) {
         String code = memberService.sendRegisterCode(request.getMail());
@@ -61,7 +70,9 @@ public class MemberController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+
     // 로그인
+    @Operation(summary = "로그인", description = "사용자가 로그인을 위해 필수 정보를 입력합니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "로그인 성공",
             content = @Content(schema = @Schema(implementation = RegisterResponse.class))),
@@ -87,8 +98,9 @@ public class MemberController {
     }
 
     // 비밀번호 재설정 요청
+    @Operation(summary = "비밀번호 재설정", description = "사용자가 비밀번호 재설정을 위해 메일 주소를 입력합니다.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "비밀번호 재설정 이메일 전송 성공",
+        @ApiResponse(responseCode = "200", description = "비밀번호 재설정 메일 전송 성공",
             content = @Content(schema = @Schema(implementation = Map.class))),
         @ApiResponse(responseCode = "400", description = "잘못된 요청",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
@@ -109,6 +121,7 @@ public class MemberController {
     }
 
     // 비밀번호 재설정
+    @Operation(summary = "비밀번호 재설정", description = "사용자가 비밀번호 재설정을 위한 인증 코드와 새로운 비밀번호를 입력합니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "비밀번호 재설정 성공",
             content = @Content(schema = @Schema(implementation = Map.class))),
@@ -138,6 +151,7 @@ public class MemberController {
     }
 
     // 회원 이름 조회
+    @Operation(summary = "회원 이름 조회", description = "사용자의 회원 정보 중 이름만 조회합니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "회원 정보 조회 성공",
             content = @Content(schema = @Schema(implementation = Map.class))),
@@ -160,6 +174,7 @@ public class MemberController {
     }
 
     // 회원 정보 조회
+    @Operation(summary = "회원 정보 조회", description = "사용자의 모든 회원 정보를 조회합니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "회원 정보 조회 성공",
             content = @Content(schema = @Schema(implementation = Map.class))),
@@ -195,6 +210,7 @@ public class MemberController {
     }
 
     // 회원 프로필 이미지 조회
+    @Operation(summary = "회원 프로필 이미지 조회", description = "사용자의 회원 정보 중 프로필 이미지만 조회합니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "회원 정보 조회 성공",
             content = @Content(schema = @Schema(implementation = Map.class))),
@@ -228,17 +244,37 @@ public class MemberController {
     }
 
     // 비밀번호 수정
+    @Operation(summary = "비밀번호 수정", description = "사용자가 비밀번호 수정을 위해 필수 정보를 입력합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "비밀번호 수정 성공",
+            content = @Content(schema = @Schema(implementation = Map.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 비밀번호",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "500", description = "서버 오류",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PatchMapping("/member/password")
     public ResponseEntity<?> updatePassword(@RequestHeader("Authorization") String token, @RequestBody UpdatePasswordRequest request) {
         memberService.updatePassword(token, request);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Change password successfully");
+        response.put("message", "Successfully updated password");
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 회원 정보 수정
+    @Operation(summary = "회원 정보 수정", description = "사용자가 회원 정보 수정을 위해 수정할 정보를 입력합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "회원 정보 수정 성공",
+            content = @Content(schema = @Schema(implementation = Map.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "401", description = "유효하지 않은 토큰",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "500", description = "서버 오류",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PatchMapping("/member")
     public ResponseEntity<?> updateMember(@RequestHeader("Authorization") String token, @RequestBody UpdateMemberRequest request) {
         MemberDto member = memberService.updateMember(token, request);
@@ -246,17 +282,34 @@ public class MemberController {
         MemberInformationResponse memberResponse = getMemberResponse(member);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Change member information successfully");
+        response.put("message", "Successfully updated member details");
         response.put("updatedMember", memberResponse);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", member.getAccessToken());
-        headers.add("RefreshToken", member.getRefreshToken());
+        if (member.getAccessToken() != null) {
 
-        return ResponseEntity.ok().headers(headers).body(response);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", member.getAccessToken());
+            headers.add("RefreshToken", member.getRefreshToken());
+            return ResponseEntity.ok().headers(headers).body(response);
+
+        }
+        return ResponseEntity.ok().body(response);
     }
 
     // 메일 주소 수정 코드 전송
+    @Operation(summary = "회원 정보(메일 주소) 수정", description = "사용자가 메일 주소 수정을 위해 수정할 메일 주소를 입력합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "인증 메일 전송 성공",
+            content = @Content(schema = @Schema(implementation = Map.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "401", description = "유효하지 않은 토큰",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "409", description = "이미 존재하는 메일",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "500", description = "서버 오류",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PostMapping("/member/mail")
     public ResponseEntity<?> sendUpdateMailCode(@RequestHeader("Authorization") String token, @RequestBody UpdateMemberRequest request) {
         String code = memberService.sendUpdateMailCode(token, request.getMail());
