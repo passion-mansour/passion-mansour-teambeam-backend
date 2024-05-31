@@ -1,6 +1,7 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -8,6 +9,7 @@ import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDateTime;
 import java.util.Date;
 
+@Builder
 @Entity
 @Table @Data
 @SQLDelete(sql = "UPDATE message_comment SET is_deleted = true WHERE message_comment_id = ?")

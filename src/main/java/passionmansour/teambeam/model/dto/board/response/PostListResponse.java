@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import passionmansour.teambeam.model.entity.Board;
 import passionmansour.teambeam.model.entity.Post;
 
 import java.util.ArrayList;
