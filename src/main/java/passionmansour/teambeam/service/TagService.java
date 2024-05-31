@@ -98,12 +98,10 @@ public class TagService {
 
     @Transactional(readOnly = true)
     public Tag getById(Long tagId){
-        Optional<Tag> tag = tagRepository.findById(tagId);
-        if(tag.isEmpty()){
-            // TODO: 예외처리
-        }
+        Tag tag = tagRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag not found"));
 
-        return tag.get();
+        return tag;
     }
 
     @Transactional(readOnly = true)

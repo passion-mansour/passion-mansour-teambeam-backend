@@ -15,9 +15,10 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = "SELECT DISTINCT p.* " +
-            "FROM post p " +
+            "FROM post p ON p.is_deleted = false" +
             "JOIN post_tag pt ON p.post_id = pt.post_id " +
-            "WHERE pt.tag_id IN (:tagIds)",
+            "WHERE p.is_deleted = false " +
+            "AND pt.tag_id IN (:tagIds)",
             nativeQuery = true)
     List<Post> findAllByTagIds(@Param("tagIds") List<Long> tagIds);
 
