@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import passionmansour.teambeam.model.dto.board.request.PostBoardRequest;
 import passionmansour.teambeam.model.dto.board.response.BoardListResponse;
 import passionmansour.teambeam.model.dto.board.response.BoardResponse;
+import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.service.board.BoardService;
+import passionmansour.teambeam.service.board.PostService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +25,9 @@ import java.util.Map;
 public class BoardController {
     @Autowired
     public final BoardService boardService;
+
+    @Autowired
+    public final PostService postService;
 
     // 게시판 생성
     @PostMapping("/board")
@@ -47,5 +52,10 @@ public class BoardController {
     @GetMapping("/board")
     public ResponseEntity<BoardListResponse> getAllBoardByProjectId(@PathVariable("projectId") Long projectId){
         return ResponseEntity.ok(boardService.getAllBoardByProjectId(projectId));
+    }
+
+    @GetMapping("/notice")
+    public ResponseEntity<PostListResponse> getNoticePost(@PathVariable("projectId") Long projectId){
+        return ResponseEntity.ok(postService.getNoticePost(projectId));
     }
 }

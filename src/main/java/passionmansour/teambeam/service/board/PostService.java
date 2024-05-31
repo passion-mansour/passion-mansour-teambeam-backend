@@ -19,6 +19,7 @@ import java.awt.print.Book;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -121,5 +122,12 @@ public class PostService {
             if(post.equals(bookmark.getPost())) return true;
         }
         return false;
+    }
+
+    @Transactional
+    public PostListResponse getNoticePost(Long projectId){
+        Optional<Project> projectOptional = projectRepository.findById(projectId);
+        return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional.get()));
+
     }
 }

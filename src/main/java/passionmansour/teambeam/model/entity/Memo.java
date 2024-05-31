@@ -39,5 +39,6 @@ public class Memo {
     @JoinColumn(name = "memberId")
     private Member member;
 
+    @Builder.Default
     private boolean is_deleted = false;
 }
