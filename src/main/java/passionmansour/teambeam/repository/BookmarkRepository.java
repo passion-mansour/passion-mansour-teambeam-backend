@@ -17,9 +17,10 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
     @Query(value = "SELECT DISTINCT b.* " +
             "FROM bookmark b " +
-            "JOIN post p ON b.post_id = p.post_id " +
+            "JOIN post p ON b.post_id = p.post_id AND p.is_deleted = false " +
             "JOIN post_tag pt ON p.post_id = pt.post_id " +
-            "WHERE b.member_id = :memberId AND pt.tag_id IN (:tagIds)",
+            "WHERE b.member_id = :memberId " +
+            "AND pt.tag_id IN (:tagIds)",
             nativeQuery = true)
     List<Bookmark> findAllByTagIds(@Param("memberId") Long memberId, @Param("tagIds") List<Long> tagIds);
 
