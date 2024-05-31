@@ -24,9 +24,8 @@ public class PostResponse {
     private String content;
     private PostType postType;
     private boolean notice;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private boolean isBookmark;
     private LocalDateTime createDate;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime updateDate;
     private CreatorInfoResponse member;
     private Long projectId;
@@ -35,8 +34,10 @@ public class PostResponse {
     private List<TagResponse> postTags = new ArrayList<>();
 
     public PostResponse form(Post post){
+        List<TagResponse> postTags = new ArrayList<>();
+
         for(PostTag postTag : post.getPostTags()){
-            this.postTags.add(new TagResponse().form(postTag.getTag()));
+            postTags.add(new TagResponse().form(postTag.getTag()));
         }
 
         return PostResponse.builder()
@@ -51,7 +52,7 @@ public class PostResponse {
                 .projectId(post.getProject().getProjectId())
                 .boardId(post.getBoard().getBoardId())
                 .boardName(post.getBoard().getBoardName())
-                .postTags(this.postTags)
+                .postTags(postTags)
                 .build();
     }
 }

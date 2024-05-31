@@ -50,14 +50,14 @@ public class BookmarkController {
 
     // 태그들로 북마크들 조회
     @GetMapping("/tags")
-    public ResponseEntity<PostListResponse> getBookmarksByTags(@RequestHeader("Authorization") String token,
+    public ResponseEntity<BookmarkListResponse> getBookmarksByTags(@RequestHeader("Authorization") String token,
                                                                    @RequestParam("tags") List<Long> tags){
         return ResponseEntity.ok(bookmarkService.getAllByTags(token, tags));
     }
 
     // 유저 일련번호로 모든 북마크들 조회
     @GetMapping("/")
-    public ResponseEntity<PostListResponse> getBookmarksByToken(@RequestHeader("Authorization") String token){
+    public ResponseEntity<BookmarkListResponse> getBookmarksByToken(@RequestHeader("Authorization") String token){
         return ResponseEntity.ok(bookmarkService.findAllByToken(token));
     }
 }
