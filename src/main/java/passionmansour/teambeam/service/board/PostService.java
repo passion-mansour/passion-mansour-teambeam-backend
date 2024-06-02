@@ -16,9 +16,7 @@ import passionmansour.teambeam.service.TagService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,14 +32,10 @@ public class PostService {
 
     @Transactional
     public PostResponse createPost(String token, PostPostRequest postPostRequest){
-        Optional<Project> project = projectRepository.findById(postPostRequest.getProjectId());
-        if(project.isEmpty()){
-            //TODO: 예외처리
-        }
-        Optional<Board> board = boardRepository.findById(postPostRequest.getBoardId());
-        if(board.isEmpty()){
-            //TODO: 예외처리
-        }
+        Project project = projectRepository.findById(postPostRequest.getProjectId())
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+        Board board = boardRepository.findById(postPostRequest.getBoardId())
+                .orElseThrow(() -> new RuntimeException("Board not found"));
 
         Post post = Post.builder()
                 .postTitle(postPostRequest.getTitle())
@@ -50,8 +44,8 @@ public class PostService {
                 .notice(postPostRequest.isNotice())
                 .createDate(LocalDateTime.now())
                 .member(jwtTokenService.getMemberByToken(token))
-                .project(project.get())
-                .board(board.get())
+                .project(project)
+                .board(board)
                 .build();
 
         Post save = postRepository.save(post);
@@ -68,7 +62,6 @@ public class PostService {
 
     @Transactional
     public PostResponse updatePost(PatchPostRequest patchPostRequest){
-        // TODO: 생성자인 경우에만 수정 가능한지 여부 확인 필요
         Post post = getById(patchPostRequest.getPostId());
 
         post.setPostTitle(patchPostRequest.getTitle());
@@ -76,10 +69,31 @@ public class PostService {
         post.setPostType(patchPostRequest.getPostType());
         post.setUpdateDate(LocalDateTime.now());
 
-        // tag 저장
+        // postTag 업데이트
         List<PostTag> postTags = new ArrayList<>();
-        for (Long tagId : patchPostRequest.getPostTagIds()){
-            postTags.add(tagService.addPostTag(tagId, patchPostRequest.getPostId()));
+
+        Set<Long> existingPostTagIds = post.getPostTags().stream()
+                .map(postTag -> postTag.getTag().getTagId())
+                .collect(Collectors.toSet());
+
+        // !주의 : request로 넘어오는 id는 tagId기 때문에 postTagId가 아닌 tagId로 비교해야 한다.
+        Set<Long> newPostTagIds = new HashSet<>(patchPostRequest.getPostTagIds());
+
+        // 새로운 태그 추가
+        for (Long postTagId : newPostTagIds) {
+            if (!existingPostTagIds.contains(postTagId)) {
+                PostTag newPostTag = tagService.addPostTag(postTagId, patchPostRequest.getPostId());
+                postTags.add(newPostTag);
+                log.info("PostTag 저장: " + postTagId);
+            }
+        }
+
+        // 기존 태그 삭제
+        for (PostTag postTag : post.getPostTags()) {
+            if (!newPostTagIds.contains(postTag.getTag().getTagId())) {
+                tagService.deletePostTag(postTag);
+                log.info("PostTag 삭제: " + postTag.getPostTagId());
+            } else postTags.add(postTag);
         }
         post.setPostTags(postTags);
 
@@ -88,26 +102,50 @@ public class PostService {
 
     @Transactional
     public void deletePost(Long postId){
-
+        Post post = getById(postId);
+        postRepository.delete(post);
     }
 
     @Transactional(readOnly = true)
     public Post getById(Long postId){
-        Optional<Post> post = postRepository.findById(postId);
-        if(post.isEmpty()){
-            //TODO: 예외처리
-        }
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        return post.get();
+        return post;
     }
 
     @Transactional(readOnly = true)
     public PostListResponse getAllByTags(List<Long> tagIds){
-        return new PostListResponse().entityToForm(postRepository.findAllByTagIds(tagIds, tagIds.size()));
+        return new PostListResponse().entityToForm(postRepository.findAllByTagIds(tagIds));
     }
 
     @Transactional(readOnly = true)
-    public PostListResponse getAllByBoardId(Long boardId){
-        return new PostListResponse().entityToForm(postRepository.findAllByBoardId(boardId));
+    public PostListResponse getAllByBoardId(String token, Long boardId){
+        List<PostResponse> postResponses = new ArrayList<>();
+
+        for(Post post : postRepository.findAllByBoardId(boardId)){
+            PostResponse postResponse = new PostResponse().form(post);
+            postResponse.setBookmark(isBookmark(token, post.getPostId()));
+            postResponses.add(postResponse);
+        }
+
+        return new PostListResponse().form(postResponses);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isBookmark(String token, Long postId){
+        Post post = getById(postId);
+        Member member = jwtTokenService.getMemberByToken(token);
+
+        for(Bookmark bookmark : member.getBookmarks()){
+            if(post.equals(bookmark.getPost())) return true;
+        }
+        return false;
+    }
+
+    @Transactional(readOnly = true)
+    public PostListResponse getNoticePost(Long projectId){
+        Optional<Project> projectOptional = projectRepository.findById(projectId);
+        return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional.get()));
     }
 }

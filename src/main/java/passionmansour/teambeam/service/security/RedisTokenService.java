@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import passionmansour.teambeam.execption.member.InvalidTokenException;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,13 +29,16 @@ public class RedisTokenService {
     }
 
     // 비밀번호 재설정 토큰
-    public void storeResetToken(String token) {
-        redisTemplate.opsForValue().set("reset:" + token, "true", 30, TimeUnit.MINUTES);
+    public void storeResetToken(String token, String mail) {
+        redisTemplate.opsForValue().set("reset:" + token, mail, 30, TimeUnit.MINUTES);
     }
 
-    public boolean isTrue(String token) {
-        Object o = redisTemplate.opsForValue().get("reset:" + token);
-        return o == "true";
+    public String getMailByResetToken(String token) {
+        String mail = (String) redisTemplate.opsForValue().get("reset:" + token);
+        if (mail == null) {
+            throw new InvalidTokenException("Token is invalid or expired");
+        }
+        return mail;
     }
 
     public void deleteResetToken(String token) {

@@ -11,6 +11,7 @@ import passionmansour.teambeam.model.dto.todolist.request.*;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -223,6 +224,43 @@ public class TodolistService {
     @Transactional
     public void deleteBottomTodo(Long bottomTodoId) {
         bottomTodoRepository.deleteById(bottomTodoId);
+    }
+
+    @Transactional
+    public void createSampleTodolist(Project project){
+        TopTodo sampleTopTodo = new TopTodo();
+        sampleTopTodo.setTopTodoTitle("Sample TopTodo");
+        sampleTopTodo.setProject(project);
+        sampleTopTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
+        sampleTopTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(10)));
+        sampleTopTodo.setCalendar(project.getCalendar());
+        sampleTopTodo = topTodoRepository.save(sampleTopTodo);
+
+        // Create sample MiddleTodo
+        MiddleTodo sampleMiddleTodo = new MiddleTodo();
+        sampleMiddleTodo.setMiddleTodoTitle("Sample MiddleTodo");
+        sampleMiddleTodo.setProject(project);
+        sampleMiddleTodo.setTopTodo(sampleTopTodo);
+        sampleMiddleTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
+        sampleMiddleTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(5)));
+        sampleMiddleTodo = middleTodoRepository.save(sampleMiddleTodo);
+
+        // Create sample BottomTodo
+        BottomTodo sampleBottomTodo = new BottomTodo();
+        sampleBottomTodo.setBottomTodoTitle("Sample BottomTodo");
+        sampleBottomTodo.setProject(project);
+        sampleBottomTodo.setMiddleTodo(sampleMiddleTodo);
+        sampleBottomTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
+        sampleBottomTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
+        // Assuming there is a member to assign, for now, let's fetch the first one
+        Optional<Member> memberOptional = memberRepository.findAll().stream().findFirst();
+        if (memberOptional.isPresent()) {
+            sampleBottomTodo.setMember(memberOptional.get());
+        } else {
+            throw new RuntimeException("No members found to assign to sample BottomTodo.");
+        }
+        bottomTodoRepository.save(sampleBottomTodo);
+
     }
 
 }

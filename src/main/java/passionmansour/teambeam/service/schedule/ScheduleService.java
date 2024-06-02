@@ -40,7 +40,7 @@ public class ScheduleService {
     @Autowired
     private ConvertTodoService convertTodoService;
 
-    public GetCalendarResponse getMonthCalendar(Long projectId,int year, int month){
+    public GetCalendarResponse getMonthCalendar(Long projectId){
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
@@ -49,19 +49,27 @@ public class ScheduleService {
             throw new RuntimeException("Calendar not found for the project");
         }
 
-        LocalDate startDate = LocalDate.of(year, month, 1);
-        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+//        LocalDate startDate = LocalDate.of(year, month, 1);
+//        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+//        LocalDateTime startDateTime = startDate.atStartOfDay();
+//        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
 
         // Fetch schedules and top todos using queries
-        List<ScheduleDTO> schedules = scheduleRepository.findSchedulesBetweenDates(calendar.getCalendarId(), startDateTime, endDateTime)
-                .stream()
-                .map(schedule -> convertSchedule.convertSchedule(schedule))
-                .collect(Collectors.toList());
+//        List<ScheduleDTO> schedules = scheduleRepository.findSchedulesBetweenDates(calendar.getCalendarId(), startDateTime, endDateTime)
+//                .stream()
+//                .map(schedule -> convertSchedule.convertSchedule(schedule))
+//                .collect(Collectors.toList());
+//
+//        List<ScheduleTopTodoDTO> topTodos = topTodoRepository.findTopTodosByMonth(project, startDate, endDate).stream()
+//                .map(topTodo -> convertSchedule.convertTopTodo(topTodo))
+//                .collect(Collectors.toList());
 
-        List<ScheduleTopTodoDTO> topTodos = topTodoRepository.findTopTodosByMonth(project, startDate, endDate).stream()
-                .map(topTodo -> convertSchedule.convertTopTodo(topTodo))
+        List<ScheduleDTO> schedules = scheduleRepository.findScheduleByCalendar(calendar)
+                .stream()
+                .map(schedule -> convertSchedule.convertSchedule(schedule)).collect(Collectors.toList());
+        List<TopTodo> todos = topTodoRepository.findTopTodosByCalendar(calendar);
+
+        List<ScheduleTopTodoDTO> topTodos = todos.stream().map(topTodo -> convertSchedule.convertTopTodo(topTodo))
                 .collect(Collectors.toList());
 
         return new GetCalendarResponse("200", topTodos, schedules);
@@ -90,23 +98,34 @@ public class ScheduleService {
         Schedule schedule = new Schedule();
         schedule.setScheduleTitle(request.getTitle());
         schedule.setScheduleTime(request.getTime());
-        schedule.setScheduleLocate(request.getLocation());
-        schedule.setScheduleContent(request.getContent());
-        schedule.setScheduleLink(request.getLink());
+        if (request.getLocation() != null) {
+            schedule.setScheduleLocate(request.getLocation());
+        }
+        if(request.getContent() != null){
+            schedule.setScheduleContent(request.getContent());
+        }
+
+        if (request.getLink() != null) {
+            schedule.setScheduleLink(request.getLink());
+        }
+
         schedule.setCalendar(calendar);
 
-        List<ScheduleMember> scheduleMembers = request.getMemberId().stream()
-                .map(memberId -> {
-                    Member member = memberRepository.findById(memberId)
-                            .orElseThrow(() -> new IllegalArgumentException("Invalid member ID: " + memberId));
-                    ScheduleMember scheduleMember = new ScheduleMember();
-                    scheduleMember.setMember(member);
-                    scheduleMember.setSchedule(schedule);
-                    return scheduleMember;
-                })
-                .collect(Collectors.toList());
+        if(request.getMemberId() != null){
+            List<ScheduleMember> scheduleMembers = request.getMemberId().stream()
+                    .map(memberId -> {
+                        Member member = memberRepository.findById(memberId)
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid member ID: " + memberId));
+                        ScheduleMember scheduleMember = new ScheduleMember();
+                        scheduleMember.setMember(member);
+                        scheduleMember.setSchedule(schedule);
+                        return scheduleMember;
+                    })
+                    .collect(Collectors.toList());
 
-        schedule.setScheduleMembers(scheduleMembers);
+            schedule.setScheduleMembers(scheduleMembers);
+        }
+
 
         return convertSchedule.convertSchedule(scheduleRepository.save(schedule));
     }
@@ -122,24 +141,37 @@ public class ScheduleService {
             throw new RuntimeException("Schedule does not belong to the project's calendar");
         }
 
-        schedule.setScheduleTitle(request.getTitle());
-        schedule.setScheduleTime(request.getTime());
-        schedule.setScheduleLocate(request.getLocation());
-        schedule.setScheduleContent(request.getContent());
-        schedule.setScheduleLink(request.getLink());
+        if (request.getTitle() != null) {
+            schedule.setScheduleTitle(request.getTitle());
+        }
+        if (request.getTime() != null) {
+            schedule.setScheduleTime(request.getTime());
+        }
+        if (request.getLocation() != null) {
+            schedule.setScheduleLocate(request.getLocation());
+        }
+        if(request.getContent() != null){
+            schedule.setScheduleContent(request.getContent());
+        }
 
-        List<ScheduleMember> scheduleMembers = request.getMemberId().stream()
-                .map(memberId -> {
-                    Member member = memberRepository.findById(memberId)
-                            .orElseThrow(() -> new IllegalArgumentException("Invalid member ID: " + memberId));
-                    ScheduleMember scheduleMember = new ScheduleMember();
-                    scheduleMember.setMember(member);
-                    scheduleMember.setSchedule(schedule);
-                    return scheduleMember;
-                })
-                .collect(Collectors.toList());
+        if (request.getLink() != null) {
+            schedule.setScheduleLink(request.getLink());
+        }
 
-        schedule.setScheduleMembers(scheduleMembers);
+        if(request.getMemberId() != null){
+            List<ScheduleMember> scheduleMembers = request.getMemberId().stream()
+                    .map(memberId -> {
+                        Member member = memberRepository.findById(memberId)
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid member ID: " + memberId));
+                        ScheduleMember scheduleMember = new ScheduleMember();
+                        scheduleMember.setMember(member);
+                        scheduleMember.setSchedule(schedule);
+                        return scheduleMember;
+                    })
+                    .collect(Collectors.toList());
+
+            schedule.setScheduleMembers(scheduleMembers);
+        }
 
         return convertSchedule.convertSchedule(scheduleRepository.save(schedule));
     }

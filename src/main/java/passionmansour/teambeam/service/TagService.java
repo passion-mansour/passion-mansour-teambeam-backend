@@ -53,6 +53,13 @@ public class TagService {
         return postTagRepository.save(postTag);
     }
 
+
+
+    @Transactional
+    public void deletePostTag(PostTag postTag){
+        postTagRepository.delete(postTag);
+    }
+
     @Transactional
     public ScheduleTag addScheduleTag(Long tagId, Long scheduleId){
         ScheduleTag scheduleTag = ScheduleTag.builder()
@@ -61,6 +68,11 @@ public class TagService {
                 .build();
 
         return scheduleTagRepository.save(scheduleTag);
+    }
+
+    @Transactional
+    public void deleteScheduleTag(ScheduleTag scheduleTag){
+        scheduleTagRepository.delete(scheduleTag);
     }
 
     @Transactional
@@ -74,18 +86,22 @@ public class TagService {
     }
 
     @Transactional
-    public void deleteTag(Long tagId) {
+    public void deleteTodoTag(TodoTag todoTag){
+        todoTagRepository.delete(todoTag);
+    }
 
+    @Transactional
+    public void deleteTag(Long tagId) {
+        Tag tag = getById(tagId);
+        tagRepository.delete(tag);
     }
 
     @Transactional(readOnly = true)
     public Tag getById(Long tagId){
-        Optional<Tag> tag = tagRepository.findById(tagId);
-        if(tag.isEmpty()){
-            // TODO: 예외처리
-        }
+        Tag tag = tagRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("Tag not found"));
 
-        return tag.get();
+        return tag;
     }
 
     @Transactional(readOnly = true)

@@ -25,14 +25,12 @@ public class BoardService {
 
     @Transactional
     public BoardResponse createBoard(PostBoardRequest postBoardRequest){
-        Optional<Project> project = projectRepository.findByProjectId(postBoardRequest.getProjectId());
-        if(project.isEmpty()){
-            //TODO: 예외처리
-        }
+        Project project = projectRepository.findByProjectId(postBoardRequest.getProjectId())
+                .orElseThrow(() -> new RuntimeException("Project not found"));
 
         Board board = Board.builder()
                 .boardName(postBoardRequest.getName())
-                .project(project.get())
+                .project(project)
                 .build();
 
         return new BoardResponse().form(boardRepository.save(board));
@@ -40,17 +38,16 @@ public class BoardService {
 
     @Transactional
     public void deleteBoard(Long boardId){
-
+        Board board = getBoardById(boardId);
+        boardRepository.delete(board);
     }
 
     @Transactional(readOnly = true)
-    public BoardResponse getBoardById(Long boardId){
-        Optional<Board> board = boardRepository.findById(boardId);
-        if(board.isEmpty()){
-            //TODO: 예외처리
-        }
+    public Board getBoardById(Long boardId){
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new RuntimeException("Board not found"));
 
-        return new BoardResponse().form(board.get());
+        return board;
     }
 
     @Transactional(readOnly = true)

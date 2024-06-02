@@ -56,6 +56,6 @@ public class Post {
 
     @OneToMany(mappedBy = "post")
     private List<PostComment> postComments = new ArrayList<>();
-
+    @Builder.Default
     private boolean is_deleted = false;
 }

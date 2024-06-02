@@ -22,4 +22,9 @@ public class ProjectResponse {
     @Schema(description = "프로젝트 리스트")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<ProjectDto> projectList;
+
+    @Schema(description = "게시판 아이디")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Long boardId;
+
 }

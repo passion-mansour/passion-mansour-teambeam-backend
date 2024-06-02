@@ -8,19 +8,24 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import passionmansour.teambeam.model.dto.board.request.PostBoardRequest;
+import passionmansour.teambeam.model.dto.board.response.BoardResponse;
 import passionmansour.teambeam.model.dto.project.ProjectDto;
 import passionmansour.teambeam.model.dto.project.ProjectJoinMemberDto;
 import passionmansour.teambeam.model.dto.project.request.LinkRequest;
 import passionmansour.teambeam.model.dto.project.request.MasterRequest;
 import passionmansour.teambeam.model.dto.project.request.UpdateProjectRequest;
 import passionmansour.teambeam.model.dto.project.request.UpdateRoleRequest;
+import passionmansour.teambeam.model.dto.project.response.ProjectResponse;
 import passionmansour.teambeam.model.dto.project.response.TokenAuthenticationResponse;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.model.enums.ProjectStatus;
 import passionmansour.teambeam.repository.*;
+import passionmansour.teambeam.service.board.BoardService;
 import passionmansour.teambeam.service.mail.EmailService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 import passionmansour.teambeam.service.security.RedisTokenService;
+import passionmansour.teambeam.service.todolist.TodolistService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,9 +44,14 @@ public class ProjectService {
     private final JoinMemberRepository joinMemberRepository;
     private final EmailService emailService;
     private final RedisTokenService redisTokenService;
+    private final BoardService boardService;
+
+    private final CalendarRepository calendarRepository;
+
+    private final TodolistService todolistService;
 
     @Transactional
-    public ProjectDto createProject(String token, ProjectDto projectDto) {
+    public ProjectResponse createProject(String token, ProjectDto projectDto) {
 
         Member member = tokenService.getMemberByToken(token);
 
@@ -51,30 +61,50 @@ public class ProjectService {
         project.setDescription(projectDto.getDescription());
         project.setProjectStatus(ProjectStatus.PROGRESS);
         project.setCreateDate(LocalDateTime.now());
+        Project savedProject = projectRepository.save(project);
 
         //캘린더 생성 알고리즘
         Calendar calendar = new Calendar();
-        project.setCalendar(calendar);
+        calendar.setProject(savedProject);
+        Calendar savedCalendar = calendarRepository.save(calendar);
+
+        // 프로젝트에 캘린더 설정
+        savedProject.setCalendar(savedCalendar);
+        savedProject = projectRepository.save(savedProject);
+
 
         //기본 투두리스트 생성
+        todolistService.createSampleTodolist(savedProject);
 
 
-        Project savedProject = projectRepository.save(project);
+        // 게시판 요청 Dto 생성
+        PostBoardRequest postBoardRequest = new PostBoardRequest();
+        postBoardRequest.setProjectId(savedProject.getProjectId());
+        postBoardRequest.setName("게시판");
+
+        // 게시판 생성
+        BoardResponse board = boardService.createBoard(postBoardRequest);
 
         // 참여 회원 생성
-        JoinMember joinMember = JoinMember.builder()
-            .member(member)
-            .isHost(true)
-            .project(savedProject)
-            .build();
+        JoinMember joinMember = new JoinMember();
+        joinMember.setMember(member);
+        joinMember.setHost(true);
+        joinMember.setProject(savedProject);
 
         JoinMember saved = joinMemberRepository.save(joinMember);
         log.info(saved.toString());
 
         ProjectDto converted = convertToDto(project);
 
+        ProjectResponse response = new ProjectResponse();
+
+        response.setMessage("Project creation successful");
+        response.setProject(converted);
+        response.setProjectList(null);
+        response.setBoardId(board.getBoardId());
+
         log.info(converted.toString());
-        return converted;
+        return response;
     }
 
     public ProjectDto convertToDto(Project project) {
@@ -270,13 +300,14 @@ public class ProjectService {
         log.info("token {}", linkToken);
 
         // 초대 링크 생성
-        String resetLink = "http://34.22.108.250:8080/accept-invitation?token=" + linkToken;
+        String link = "http://34.22.108.250:8080/accept-invitation?token=" + linkToken;
+        String emailBody = "<html><body><p>안녕하세요,</p><p>프로젝트에 참가하려면 아래 링크를 클릭하세요:</p>" +
+            "<a href='" + link + "'>프로젝트 참가</a><p>링크는 24시간 후에 만료됩니다.</p></body></html>";
+
         // 메일 전송
         try {
-            emailService.sendEmail(request.getMail(), "프로젝트 초대",
-                "안녕하세요,\n\n프로젝트에 참가하려면 아래 링크를 클릭하세요:\n\n" + resetLink
-                    + "\n\n링크는 24시간 후에 만료됩니다.\n\n" + "\n\n김시합니다.");
-            return resetLink;
+            emailService.sendHtmlEmail(request.getMail(), "프로젝트 초대", emailBody);
+            return link;
         } catch (MailAuthenticationException e) {
             log.error("Mail authentication failed: {}", e.getMessage());
             throw new MailAuthenticationException("Authentication failed");
@@ -295,7 +326,7 @@ public class ProjectService {
         log.info("redisTokenService.getMailByToken(token) {}", mail);
 
         // 메일로 멤버 조회
-        Optional<Member> member = memberRepository.findByMail(mail);
+        Optional<Member> member = memberRepository.findByMailAndIsDeletedFalse(mail);
         log.info("member {}", member);
 
         // 회원

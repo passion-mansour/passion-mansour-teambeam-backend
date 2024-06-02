@@ -13,7 +13,6 @@ import passionmansour.teambeam.repository.MemoRepository;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -48,17 +47,16 @@ public class MemoService {
 
     @Transactional
     public void deleteMemo(Long memoId){
-
+        Memo memo = getById(memoId);
+        memoRepository.delete(memo);
     }
 
     @Transactional(readOnly = true)
     public Memo getById(Long memoId){
-        Optional<Memo> memo = memoRepository.findById(memoId);
-        if(memo.isEmpty()){
-            //TODO: 예외처리
-        }
+        Memo memo = memoRepository.findById(memoId)
+                .orElseThrow(() -> new RuntimeException("Memo not found"));
 
-        return memo.get();
+        return memo;
     }
 
     @Transactional(readOnly = true)

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import passionmansour.teambeam.model.dto.board.response.BookmarkListResponse;
 import passionmansour.teambeam.model.dto.board.response.BookmarkResponse;
+import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.service.BookmarkService;
 

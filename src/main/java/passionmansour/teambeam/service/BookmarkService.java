@@ -2,25 +2,20 @@ package passionmansour.teambeam.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.model.dto.board.response.BookmarkListResponse;
 import passionmansour.teambeam.model.dto.board.response.BookmarkResponse;
-import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.model.entity.Bookmark;
 import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.repository.BookmarkRepository;
-import passionmansour.teambeam.repository.PostRepository;
+import passionmansour.teambeam.service.board.PostService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
-import java.awt.print.Book;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,19 +23,16 @@ import java.util.stream.Collectors;
 @Transactional
 public class BookmarkService {
     private final JwtTokenService jwtTokenService;
+    private final PostService postService;
     private final BookmarkRepository bookmarkRepository;
-    private final PostRepository postRepository;
 
     @Transactional
     public BookmarkResponse saveBookmark(String token, Long postId){
-        Optional<Post> post = postRepository.findById(postId);
-        if(post.isEmpty()){
-            // TODO: 예외처리
-        }
+        Post post = postService.getById(postId);
 
         Bookmark bookmark = Bookmark.builder()
                 .member(jwtTokenService.getMemberByToken(token))
-                .post(post.get())
+                .post(post)
                 .build();
 
         return new BookmarkResponse().form(bookmarkRepository.save(bookmark));
@@ -48,26 +40,22 @@ public class BookmarkService {
 
     @Transactional
     public void deleteBookmark(Long bookmarkId){
-
+        Bookmark bookmark = getById(bookmarkId);
+        bookmarkRepository.delete(bookmark);
     }
 
     @Transactional(readOnly = true)
-    public Bookmark findById(Long bookmarkId){
-        Optional<Bookmark> bookmark = bookmarkRepository.findById(bookmarkId);
-        if(bookmark.isEmpty()){
-            // TODO: 예외 처리
-        }
+    public Bookmark getById(Long bookmarkId){
+        Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
+                .orElseThrow(() -> new RuntimeException("Bookmark not found"));
 
-        return bookmark.get();
+        return bookmark;
     }
 
     public PostResponse sendToPost(Long bookmarkId){
-        Optional<Bookmark> bookmark = bookmarkRepository.findById(bookmarkId);
-        if(bookmark.isEmpty()){
-            // TODO: 예외 처리
-        }
+        Bookmark bookmark = getById(bookmarkId);
 
-        return new PostResponse().form(bookmark.get().getPost());
+        return new PostResponse().form(bookmark.getPost());
     }
 
     @Transactional(readOnly = true)
@@ -85,7 +73,12 @@ public class BookmarkService {
     @Transactional(readOnly = true)
     public BookmarkListResponse getAllByTags(String token, List<Long> tagIds){
         Member member = jwtTokenService.getMemberByToken(token);
+        List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
 
-        return new BookmarkListResponse().entityToForm(bookmarkRepository.findAllByTagIds(member.getMemberId(), tagIds, tagIds.size()));
+        for(Bookmark bookmark : bookmarkRepository.findAllByTagIds(member.getMemberId(), tagIds)){
+            bookmarkResponses.add(new BookmarkResponse().form(bookmark));
+        }
+
+        return new BookmarkListResponse().form(bookmarkResponses);
     }
 }

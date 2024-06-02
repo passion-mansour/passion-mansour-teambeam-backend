@@ -8,7 +8,6 @@ import passionmansour.teambeam.model.enums.MemberRole;
 
 @Entity
 @Getter @Setter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @SQLDelete(sql = "UPDATE join_member SET is_deleted = true WHERE join_member_id = ?")
