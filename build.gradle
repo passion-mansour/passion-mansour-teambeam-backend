@@ -56,6 +56,13 @@ dependencies {
 
 	implementation 'org.modelmapper:modelmapper:2.4.4'
 
+	// Spring Boot WebSocket Starter
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// Spring Integration Redis
+	implementation 'org.springframework.integration:spring-integration-redis'
+
+
 }
 
 tasks.named('test') {

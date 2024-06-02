@@ -63,7 +63,7 @@ public class MessageCommentService {
 
     @Transactional(readOnly = true)
     public MessageCommentListResponse getAllByProjectId(Long messageId){
-        List<MessageComment> messageComments = messageCommentRepository.getByMessageId(messageId);
+        List<MessageComment> messageComments = messageCommentRepository.getByMessage_MessageId(messageId);
         return new MessageCommentListResponse().entityToForm(messageComments);
     }
 }

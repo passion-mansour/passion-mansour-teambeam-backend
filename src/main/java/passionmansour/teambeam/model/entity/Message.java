@@ -1,10 +1,14 @@
 package passionmansour.teambeam.model.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -13,6 +17,8 @@ import java.util.List;
 @Builder
 @Entity
 @Table @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @SQLDelete(sql = "UPDATE message SET is_deleted = true WHERE message_id = ?")
 @SQLRestriction("is_deleted = false")
 public class Message {
@@ -23,10 +29,10 @@ public class Message {
 
     private String messageContent;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @CreatedDate
     private LocalDateTime createDate;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @LastModifiedDate
     private LocalDateTime updateDate;
 
     @OneToOne
@@ -41,4 +47,5 @@ public class Message {
     private List<MessageComment> messageComments = new ArrayList<>();
 
     private boolean is_deleted = false;
+
 }
