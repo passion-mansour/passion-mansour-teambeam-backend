@@ -26,7 +26,7 @@ public class Memo {
 
     private String memoTile;
 
-    @Lob
+    @Column(length = 50000)
     private String memoContent;
 
     @Temporal(TemporalType.TIMESTAMP)

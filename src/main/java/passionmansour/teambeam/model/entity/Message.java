@@ -19,6 +19,7 @@ public class Message {
     @Column(name="messageId")
     private Long messageId;
 
+    @Column(length = 50000)
     private String messageContent;
 
     @Temporal(TemporalType.TIMESTAMP)
