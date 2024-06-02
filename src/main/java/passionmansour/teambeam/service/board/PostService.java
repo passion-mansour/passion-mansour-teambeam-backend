@@ -67,6 +67,7 @@ public class PostService {
         post.setPostTitle(patchPostRequest.getTitle());
         post.setPostContent(patchPostRequest.getContent());
         post.setPostType(patchPostRequest.getPostType());
+        post.setNotice(patchPostRequest.isNotice());
         post.setUpdateDate(LocalDateTime.now());
 
         // postTag 업데이트
