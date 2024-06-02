@@ -73,7 +73,9 @@ public class BookmarkService {
     public PostResponse sendToPost(Long bookmarkId){
         Bookmark bookmark = getById(bookmarkId);
 
-        return new PostResponse().form(bookmark.getPost());
+        PostResponse postResponse = new PostResponse().form(bookmark.getPost());
+        postResponse.setBookmark(true);
+        return postResponse;
     }
 
     @Transactional(readOnly = true)
@@ -98,7 +100,11 @@ public class BookmarkService {
         List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
 
         for(Bookmark bookmark : bookmarkRepository.findAllByTagIds(member.getMemberId(), tagIds)){
-            bookmarkResponses.add(new BookmarkResponse().form(bookmark));
+            if(bookmark.getPost() != null) {
+                BookmarkResponse bookmarkResponse = new BookmarkResponse().form(bookmark);
+                bookmarkResponse.getPost().setBookmark(true);
+                bookmarkResponses.add(bookmarkResponse);
+            }
         }
 
         return new BookmarkListResponse().form(bookmarkResponses);
