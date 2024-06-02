@@ -44,12 +44,16 @@ public class BookmarkService {
         bookmarkRepository.delete(bookmark);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Bookmark getById(Long bookmarkId){
         Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
                 .orElseThrow(() -> new RuntimeException("Bookmark not found"));
 
-        return bookmark;
+        if(bookmark.getPost() != null){
+            return bookmark;
+        }
+
+        throw new NullPointerException("Post is deleted");
     }
 
     public PostResponse sendToPost(Long bookmarkId){
@@ -64,7 +68,9 @@ public class BookmarkService {
         List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
 
         for(Bookmark bookmark : member.getBookmarks()){
-            bookmarkResponses.add(new BookmarkResponse().form(bookmark));
+            if(bookmark.getPost() != null){
+                bookmarkResponses.add(new BookmarkResponse().form(bookmark));
+            }
         }
 
         return new BookmarkListResponse().form(bookmarkResponses);
