@@ -49,7 +49,7 @@ public class PostController {
         return ResponseEntity.ok(postService.updatePost(patchPostRequest));
     }
 
-    // 게시물 댓글 삭제
+    // 게시물 삭제
     @DeleteMapping("/{postId}")
     public ResponseEntity<?> deletePost(@PathVariable("postId") Long postId){
         postService.deletePost(postId);

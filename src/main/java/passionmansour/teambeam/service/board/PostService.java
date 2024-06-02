@@ -10,8 +10,10 @@ import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.BoardRepository;
+import passionmansour.teambeam.repository.BookmarkRepository;
 import passionmansour.teambeam.repository.PostRepository;
 import passionmansour.teambeam.repository.ProjectRepository;
+import passionmansour.teambeam.service.BookmarkService;
 import passionmansour.teambeam.service.TagService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
@@ -29,6 +31,7 @@ public class PostService {
     private final ProjectRepository projectRepository;
     private final BoardRepository boardRepository;
     private final PostRepository postRepository;
+    private final BookmarkRepository bookmarkRepository;
 
     @Transactional
     public PostResponse createPost(String token, PostPostRequest postPostRequest) {
