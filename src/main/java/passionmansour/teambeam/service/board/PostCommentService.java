@@ -54,6 +54,7 @@ public class PostCommentService {
     @Transactional
     public void deleteComment(Long postCommentId){
         PostComment postComment = getById(postCommentId);
+
         postCommentRepository.delete(postComment);
     }
 

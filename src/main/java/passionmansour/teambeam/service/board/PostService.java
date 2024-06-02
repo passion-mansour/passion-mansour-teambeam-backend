@@ -31,7 +31,7 @@ public class PostService {
     private final PostRepository postRepository;
 
     @Transactional
-    public PostResponse createPost(String token, PostPostRequest postPostRequest){
+    public PostResponse createPost(String token, PostPostRequest postPostRequest) {
         Project project = projectRepository.findById(postPostRequest.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
         Board board = boardRepository.findById(postPostRequest.getBoardId())
@@ -52,7 +52,7 @@ public class PostService {
 
         // tag 저장
         List<PostTag> postTags = new ArrayList<>();
-        for (Long postTagId : postPostRequest.getPostTagIds()){
+        for (Long postTagId : postPostRequest.getPostTagIds()) {
             postTags.add(tagService.addPostTag(postTagId, save.getPostId()));
         }
         save.setPostTags(postTags);
@@ -61,7 +61,7 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponse updatePost(PatchPostRequest patchPostRequest){
+    public PostResponse updatePost(PatchPostRequest patchPostRequest) {
         Post post = getById(patchPostRequest.getPostId());
 
         post.setPostTitle(patchPostRequest.getTitle());
@@ -102,13 +102,13 @@ public class PostService {
     }
 
     @Transactional
-    public void deletePost(Long postId){
+    public void deletePost(Long postId) {
         Post post = getById(postId);
         postRepository.delete(post);
     }
 
     @Transactional(readOnly = true)
-    public Post getById(Long postId){
+    public Post getById(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
@@ -116,15 +116,15 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PostListResponse getAllByTags(List<Long> tagIds){
+    public PostListResponse getAllByTags(List<Long> tagIds) {
         return new PostListResponse().entityToForm(postRepository.findAllByTagIds(tagIds));
     }
 
     @Transactional(readOnly = true)
-    public PostListResponse getAllByBoardId(String token, Long boardId){
+    public PostListResponse getAllByBoardId(String token, Long boardId) {
         List<PostResponse> postResponses = new ArrayList<>();
 
-        for(Post post : postRepository.findAllByBoardId(boardId)){
+        for (Post post : postRepository.findAllByBoardId(boardId)) {
             PostResponse postResponse = new PostResponse().form(post);
             postResponse.setBookmark(isBookmark(token, post.getPostId()));
             postResponses.add(postResponse);
@@ -134,19 +134,24 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public boolean isBookmark(String token, Long postId){
+    public boolean isBookmark(String token, Long postId) {
         Post post = getById(postId);
+
         Member member = jwtTokenService.getMemberByToken(token);
 
-        for(Bookmark bookmark : member.getBookmarks()){
-            if(post.equals(bookmark.getPost())) return true;
+        for (Bookmark bookmark : member.getBookmarks()) {
+            if(bookmark != null) {
+                if (post.equals(bookmark.getPost())) return true;
+            }
         }
         return false;
     }
 
     @Transactional(readOnly = true)
-    public PostListResponse getNoticePost(Long projectId){
-        Optional<Project> projectOptional = projectRepository.findById(projectId);
-        return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional.get()));
+    public PostListResponse getNoticePost(Long projectId) {
+        Project projectOptional = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional));
     }
 }

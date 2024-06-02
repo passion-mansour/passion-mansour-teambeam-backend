@@ -16,6 +16,7 @@ import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -29,13 +30,26 @@ public class BookmarkService {
     @Transactional
     public BookmarkResponse saveBookmark(String token, Long postId){
         Post post = postService.getById(postId);
+        Member member = jwtTokenService.getMemberByToken(token);
+        Bookmark existingBookmark = bookmarkRepository.findByMemberAndPostAndIsDeleted(member.getMemberId(), post.getPostId());
 
-        Bookmark bookmark = Bookmark.builder()
-                .member(jwtTokenService.getMemberByToken(token))
-                .post(post)
-                .build();
+        if (existingBookmark != null) {
+            // 이미 존재하는 북마크가 있으면 삭제 플래그를 다시 설정하고 저장
+            existingBookmark.set_deleted(false);
 
-        return new BookmarkResponse().form(bookmarkRepository.save(bookmark));
+            bookmarkRepository.save(existingBookmark);
+            log.info("existingBookmark status is " + existingBookmark.is_deleted());
+            return new BookmarkResponse().form(existingBookmark);
+        } else {
+            // 중복된 북마크가 없으면 새로운 북마크 생성
+            Bookmark newBookmark = Bookmark.builder()
+                    .member(member)
+                    .post(post)
+                    .build();
+
+            log.info("새 북마크 생성");
+            return new BookmarkResponse().form(bookmarkRepository.save(newBookmark));
+        }
     }
 
     @Transactional
@@ -69,7 +83,9 @@ public class BookmarkService {
 
         for(Bookmark bookmark : member.getBookmarks()){
             if(bookmark.getPost() != null){
-                bookmarkResponses.add(new BookmarkResponse().form(bookmark));
+                BookmarkResponse bookmarkResponse = new BookmarkResponse().form(bookmark);
+                bookmarkResponse.getPost().setBookmark(true);
+                bookmarkResponses.add(bookmarkResponse);
             }
         }
 
