@@ -17,6 +17,7 @@ import passionmansour.teambeam.service.BookmarkService;
 import passionmansour.teambeam.service.board.PostService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
+import java.awt.print.Book;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,14 +45,11 @@ public class BookmarkController {
     @DeleteMapping("/post")
     public ResponseEntity<?> deleteBookmarkByPostId(@RequestHeader("Authorization") String token,
                                                     @RequestParam("postId") Long postId){
-        Post post = postService.getById(postId);
-        Member member = jwtTokenService.getMemberByToken(token);
 
-        for (Bookmark bookmark : member.getBookmarks()) {
-            if(bookmark != null && post.equals(bookmark.getPost())){
-                bookmarkService.deleteBookmark(bookmark.getBookmarkId());
-                break;
-            }
+        Bookmark bookmark = bookmarkService.getByPostId(token, postId);
+        bookmarkService.deleteBookmark(bookmark.getBookmarkId());
+        if(bookmark != null){
+            bookmarkService.checkDelete(bookmark);
         }
 
         Map<String, String> response = new HashMap<>();

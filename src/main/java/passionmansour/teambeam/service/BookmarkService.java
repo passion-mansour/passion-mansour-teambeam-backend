@@ -1,8 +1,14 @@
 package passionmansour.teambeam.service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceContextType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.model.dto.board.response.BookmarkListResponse;
 import passionmansour.teambeam.model.dto.board.response.BookmarkResponse;
@@ -26,6 +32,9 @@ public class BookmarkService {
     private final JwtTokenService jwtTokenService;
     private final PostService postService;
     private final BookmarkRepository bookmarkRepository;
+
+    @PersistenceContext(type = PersistenceContextType.EXTENDED)
+    private EntityManager entityManager;
 
     @Transactional
     public BookmarkResponse saveBookmark(String token, Long postId){
@@ -52,24 +61,47 @@ public class BookmarkService {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public void deleteBookmark(Long bookmarkId){
         Bookmark bookmark = getById(bookmarkId);
         bookmarkRepository.delete(bookmark);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void checkDelete(Bookmark bookmark){
+        if(!bookmark.is_deleted()){
+            bookmark.set_deleted(true);
+            bookmarkRepository.save(bookmark);
+        }
+    }
+
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
     public Bookmark getById(Long bookmarkId){
         Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
                 .orElseThrow(() -> new RuntimeException("Bookmark not found"));
 
         if(bookmark.getPost() != null){
             return bookmark;
+        } else{
+            throw new NullPointerException("Post not found");
         }
-
-        throw new NullPointerException("Post is deleted");
     }
 
+    @Transactional(readOnly = true)
+    public Bookmark getByPostId(String token, Long postId){
+        Member member = jwtTokenService.getMemberByToken(token);
+
+        for(Bookmark bookmark : member.getBookmarks()){
+            if(bookmark.getPost() != null){
+                if(postId.equals(bookmark.getPost().getPostId())){
+                    return bookmark;
+                }
+            }
+        }
+        throw new NullPointerException("Bookmark not found");
+    }
+
+    @Transactional(readOnly = true)
     public PostResponse sendToPost(Long bookmarkId){
         Bookmark bookmark = getById(bookmarkId);
 
