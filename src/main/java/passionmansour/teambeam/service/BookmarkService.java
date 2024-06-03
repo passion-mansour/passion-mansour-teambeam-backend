@@ -1,12 +1,7 @@
 package passionmansour.teambeam.service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.PersistenceContextType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +17,6 @@ import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @Service
@@ -32,9 +26,6 @@ public class BookmarkService {
     private final JwtTokenService jwtTokenService;
     private final PostService postService;
     private final BookmarkRepository bookmarkRepository;
-
-    @PersistenceContext(type = PersistenceContextType.EXTENDED)
-    private EntityManager entityManager;
 
     @Transactional
     public BookmarkResponse saveBookmark(String token, Long postId){
@@ -61,13 +52,13 @@ public class BookmarkService {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     public void deleteBookmark(Long bookmarkId){
         Bookmark bookmark = getById(bookmarkId);
         bookmarkRepository.delete(bookmark);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     public void checkDelete(Bookmark bookmark){
         if(!bookmark.is_deleted()){
             bookmark.set_deleted(true);
@@ -75,7 +66,7 @@ public class BookmarkService {
         }
     }
 
-    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    @Transactional(readOnly = true)
     public Bookmark getById(Long bookmarkId){
         Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
                 .orElseThrow(() -> new RuntimeException("Bookmark not found"));
