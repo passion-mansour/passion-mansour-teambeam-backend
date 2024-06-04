@@ -1,4 +1,4 @@
-package passionmansour.teambeam.model.dto.chat.response;
+package passionmansour.teambeam.model.dto.message.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -20,10 +20,8 @@ import java.util.List;
 public class MessageResponse {
     private Long messageId;
     private String messageContent;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDateTime createDate;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDateTime updateDate;
+    private String createDate;
+    private String updateDate;
     private CreatorInfoResponse member;
     private List<MessageCommentResponse> messageComments = new ArrayList<>();
 

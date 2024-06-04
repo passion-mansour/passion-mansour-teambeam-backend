@@ -43,9 +43,8 @@ public class Project {
     @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Calendar calendar;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "messageId")
-    private Message message;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    private List<Message> message;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<Tag> tags = new ArrayList<>();

@@ -1,4 +1,4 @@
-package passionmansour.teambeam.model.dto.chat.request;
+package passionmansour.teambeam.model.dto.message.request;
 
 import lombok.Data;
 

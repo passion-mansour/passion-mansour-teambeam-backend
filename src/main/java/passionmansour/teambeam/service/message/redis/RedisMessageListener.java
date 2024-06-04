@@ -1,12 +1,6 @@
-package passionmansour.teambeam.service.chat.redis;
+package passionmansour.teambeam.service.message.redis;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
-
-@Service
+/*@Service
 @Slf4j
 public class RedisMessageListener implements MessageListener {
 
@@ -24,4 +18,4 @@ public class RedisMessageListener implements MessageListener {
         // 메시지를 클라이언트에게 전달
         template.convertAndSend("/topic/" + channel, messageBody);
     }
-}
+}*/

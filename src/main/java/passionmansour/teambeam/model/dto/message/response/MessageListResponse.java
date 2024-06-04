@@ -1,4 +1,4 @@
-package passionmansour.teambeam.model.dto.chat.response;
+package passionmansour.teambeam.model.dto.message.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
