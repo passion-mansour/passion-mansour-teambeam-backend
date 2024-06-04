@@ -10,7 +10,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import passionmansour.teambeam.execption.member.InvalidTokenException;
 import passionmansour.teambeam.execption.member.TokenGenerationException;
 import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.member.request.*;
@@ -130,9 +129,7 @@ public class MemberService {
         String subject = "회원가입 메일 인증";
         String text = "회원가입 메일을 인증";
 
-        String code = sendCode(mail, null, subject, text);
-
-        return code;
+        return sendCode(mail, subject, text);
     }
 
     // 로그인
@@ -217,12 +214,9 @@ public class MemberService {
     public boolean resetPassword(String token, String newPassword) {
 
         String mail = null;
-        try {
-            mail = redisTokenService.getMailByResetToken(token);
-            log.info("mail {}", mail);
-        } catch (Exception e) {
-            return false;
-        }
+
+        mail = redisTokenService.getMailByResetToken(token);
+        log.info("mail {}", mail);
 
         String finalMail = mail;
         Member member = memberRepository.findByMailAndIsDeletedFalse(mail)
@@ -233,7 +227,7 @@ public class MemberService {
         redisTokenService.deleteResetToken(token);
 
         log.info("savedMember {}", member);
-//            memberRepository.save(member);
+
         return true;
     }
 
@@ -321,12 +315,10 @@ public class MemberService {
         String subject = "메일 주소 변경";
         String text = "메일 주소를 변경";
 
-        String code = sendCode(mail, member, subject, text);
-
-        return code;
+        return sendCode(mail, subject, text);
     }
 
-    private String sendCode(String mail, Member member, String subject, String text) {
+    private String sendCode(String mail, String subject, String text) {
         // 100000 (최소값) 부터 999999 (최대값) 사이의 숫자 생성
         String code = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1000000));
 
