@@ -8,6 +8,7 @@ import passionmansour.teambeam.model.dto.board.request.PostBoardRequest;
 import passionmansour.teambeam.model.dto.board.response.BoardListResponse;
 import passionmansour.teambeam.model.dto.board.response.BoardResponse;
 import passionmansour.teambeam.model.entity.Board;
+import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.model.entity.Project;
 import passionmansour.teambeam.repository.BoardRepository;
 import passionmansour.teambeam.repository.ProjectRepository;

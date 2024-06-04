@@ -20,7 +20,7 @@ public class MessageComment {
     @Column(name="messageCommentId")
     private Long messageCommentId;
 
-    @Lob
+    @Column(length = 50000)
     private String messageCommentContent;
 
     @Temporal(TemporalType.TIMESTAMP)

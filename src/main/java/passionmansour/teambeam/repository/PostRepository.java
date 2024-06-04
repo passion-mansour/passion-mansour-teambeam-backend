@@ -18,6 +18,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "FROM post p " +
             "JOIN post_tag pt ON p.post_id = pt.post_id " +
             "WHERE p.is_deleted = false " +
+            "AND pt.is_deleted = false " +
             "AND pt.tag_id IN (:tagIds)",
             nativeQuery = true)
     List<Post> findAllByTagIds(@Param("tagIds") List<Long> tagIds);

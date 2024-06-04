@@ -10,8 +10,14 @@ import passionmansour.teambeam.model.dto.board.response.BookmarkListResponse;
 import passionmansour.teambeam.model.dto.board.response.BookmarkResponse;
 import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
+import passionmansour.teambeam.model.entity.Bookmark;
+import passionmansour.teambeam.model.entity.Member;
+import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.service.BookmarkService;
+import passionmansour.teambeam.service.board.PostService;
+import passionmansour.teambeam.service.security.JwtTokenService;
 
+import java.awt.print.Book;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +29,10 @@ import java.util.Map;
 public class BookmarkController {
     @Autowired
     public final BookmarkService bookmarkService;
+    @Autowired
+    public final PostService postService;
+    @Autowired
+    public final JwtTokenService jwtTokenService;
 
     // 북마크 추가
     @PostMapping("/{postId}")
@@ -31,9 +41,26 @@ public class BookmarkController {
         return ResponseEntity.ok(bookmarkService.saveBookmark(token, postId));
     }
 
-    // 북마크 삭제
-    @DeleteMapping("/{bookmarkId}")
-    public ResponseEntity<?> deleteBookmark(@PathVariable("bookmarkId") Long bookmarkId){
+    // 게시물 일련번호로 북마크 삭제
+    @DeleteMapping("/post")
+    public ResponseEntity<?> deleteBookmarkByPostId(@RequestHeader("Authorization") String token,
+                                                    @RequestParam("postId") Long postId){
+
+        Bookmark bookmark = bookmarkService.getByPostId(token, postId);
+        bookmarkService.deleteBookmark(bookmark.getBookmarkId());
+        if(bookmark != null){
+            bookmarkService.checkDelete(bookmark);
+        }
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Delete bookmark successfully");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    // 북마크 일련번호로 북마크 삭제
+    @DeleteMapping("/id")
+    public ResponseEntity<?> deleteBookmarkByBookmarkId(@RequestParam("bookmarkId") Long bookmarkId){
         bookmarkService.deleteBookmark(bookmarkId);
 
         Map<String, String> response = new HashMap<>();

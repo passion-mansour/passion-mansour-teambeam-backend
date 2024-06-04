@@ -53,8 +53,6 @@ public class TagService {
         return postTagRepository.save(postTag);
     }
 
-
-
     @Transactional
     public void deletePostTag(PostTag postTag){
         postTagRepository.delete(postTag);
