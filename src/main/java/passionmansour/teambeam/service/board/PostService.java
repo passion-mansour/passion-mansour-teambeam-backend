@@ -8,12 +8,13 @@ import passionmansour.teambeam.model.dto.board.request.PatchPostRequest;
 import passionmansour.teambeam.model.dto.board.request.PostPostRequest;
 import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
+import passionmansour.teambeam.model.dto.notification.CreateNotificationRequest;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.BoardRepository;
 import passionmansour.teambeam.repository.BookmarkRepository;
 import passionmansour.teambeam.repository.PostRepository;
 import passionmansour.teambeam.repository.ProjectRepository;
-import passionmansour.teambeam.service.BookmarkService;
+import passionmansour.teambeam.service.NotificationService;
 import passionmansour.teambeam.service.TagService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
@@ -32,24 +33,25 @@ public class PostService {
     private final BoardRepository boardRepository;
     private final PostRepository postRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public PostResponse createPost(String token, PostPostRequest postPostRequest) {
         Project project = projectRepository.findById(postPostRequest.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+            .orElseThrow(() -> new RuntimeException("Project not found"));
         Board board = boardRepository.findById(postPostRequest.getBoardId())
-                .orElseThrow(() -> new RuntimeException("Board not found"));
+            .orElseThrow(() -> new RuntimeException("Board not found"));
 
         Post post = Post.builder()
-                .postTitle(postPostRequest.getTitle())
-                .postContent(postPostRequest.getContent())
-                .postType(postPostRequest.getPostType())
-                .notice(postPostRequest.isNotice())
-                .createDate(LocalDateTime.now())
-                .member(jwtTokenService.getMemberByToken(token))
-                .project(project)
-                .board(board)
-                .build();
+            .postTitle(postPostRequest.getTitle())
+            .postContent(postPostRequest.getContent())
+            .postType(postPostRequest.getPostType())
+            .notice(postPostRequest.isNotice())
+            .createDate(LocalDateTime.now())
+            .member(jwtTokenService.getMemberByToken(token))
+            .project(project)
+            .board(board)
+            .build();
 
         Post save = postRepository.save(post);
 
@@ -59,6 +61,13 @@ public class PostService {
             postTags.add(tagService.addPostTag(postTagId, save.getPostId()));
         }
         save.setPostTags(postTags);
+
+        CreateNotificationRequest createNotification = new CreateNotificationRequest();
+        createNotification.setNotificationContent("새로운 공지가 등록되었습니다.");
+
+        if (save.isNotice()) {
+            notificationService.saveNotification(token, postPostRequest.getProjectId(), createNotification);
+        }
 
         return new PostResponse().form(save);
     }
@@ -77,8 +86,8 @@ public class PostService {
         List<PostTag> postTags = new ArrayList<>();
 
         Set<Long> existingPostTagIds = post.getPostTags().stream()
-                .map(postTag -> postTag.getTag().getTagId())
-                .collect(Collectors.toSet());
+            .map(postTag -> postTag.getTag().getTagId())
+            .collect(Collectors.toSet());
 
         // !주의 : request로 넘어오는 id는 tagId기 때문에 postTagId가 아닌 tagId로 비교해야 한다.
         Set<Long> newPostTagIds = new HashSet<>(patchPostRequest.getPostTagIds());
@@ -113,7 +122,7 @@ public class PostService {
     @Transactional(readOnly = true)
     public Post getById(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+            .orElseThrow(() -> new RuntimeException("Post not found"));
 
         return post;
     }
@@ -153,7 +162,7 @@ public class PostService {
     @Transactional(readOnly = true)
     public PostListResponse getNoticePost(Long projectId) {
         Project projectOptional = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+            .orElseThrow(() -> new RuntimeException("Project not found"));
 
         return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional));
     }
