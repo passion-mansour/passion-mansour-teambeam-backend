@@ -13,6 +13,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -59,6 +61,7 @@ public class MessageComment {
 
     private String getCurrentDateTime() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-        return LocalDateTime.now().format(formatter);
+        ZoneId zoneId = ZoneId.of("Asia/Seoul");
+        return ZonedDateTime.now(zoneId).format(formatter);
     }
 }
