@@ -41,3 +41,9 @@ jwt:
 kakao:
   client-id: 77cdffa48c591cce8c307afbe9c188d9
   redirect-uri: http://localhost:3000/oauth
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "shutdown"
