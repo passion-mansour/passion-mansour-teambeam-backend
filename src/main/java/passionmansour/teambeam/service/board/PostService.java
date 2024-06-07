@@ -11,11 +11,10 @@ import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.model.dto.notification.CreateNotificationRequest;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.BoardRepository;
-import passionmansour.teambeam.repository.BookmarkRepository;
 import passionmansour.teambeam.repository.PostRepository;
 import passionmansour.teambeam.repository.ProjectRepository;
-import passionmansour.teambeam.service.NotificationService;
 import passionmansour.teambeam.service.TagService;
+import passionmansour.teambeam.service.notification.NotificationService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
@@ -32,7 +31,6 @@ public class PostService {
     private final ProjectRepository projectRepository;
     private final BoardRepository boardRepository;
     private final PostRepository postRepository;
-    private final BookmarkRepository bookmarkRepository;
     private final NotificationService notificationService;
 
     @Transactional
