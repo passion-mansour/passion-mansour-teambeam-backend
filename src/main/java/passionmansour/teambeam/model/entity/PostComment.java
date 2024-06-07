@@ -24,7 +24,7 @@ public class PostComment {
     @Column(name="postCommentId")
     private Long postCommentId;
 
-    @Lob
+    @Column(length = 50000)
     private String postCommentContent;
 
     @Temporal(TemporalType.TIMESTAMP)

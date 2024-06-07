@@ -133,9 +133,9 @@ public class MemberController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetRequest resetRequest) {
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) {
 
-        boolean isReset = memberService.resetPassword(resetRequest.getToken(), resetRequest.getNewPassword());
+        boolean isReset = memberService.resetPassword(resetPasswordRequest.getToken(), resetPasswordRequest.getNewPassword());
 
         // 비밀번호 재설정 성공
         if (isReset) {

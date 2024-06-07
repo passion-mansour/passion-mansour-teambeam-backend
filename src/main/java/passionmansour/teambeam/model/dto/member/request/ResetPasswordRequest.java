@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class ResetRequest {
+public class ResetPasswordRequest {
 
     @Schema(description = "비밀번호 재설정 토큰")
     @NotNull(message = "token cannot be null")

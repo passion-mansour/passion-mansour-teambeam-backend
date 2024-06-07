@@ -28,7 +28,7 @@ public class Post {
     private Long postId;
 
     private String postTitle;
-    @Lob
+    @Column(length = 50000)
     private String postContent;
     private PostType postType;
     private boolean notice;
