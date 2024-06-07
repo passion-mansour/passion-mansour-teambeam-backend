@@ -169,7 +169,7 @@ public class MemberService {
             throw new BadCredentialsException("Invalid credentials provided", e);
         } catch (UsernameNotFoundException e) {
             throw new UsernameNotFoundException("User not found with mail: " + loginRequest.getMail(), e);
-        } catch (Exception e) {
+        } catch (TokenGenerationException e) {
             throw new TokenGenerationException("Failed to generate token", e);
         }
 
@@ -231,9 +231,11 @@ public class MemberService {
         return true;
     }
 
+    @Transactional
     public MemberDto getMember(String token) {
         Member member = tokenService.getMemberByToken(token);
-
+        int size = member.getNotifications().size();
+        member.setNotificationCount(size);
         return convertToDto(member);
     }
 

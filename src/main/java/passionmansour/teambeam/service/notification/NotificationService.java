@@ -1,19 +1,23 @@
-package passionmansour.teambeam.service;
+package passionmansour.teambeam.service.notification;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.model.dto.notification.CreateNotificationRequest;
 import passionmansour.teambeam.model.dto.notification.NotificationDto;
+import passionmansour.teambeam.model.entity.BottomTodo;
 import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Notification;
 import passionmansour.teambeam.model.entity.Project;
+import passionmansour.teambeam.repository.BottomTodoRepository;
 import passionmansour.teambeam.repository.NotificationRepository;
 import passionmansour.teambeam.repository.ProjectRepository;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +30,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final JwtTokenService tokenService;
     private final ProjectRepository projectRepository;
+    private final BottomTodoRepository todoRepository;
 
     // 알림 생성
     @Transactional
@@ -47,7 +52,6 @@ public class NotificationService {
         List<Notification> notificationList = updateNotificationCount(token);
 
         log.info("notificationList {}", notificationList);
-
     }
 
     // 알림 리스트 조회
@@ -59,7 +63,6 @@ public class NotificationService {
             findByMember_memberId(member.getMemberId());
 
         return notificationList.stream().map(this::convertToDto).collect(Collectors.toList());
-
     }
 
     private NotificationDto convertToDto(Notification notification) {
@@ -119,6 +122,37 @@ public class NotificationService {
         log.info("member {}", member);
 
         return notificationList;
+    }
+
+    @Transactional
+    // 임박 알림 생성
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void saveDailyNotification() {
+        List<BottomTodo> todoList = todoRepository.findByEndDate(new Date());
+        log.info("todoList {}", todoList.size());
+
+        createNotification(todoList);
+    }
+
+    public void createNotification(List<BottomTodo> todoList) {
+
+        for (BottomTodo todo : todoList) {
+            String endDate = todo.getEndDate().toString();
+            log.info("Todo end date: {}", endDate);
+
+            // 날짜 비교 후 저장
+            String notice = todo.getBottomTodoTitle() + "이(가) 오늘 마감입니다!";
+
+            Notification notification = new Notification();
+            notification.setNotificationContent(notice);
+            notification.setRead(false);
+            notification.setProject(todo.getProject());
+            notification.setMember(todo.getMember());
+
+            notificationRepository.save(notification);
+
+            log.info("notification {}", notification.toString());
+        }
     }
 
 }
