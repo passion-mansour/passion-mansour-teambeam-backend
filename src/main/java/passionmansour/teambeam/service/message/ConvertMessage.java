@@ -10,6 +10,7 @@ import passionmansour.teambeam.model.entity.MessageComment;
 import passionmansour.teambeam.repository.MemberRepository;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,8 @@ public class ConvertMessage {
             comments = message.getMessageComments().stream()
                     .map(this::convertToMessageCommentDto)
                     .collect(Collectors.toList());
+
+            comments.sort(Comparator.comparing(MessageCommentDTO::getMessageCommentId));
         }
 
 

@@ -20,6 +20,7 @@ import passionmansour.teambeam.repository.ProjectRepository;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -66,6 +67,8 @@ public class MessageService {
                     .collect(Collectors.toList());
             messages.forEach(msg -> hashOperations.put("chat:messages:" + projectId, msg.getMessageId(), msg));
         }
+
+        messages.sort(Comparator.comparing(MessageDTO::getMessageId));
 
         return messages;
     }
