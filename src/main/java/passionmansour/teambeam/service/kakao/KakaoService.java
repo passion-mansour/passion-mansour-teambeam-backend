@@ -17,6 +17,7 @@ import passionmansour.teambeam.repository.MemberRepository;
 import passionmansour.teambeam.service.MemberService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -63,7 +64,12 @@ public class KakaoService {
         request.setMail(mail);
         request.setPassword("kakao");
 
-        MemberDto member = memberService.saveMember(request);
+        MemberDto member = null;
+        try {
+            member = memberService.saveMember(request);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // UserDetails 객체로 변환
         User user = new User(member.getMail(), member.getPassword(), new ArrayList<>());
