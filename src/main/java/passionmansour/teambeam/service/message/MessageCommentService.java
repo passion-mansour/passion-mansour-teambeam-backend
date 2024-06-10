@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import passionmansour.teambeam.model.dto.message.MessageCommentDTO;
 import passionmansour.teambeam.model.dto.message.MessageDTO;
 import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Message;
@@ -16,6 +17,7 @@ import passionmansour.teambeam.repository.MessageRepository;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -40,7 +42,7 @@ public class MessageCommentService {
     }
 
 
-    public MessageDTO createComment(Long messageId, Long projectId, String commentContent, String token) {
+    public MessageCommentDTO createComment(Long messageId, Long projectId, String commentContent, String token) {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
 
         if (optionalMessage.isEmpty()) {
@@ -55,7 +57,7 @@ public class MessageCommentService {
         comment.setMessage(message);
         comment.setMember(member);
         //저장
-        messageCommentRepository.save(comment);
+        MessageCommentDTO messageComment = convertMessage.convertToMessageCommentDto(messageCommentRepository.save(comment));
 
         // 업데이트된 메시지 데이터 가져오기
         MessageDTO updatedMessage = convertMessage.convertToMessageDto(message);
@@ -63,20 +65,16 @@ public class MessageCommentService {
         // Redis에 업데이트된 메시지 저장
         hashOperations.put("chat:messages:" + projectId, updatedMessage.getMessageId(), updatedMessage);
 
-        return updatedMessage;
+        return messageComment;
     }
+
 
     @Transactional
-    public void deleteMessageComment(Long messageId){
-        MessageComment messageComment = getById(messageId);
-        messageCommentRepository.delete(messageComment);
-    }
-
-
-    @Transactional(readOnly = true)
-    public MessageComment getById(Long messageCommentId){
-        MessageComment messageComment = messageCommentRepository.findById(messageCommentId)
-                .orElseThrow(() -> new RuntimeException("Message not found"));
+    public List<MessageCommentDTO> getAllComment(Long messageId){
+        List<MessageCommentDTO> messageComment = messageCommentRepository.findByMessage_MessageId(messageId)
+                .stream()
+                .map(convertMessage::convertToMessageCommentDto)
+                .toList();
 
         return messageComment;
     }
