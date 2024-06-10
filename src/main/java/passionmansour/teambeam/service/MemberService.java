@@ -4,6 +4,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.MailAuthenticationException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.User;
@@ -49,16 +51,13 @@ public class MemberService {
     private final JoinMemberRepository joinMemberRepository;
     private final RedisTokenService redisTokenService;
 
-    @Value("${image.folder.path}")
-    private String imageFolderPath;
-
     @Transactional
     public MemberDto saveMember(RegisterRequest registerRequest) throws IOException {
 
         String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
 
         // 이미지 리스트 가져오기
-        List<Path> images = Files.list(Paths.get(imageFolderPath)).filter(Files::isRegularFile).toList();
+        List<Path> images = getImagesFromClassPath("images");
 
         // 랜덤 이미지 선택
         Random random = new Random();
@@ -120,15 +119,20 @@ public class MemberService {
 
     public MemberDto convertToDto(Member member) {
 
-        MemberDto memberDto = MemberDto.builder()
-            .memberId(member.getMemberId())
-            .memberName(member.getMemberName())
-            .mail(member.getMail())
-            .password(member.getPassword())
-            .startPage(member.getStartPage())
-            .profileImage(getImageAsBase64(member.getProfileImage()))
-            .notificationCount(member.getNotificationCount())
-            .build();
+        MemberDto memberDto = null;
+        try {
+            memberDto = MemberDto.builder()
+                .memberId(member.getMemberId())
+                .memberName(member.getMemberName())
+                .mail(member.getMail())
+                .password(member.getPassword())
+                .startPage(member.getStartPage())
+                .profileImage(getImageAsBase64(member.getProfileImage()))
+                .notificationCount(member.getNotificationCount())
+                .build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         log.info(memberDto.toString());
         return memberDto;
@@ -275,8 +279,9 @@ public class MemberService {
     }
 
     // 특정 이미지 인코딩
-    public String getImageAsBase64(String imageName) {
-        Path imagePath = Paths.get(imageFolderPath).resolve(imageName);
+    public String getImageAsBase64(String imageName) throws IOException {
+        ClassPathResource resource = new ClassPathResource("images/" + imageName);
+        Path imagePath = Paths.get(resource.getURI());
         try {
             return encodeImageToBase64(imagePath);
         } catch (IOException e) {
@@ -286,7 +291,8 @@ public class MemberService {
 
     // 이미지 리스트 반환
     public List<ProfileImageResponse> getProfileImages() throws IOException{
-        return Files.list(Paths.get(imageFolderPath))
+        return getImagesFromClassPath("images")
+            .stream()
             .map(imagePath -> {
                 try {
                     String fileName = imagePath.getFileName().toString();
@@ -296,6 +302,17 @@ public class MemberService {
                     throw new RuntimeException("Failed to encode image", e);
                 }
             })
+            .collect(Collectors.toList());
+    }
+
+    // 이미지 리소스 가져오기
+    private List<Path> getImagesFromClassPath(String resourcePath) throws IOException {
+        Resource resource = new ClassPathResource(resourcePath);
+        if (!resource.exists()) {
+            throw new IOException("Resource not found: " + resourcePath);
+        }
+        return Files.walk(Paths.get(resource.getURI()))
+            .filter(Files::isRegularFile)
             .collect(Collectors.toList());
     }
 
