@@ -47,7 +47,3 @@ management:
     web:
       exposure:
         include: "shutdown"
-
-image:
-  folder:
-    path: src/main/resources/images
