@@ -284,13 +284,6 @@ public class TodolistService {
         sampleBottomTodo.setMiddleTodo(sampleMiddleTodo);
         sampleBottomTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
         sampleBottomTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
-        // Assuming there is a member to assign, for now, let's fetch the first one
-        Optional<JoinMember> joinMemberOptional = joinMemberRepository.findByProject(project).stream().findFirst();
-        if (joinMemberOptional.isPresent()) {
-            sampleBottomTodo.setMember(joinMemberOptional.get().getMember());
-        } else {
-            throw new RuntimeException("No members found in the project to assign to sample BottomTodo.");
-        }
         bottomTodoRepository.save(sampleBottomTodo);
 
     }
