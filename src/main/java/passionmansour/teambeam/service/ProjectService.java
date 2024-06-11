@@ -45,9 +45,9 @@ public class ProjectService {
     private final EmailService emailService;
     private final RedisTokenService redisTokenService;
     private final BoardService boardService;
+    private final MemberService memberService;
 
     private final CalendarRepository calendarRepository;
-
     private final TodolistService todolistService;
 
     @Transactional
@@ -199,10 +199,13 @@ public class ProjectService {
     }
 
     private ProjectJoinMemberDto convertToDto(JoinMember joinMember) {
+        String encodedProfileImage = memberService.getImageAsBase64(joinMember.getMember().getProfileImage());
+
         ProjectJoinMemberDto dto = new ProjectJoinMemberDto();
         dto.setMemberId(joinMember.getMember().getMemberId());
         dto.setMemberName(joinMember.getMember().getMemberName());
         dto.setMail(joinMember.getMember().getMail());
+        dto.setProfileImage(encodedProfileImage);
         dto.setMemberRole(joinMember.getMemberRole() != null ? joinMember.getMemberRole().toString() : null);
         dto.setHost(joinMember.isHost());
         return dto;

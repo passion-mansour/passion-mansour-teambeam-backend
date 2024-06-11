@@ -15,6 +15,8 @@ public class ProjectJoinMemberDto {
     private String memberName;
     @Schema(description = "메일 주소")
     private String mail;
+    @Schema(description = "프로필 이미지")
+    private String profileImage;
     @Schema(description = "역할(BE, FE)")
     private String memberRole;
     @Schema(description = "호스트 여부")

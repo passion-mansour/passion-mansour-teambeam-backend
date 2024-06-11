@@ -11,6 +11,7 @@ import passionmansour.teambeam.model.dto.board.response.PostCommentResponse;
 import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.model.entity.PostComment;
 import passionmansour.teambeam.repository.*;
+import passionmansour.teambeam.service.MemberService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ public class PostCommentService {
     private final JwtTokenService jwtTokenService;
     private final PostRepository postRepository;
     private final PostCommentRepository postCommentRepository;
+    private final MemberService memberService;
 
     @Transactional
     public PostCommentResponse createPostComment(String token, PostPostCommentRequest postPostCommentRequest) {
@@ -68,6 +70,6 @@ public class PostCommentService {
 
     @Transactional(readOnly = true)
     public PostCommentListResponse getAllByPostId(Long postId) {
-        return new PostCommentListResponse().entityToForm(postCommentRepository.getAllByPostId(postId));
+        return new PostCommentListResponse().entityToForm(postCommentRepository.getAllByPostId(postId), memberService);
     }
 }
