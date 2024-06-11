@@ -230,8 +230,9 @@ public class MemberController {
                                                    @PathVariable("memberId") Long memberId) {
         MemberDto member = memberService.getMemberById(token, memberId);
 
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("message", "Member information inquiry successful");
+        response.put("memberId", member.getMemberId());
         response.put("profileImage", member.getProfileImage());
 
         return new ResponseEntity<>(response, HttpStatus.OK);
