@@ -12,6 +12,7 @@ import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,6 +37,9 @@ public class TodolistService {
 
     @Autowired
     private ConvertTodoService convertTodoService;
+
+    @Autowired
+    private TagRepository tagRepository;
 
     private ModelMapper modelMapper;
 
@@ -107,6 +111,8 @@ public class TodolistService {
             throw new RuntimeException("Project 찾지 못했습니다.");
         }
 
+
+
         MiddleTodo middleTodo = new MiddleTodo();
         middleTodo.setMiddleTodoTitle(request.getTitle());
         middleTodo.setProject(projectOptional.get());
@@ -133,6 +139,8 @@ public class TodolistService {
         }
 
 
+
+
         BottomTodo bottomTodo = new BottomTodo();
         bottomTodo.setBottomTodoTitle(request.getTitle());
         bottomTodo.setProject(projectOptional.get());
@@ -140,6 +148,20 @@ public class TodolistService {
         bottomTodo.setStartDate(request.getStartDate());
         bottomTodo.setEndDate(request.getEndDate());
         bottomTodo.setMember(memberOptional.get());
+
+        List<TodoTag> todoTags = new ArrayList<>();
+        for (Integer tagId : request.getTaglist()) {
+            Optional<Tag> tagOptional = tagRepository.findById(tagId.longValue());
+            if (!tagOptional.isPresent()) {
+                throw new RuntimeException("Tag 찾지 못했습니다.");
+            }
+            TodoTag todoTag = new TodoTag();
+            todoTag.setTodo(bottomTodo);
+            todoTag.setTag(tagOptional.get());
+            todoTags.add(todoTag);
+        }
+        bottomTodo.setTodoTags(todoTags);
+        
         return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
                 middleTodoOptional.get().getTopTodo().getTopTodoId(),
                 middleTodoOptional.get().getMiddleTodoId());

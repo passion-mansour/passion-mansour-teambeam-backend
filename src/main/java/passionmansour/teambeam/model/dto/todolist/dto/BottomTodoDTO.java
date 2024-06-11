@@ -6,6 +6,7 @@ import lombok.Data;
 import passionmansour.teambeam.model.entity.Member;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class BottomTodoDTO {
@@ -20,6 +21,7 @@ public class BottomTodoDTO {
     private Date endDate;
     private String memo;
     private BottomMember assignees;
+    private List<String> taglist;
 
     @Data
     public class BottomMember{
