@@ -12,6 +12,7 @@ import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,6 +37,12 @@ public class TodolistService {
 
     @Autowired
     private ConvertTodoService convertTodoService;
+
+    @Autowired
+    private TagRepository tagRepository;
+
+    @Autowired
+    private JoinMemberRepository joinMemberRepository;
 
     private ModelMapper modelMapper;
 
@@ -107,6 +114,8 @@ public class TodolistService {
             throw new RuntimeException("Project 찾지 못했습니다.");
         }
 
+
+
         MiddleTodo middleTodo = new MiddleTodo();
         middleTodo.setMiddleTodoTitle(request.getTitle());
         middleTodo.setProject(projectOptional.get());
@@ -133,6 +142,8 @@ public class TodolistService {
         }
 
 
+
+
         BottomTodo bottomTodo = new BottomTodo();
         bottomTodo.setBottomTodoTitle(request.getTitle());
         bottomTodo.setProject(projectOptional.get());
@@ -140,6 +151,20 @@ public class TodolistService {
         bottomTodo.setStartDate(request.getStartDate());
         bottomTodo.setEndDate(request.getEndDate());
         bottomTodo.setMember(memberOptional.get());
+
+        List<TodoTag> todoTags = new ArrayList<>();
+        for (Integer tagId : request.getTaglist()) {
+            Optional<Tag> tagOptional = tagRepository.findById(tagId.longValue());
+            if (!tagOptional.isPresent()) {
+                throw new RuntimeException("Tag 찾지 못했습니다.");
+            }
+            TodoTag todoTag = new TodoTag();
+            todoTag.setTodo(bottomTodo);
+            todoTag.setTag(tagOptional.get());
+            todoTags.add(todoTag);
+        }
+        bottomTodo.setTodoTags(todoTags);
+
         return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
                 middleTodoOptional.get().getTopTodo().getTopTodoId(),
                 middleTodoOptional.get().getMiddleTodoId());
@@ -253,11 +278,11 @@ public class TodolistService {
         sampleBottomTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
         sampleBottomTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
         // Assuming there is a member to assign, for now, let's fetch the first one
-        Optional<Member> memberOptional = memberRepository.findAll().stream().findFirst();
-        if (memberOptional.isPresent()) {
-            sampleBottomTodo.setMember(memberOptional.get());
+        Optional<JoinMember> joinMemberOptional = joinMemberRepository.findByProject(project).stream().findFirst();
+        if (joinMemberOptional.isPresent()) {
+            sampleBottomTodo.setMember(joinMemberOptional.get().getMember());
         } else {
-            throw new RuntimeException("No members found to assign to sample BottomTodo.");
+            throw new RuntimeException("No members found in the project to assign to sample BottomTodo.");
         }
         bottomTodoRepository.save(sampleBottomTodo);
 
