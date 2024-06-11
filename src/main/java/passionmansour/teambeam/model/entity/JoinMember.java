@@ -32,5 +32,4 @@ public class JoinMember {
     private Project project;
 
     private boolean is_deleted = false;
-
 }

@@ -41,6 +41,9 @@ public class TodolistService {
     @Autowired
     private TagRepository tagRepository;
 
+    @Autowired
+    private JoinMemberRepository joinMemberRepository;
+
     private ModelMapper modelMapper;
 
     public List<TopTodoDTO> getTodosByProjectId(Long projectId) {
@@ -161,7 +164,7 @@ public class TodolistService {
             todoTags.add(todoTag);
         }
         bottomTodo.setTodoTags(todoTags);
-        
+
         return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
                 middleTodoOptional.get().getTopTodo().getTopTodoId(),
                 middleTodoOptional.get().getMiddleTodoId());
@@ -275,11 +278,11 @@ public class TodolistService {
         sampleBottomTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
         sampleBottomTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
         // Assuming there is a member to assign, for now, let's fetch the first one
-        Optional<Member> memberOptional = memberRepository.findAll().stream().findFirst();
-        if (memberOptional.isPresent()) {
-            sampleBottomTodo.setMember(memberOptional.get());
+        Optional<JoinMember> joinMemberOptional = joinMemberRepository.findByProject(project).stream().findFirst();
+        if (joinMemberOptional.isPresent()) {
+            sampleBottomTodo.setMember(joinMemberOptional.get().getMember());
         } else {
-            throw new RuntimeException("No members found to assign to sample BottomTodo.");
+            throw new RuntimeException("No members found in the project to assign to sample BottomTodo.");
         }
         bottomTodoRepository.save(sampleBottomTodo);
 
