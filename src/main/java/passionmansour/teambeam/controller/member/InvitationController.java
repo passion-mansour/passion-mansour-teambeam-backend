@@ -43,9 +43,9 @@ public class InvitationController {
         log.info("response {}", response);
         
         if (response.isMember()) {
-            return "redirect:http://localhost:3000/user/login";
+            return "redirect:https://k0bf03acb7c00a.user-app.krampoline.com/user/login";
         } else {
-            return "redirect:http://localhost:3000/user/join?token=" + response.getToken();
+            return "redirect:https://k0bf03acb7c00a.user-app.krampoline.com/user/join?token=" + response.getToken();
         }
     }
 
