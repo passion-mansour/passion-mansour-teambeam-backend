@@ -52,6 +52,7 @@ public class ConvertMessage {
 
         return new MessageCommentDTO(
                 comment.getMessageCommentId(),
+                comment.getMessage().getMessageId(),
                 comment.getMessageCommentContent(),
                 comment.getCreateDate(),
                 comment.getUpdateDate(),
