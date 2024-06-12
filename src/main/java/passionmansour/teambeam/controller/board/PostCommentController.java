@@ -34,10 +34,11 @@ public class PostCommentController {
 
     // 게시물 댓글 업데이트
     @PatchMapping("/{commentId}")
-    public ResponseEntity<PostCommentResponse> updatePostComment(@PathVariable("commentId") Long commentId,
+    public ResponseEntity<PostCommentResponse> updatePostComment(@RequestHeader("Authorization") String token,
+                                                                 @PathVariable("commentId") Long commentId,
                                                    @Valid @RequestBody PatchPostCommentRequest patchPostCommentRequest){
         patchPostCommentRequest.setPostCommentId(commentId);
-        return ResponseEntity.ok(postCommentService.updatePostComment(patchPostCommentRequest));
+        return ResponseEntity.ok(postCommentService.updatePostComment(token, patchPostCommentRequest));
     }
 
     // 게시물 댓글 삭제
