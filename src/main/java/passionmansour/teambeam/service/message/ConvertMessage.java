@@ -1,7 +1,6 @@
 package passionmansour.teambeam.service.message;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import passionmansour.teambeam.model.dto.message.MessageCommentDTO;
 import passionmansour.teambeam.model.dto.message.MessageDTO;
@@ -21,7 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConvertMessage {
     private final MemberRepository memberRepository;
-    private MemberService memberService;
+    private final MemberService memberService;
 
     public MessageDTO convertToMessageDto(Message message) {
         List<MessageCommentDTO> comments = new ArrayList<>();
