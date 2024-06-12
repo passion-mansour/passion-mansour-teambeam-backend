@@ -8,6 +8,8 @@ import passionmansour.teambeam.model.dto.board.request.PatchPostCommentRequest;
 import passionmansour.teambeam.model.dto.board.request.PostPostCommentRequest;
 import passionmansour.teambeam.model.dto.board.response.PostCommentListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostCommentResponse;
+import passionmansour.teambeam.model.dto.member.MemberDto;
+import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.model.entity.PostComment;
 import passionmansour.teambeam.repository.*;
@@ -38,11 +40,14 @@ public class PostCommentService {
                 .post(post)
                 .build();
 
-        return new PostCommentResponse().form(postCommentRepository.save(postComment));
+        Member member = jwtTokenService.getMemberByToken(token);
+        String encodedProfileImage = memberService.getImageAsBase64(member.getProfileImage());
+
+        return new PostCommentResponse().form(postCommentRepository.save(postComment), encodedProfileImage);
     }
 
     @Transactional
-    public PostCommentResponse updatePostComment(PatchPostCommentRequest patchPostCommentRequest) {
+    public PostCommentResponse updatePostComment(String token, PatchPostCommentRequest patchPostCommentRequest) {
         // TODO: 생성자인 경우에만 수정 가능여부를 서버에서 진행하는 지 여부 확인
 
         PostComment postComment = getById(patchPostCommentRequest.getPostCommentId());
@@ -50,7 +55,10 @@ public class PostCommentService {
         postComment.setPostCommentContent(patchPostCommentRequest.getContent());
         postComment.setUpdateDate(LocalDateTime.now());
 
-        return new PostCommentResponse().form(postCommentRepository.save(postComment));
+        Member member = jwtTokenService.getMemberByToken(token);
+        String encodedProfileImage = memberService.getImageAsBase64(member.getProfileImage());
+
+        return new PostCommentResponse().form(postCommentRepository.save(postComment), encodedProfileImage);
     }
 
     @Transactional
