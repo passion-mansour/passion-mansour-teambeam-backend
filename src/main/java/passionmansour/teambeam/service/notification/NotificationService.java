@@ -36,13 +36,6 @@ public class NotificationService {
         Project project = projectRepository.findByProjectId(projectId)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
 
-        boolean verified = verifyPermissions(token, project);
-        log.info("verified {}", verified);
-
-        if (!verified) {
-            throw new BadCredentialsException("Member is not join of the project.");
-        }
-
         List<JoinMember> joinMembers = project.getJoinMembers();
 
         for (JoinMember member : joinMembers) {
@@ -61,14 +54,6 @@ public class NotificationService {
 
         log.info("notificationList {}", notificationList);
     }
-
-    public boolean verifyPermissions(String token, Project project) {
-
-        Member member = tokenService.getMemberByToken(token);
-
-        return !project.getJoinMembers().contains(member.getMemberId());
-    }
-
 
     // 해당 사용자의 알림 리스트 조회
     public List<NotificationDto> getList(String token) {
@@ -188,7 +173,7 @@ public class NotificationService {
 
             notificationRepository.save(notification);
 
-            log.info("notification {}", notification.toString());
+            log.info("notification {}", notification);
         }
     }
 
