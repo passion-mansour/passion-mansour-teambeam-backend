@@ -4,21 +4,18 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.model.dto.notification.CreateNotificationRequest;
 import passionmansour.teambeam.model.dto.notification.NotificationDto;
-import passionmansour.teambeam.model.entity.BottomTodo;
-import passionmansour.teambeam.model.entity.Member;
-import passionmansour.teambeam.model.entity.Notification;
-import passionmansour.teambeam.model.entity.Project;
+import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.BottomTodoRepository;
 import passionmansour.teambeam.repository.NotificationRepository;
 import passionmansour.teambeam.repository.ProjectRepository;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,22 +36,26 @@ public class NotificationService {
         Project project = projectRepository.findByProjectId(projectId)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
 
-        Member member = tokenService.getMemberByToken(token);
+        List<JoinMember> joinMembers = project.getJoinMembers();
 
-        Notification notification = new Notification();
-        notification.setNotificationContent(request.getNotificationContent());
-        notification.setRead(false);
-        notification.setProject(project);
-        notification.setMember(member);
+        for (JoinMember member : joinMembers) {
 
-        notificationRepository.save(notification);
+            Notification notification = new Notification();
+            notification.setNotificationContent(request.getNotificationContent());
+            notification.setRead(false);
+            notification.setType(Notification.Type.NOTICE);
+            notification.setProject(project);
+            notification.setMember(member.getMember());
 
-        List<Notification> notificationList = updateNotificationCount(token);
+            notificationRepository.save(notification);
+        }
+
+        List<NotificationDto> notificationList = updateNotificationCountForProjectMembers(joinMembers);
 
         log.info("notificationList {}", notificationList);
     }
 
-    // 알림 리스트 조회
+    // 해당 사용자의 알림 리스트 조회
     public List<NotificationDto> getList(String token) {
 
         Member member = tokenService.getMemberByToken(token);
@@ -73,6 +74,7 @@ public class NotificationService {
         notificationDto.setNotificationId(notification.getNotificationId());
         notificationDto.setNotificationContent(notification.getNotificationContent());
         notificationDto.setRead(notification.isRead());
+        notificationDto.setType(notification.getType());
 
         return notificationDto;
     }
@@ -124,8 +126,27 @@ public class NotificationService {
         return notificationList;
     }
 
+    // 프로젝트에 참여한 모든 멤버의 알림 수를 재설정
     @Transactional
-    // 임박 알림 생성
+    private List<NotificationDto> updateNotificationCountForProjectMembers(List<JoinMember> joinMembers) {
+        List<Notification> allNotifications = new ArrayList<>();
+
+        for (JoinMember member : joinMembers) {
+            List<Notification> notificationList = notificationRepository.findByMember_memberId(member.getMember().getMemberId());
+
+            // 멤버 알림 수 재설정
+            member.getMember().setNotificationCount(notificationList.size());
+
+            allNotifications.addAll(notificationList);
+        }
+
+        log.info("All members updated: {}", joinMembers.size());
+
+        return allNotifications.stream().map(this::convertToDto).toList();
+    }
+
+    // 임박 투두 알림 생성 (매일 자정)
+    @Transactional
     @Scheduled(cron = "0 0 0 * * ?")
     public void saveDailyNotification() {
         List<BottomTodo> todoList = todoRepository.findByEndDate(new Date());
@@ -146,13 +167,21 @@ public class NotificationService {
             Notification notification = new Notification();
             notification.setNotificationContent(notice);
             notification.setRead(false);
+            notification.setType(Notification.Type.TODO);
             notification.setProject(todo.getProject());
             notification.setMember(todo.getMember());
 
             notificationRepository.save(notification);
 
-            log.info("notification {}", notification.toString());
+            log.info("notification {}", notification);
         }
     }
 
+    // 해당 프로젝트의 공지 리스트 조회
+    public List<NotificationDto> getNotificationsByProjectId(Long projectId) {
+        log.info("Executing query to fetch notifications for project {}", projectId);
+        List<Notification> notificationList = notificationRepository.findByProject_projectIdAndType(projectId, Notification.Type.NOTICE);
+        log.info("Query result: {} notifications found", notificationList.size());
+        return notificationList.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
 }
