@@ -3,10 +3,11 @@ package passionmansour.teambeam.service.notification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import passionmansour.teambeam.controller.message.MessageHandler;
 import passionmansour.teambeam.model.dto.notification.CreateNotificationRequest;
 import passionmansour.teambeam.model.dto.notification.NotificationDto;
 import passionmansour.teambeam.model.entity.*;
@@ -28,42 +29,32 @@ public class NotificationService {
     private final JwtTokenService tokenService;
     private final ProjectRepository projectRepository;
     private final BottomTodoRepository todoRepository;
+    private final ApplicationContext applicationContext;
 
     // 알림 생성
     @Transactional
     public void saveNotification(String token, Long projectId, CreateNotificationRequest request) {
+        log.info("Saving notification for project ID: {}", projectId);
 
         Project project = projectRepository.findByProjectId(projectId)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
 
-        List<JoinMember> joinMembers = project.getJoinMembers();
+        Notification notification = new Notification();
+        notification.setNotificationContent(request.getNotificationContent());
+        notification.setRead(false);
+        notification.setType(Notification.Type.NOTICE);
+        notification.setProject(project);
 
-        for (JoinMember member : joinMembers) {
+        notificationRepository.save(notification);
+        log.info("Saved notification for project ID: {}", projectId);
 
-            Notification notification = new Notification();
-            notification.setNotificationContent(request.getNotificationContent());
-            notification.setRead(false);
-            notification.setType(Notification.Type.NOTICE);
-            notification.setProject(project);
-            notification.setMember(member.getMember());
+        NotificationDto notificationDto = convertToDto(notification);
 
-            notificationRepository.save(notification);
-        }
+        MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
+        messageHandler.onNotificationEvent(projectId, notificationDto);
+        log.info("Event notification {}", notificationDto);
 
-        List<NotificationDto> notificationList = updateNotificationCountForProjectMembers(joinMembers);
-
-        log.info("notificationList {}", notificationList);
-    }
-
-    // 해당 사용자의 알림 리스트 조회
-    public List<NotificationDto> getList(String token) {
-
-        Member member = tokenService.getMemberByToken(token);
-
-        List<Notification> notificationList = notificationRepository.
-            findByMember_memberId(member.getMemberId());
-
-        return notificationList.stream().map(this::convertToDto).collect(Collectors.toList());
+        log.info("Notification saved and event triggered for project ID: {}", projectId);
     }
 
     private NotificationDto convertToDto(Notification notification) {
@@ -177,11 +168,38 @@ public class NotificationService {
         }
     }
 
-    // 해당 프로젝트의 공지 리스트 조회
+    // 해당 프로젝트의 공지 알림 리스트 조회
     public List<NotificationDto> getNotificationsByProjectId(Long projectId) {
         log.info("Executing query to fetch notifications for project {}", projectId);
         List<Notification> notificationList = notificationRepository.findByProject_projectIdAndType(projectId, Notification.Type.NOTICE);
         log.info("Query result: {} notifications found", notificationList.size());
         return notificationList.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+
+    // 사용자의 모든 알림 조회
+    public List<NotificationDto> getNotificationsForMember(String token) {
+
+        Member member = tokenService.getMemberByToken(token);
+
+        log.info("Fetching notifications for member ID: {}", member.getMemberId());
+
+        // 개인 알림 조회
+        List<Notification> personalNotifications = notificationRepository.findByMember_memberIdAndType(member.getMemberId(), Notification.Type.TODO);
+        log.info("Personal notifications found: {}", personalNotifications.size());
+
+        // 멤버가 참여한 프로젝트를 조회
+        List<Project> projects = projectRepository.findByJoinMembers_Member_MemberId(member.getMemberId());
+
+        // 각 프로젝트에 대한 공지 알림 조회
+        List<Notification> projectNotifications = projects.stream()
+            .flatMap(project -> notificationRepository.findByProject_projectIdAndType(project.getProjectId(), Notification.Type.NOTICE).stream())
+            .collect(Collectors.toList());
+        log.info("Project notifications found: {}", projectNotifications.size());
+
+        // 개인 알림과 프로젝트 공지 알림을 합침
+        List<Notification> allNotifications = personalNotifications;
+        allNotifications.addAll(projectNotifications);
+
+        return allNotifications.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 }

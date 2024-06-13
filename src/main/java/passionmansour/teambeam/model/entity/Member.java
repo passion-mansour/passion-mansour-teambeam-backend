@@ -31,7 +31,7 @@ public class Member {
     private String profileImage;
     // TODO: add image file
 
-    private int notificationCount = 0;
+    private int notificationCount;
 
     @Enumerated(EnumType.STRING)
     private StartPage startPage;
