@@ -18,9 +18,7 @@ import java.time.LocalDateTime;
 public class PostCommentResponse {
     private Long postCommentId;
     private String content;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime createDate;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime updateDate;
     private Long postId;
     private String postTitle;
@@ -35,6 +33,19 @@ public class PostCommentResponse {
                 .postId(comment.getPost().getPostId())
                 .postTitle(comment.getPost().getPostTitle())
                 .member(new CreatorInfoResponse().form(comment.getMember()))
+                .build();
+    }
+
+    // 프로필 이미지 인코딩값 반환용
+    public PostCommentResponse form(PostComment comment, String encodedProfileImage){
+        return PostCommentResponse.builder()
+                .postCommentId(comment.getPostCommentId())
+                .content(comment.getPostCommentContent())
+                .createDate(comment.getCreateDate())
+                .updateDate(comment.getUpdateDate())
+                .postId(comment.getPost().getPostId())
+                .postTitle(comment.getPost().getPostTitle())
+                .member(new CreatorInfoResponse().form(comment.getMember(),encodedProfileImage))
                 .build();
     }
 }

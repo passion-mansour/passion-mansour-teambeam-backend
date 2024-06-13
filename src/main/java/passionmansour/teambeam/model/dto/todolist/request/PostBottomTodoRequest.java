@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class PostBottomTodoRequest {
@@ -15,4 +16,5 @@ public class PostBottomTodoRequest {
     private Date endDate;
     private String memo;
     private Long member;
+    private List<Integer> taglist;
 }

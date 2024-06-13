@@ -22,7 +22,7 @@ public class Notification {
     @JoinColumn(name = "memberId")
     private Member member;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "projectId")
     private Project project;
 

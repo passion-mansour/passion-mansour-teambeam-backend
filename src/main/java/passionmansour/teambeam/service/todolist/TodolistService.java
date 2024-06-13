@@ -10,7 +10,10 @@ import passionmansour.teambeam.model.dto.todolist.dto.TopTodoDTO;
 import passionmansour.teambeam.model.dto.todolist.request.*;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.*;
+import passionmansour.teambeam.service.ProjectService;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,6 +38,15 @@ public class TodolistService {
 
     @Autowired
     private ConvertTodoService convertTodoService;
+
+    @Autowired
+    private TagRepository tagRepository;
+
+    @Autowired
+    private JoinMemberRepository joinMemberRepository;
+
+    @Autowired
+    private TodoTagRepository todoTagRepository;
 
     private ModelMapper modelMapper;
 
@@ -106,6 +118,8 @@ public class TodolistService {
             throw new RuntimeException("Project 찾지 못했습니다.");
         }
 
+
+
         MiddleTodo middleTodo = new MiddleTodo();
         middleTodo.setMiddleTodoTitle(request.getTitle());
         middleTodo.setProject(projectOptional.get());
@@ -132,6 +146,8 @@ public class TodolistService {
         }
 
 
+
+
         BottomTodo bottomTodo = new BottomTodo();
         bottomTodo.setBottomTodoTitle(request.getTitle());
         bottomTodo.setProject(projectOptional.get());
@@ -139,7 +155,24 @@ public class TodolistService {
         bottomTodo.setStartDate(request.getStartDate());
         bottomTodo.setEndDate(request.getEndDate());
         bottomTodo.setMember(memberOptional.get());
-        return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
+
+        BottomTodo savedBottomTodo = bottomTodoRepository.save(bottomTodo);
+
+        List<TodoTag> todoTags = new ArrayList<>();
+        for (Integer tagId : request.getTaglist()) {
+            Optional<Tag> tagOptional = tagRepository.findById(tagId.longValue());
+            if (!tagOptional.isPresent()) {
+                throw new RuntimeException("Tag 찾지 못했습니다.");
+            }
+            TodoTag todoTag = new TodoTag();
+            todoTag.setTodo(savedBottomTodo);
+            todoTag.setTag(tagOptional.get());
+            todoTags.add(todoTag);
+        }
+        todoTagRepository.saveAll(todoTags);
+        savedBottomTodo.setTodoTags(todoTags);
+
+        return convertTodoService.convertToDto(savedBottomTodo,
                 middleTodoOptional.get().getTopTodo().getTopTodoId(),
                 middleTodoOptional.get().getMiddleTodoId());
     }
@@ -223,6 +256,36 @@ public class TodolistService {
     @Transactional
     public void deleteBottomTodo(Long bottomTodoId) {
         bottomTodoRepository.deleteById(bottomTodoId);
+    }
+
+    @Transactional
+    public void createSampleTodolist(Project project){
+        TopTodo sampleTopTodo = new TopTodo();
+        sampleTopTodo.setTopTodoTitle("Sample TopTodo");
+        sampleTopTodo.setProject(project);
+        sampleTopTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
+        sampleTopTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(10)));
+        sampleTopTodo.setCalendar(project.getCalendar());
+        sampleTopTodo = topTodoRepository.save(sampleTopTodo);
+
+        // Create sample MiddleTodo
+        MiddleTodo sampleMiddleTodo = new MiddleTodo();
+        sampleMiddleTodo.setMiddleTodoTitle("Sample MiddleTodo");
+        sampleMiddleTodo.setProject(project);
+        sampleMiddleTodo.setTopTodo(sampleTopTodo);
+        sampleMiddleTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
+        sampleMiddleTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(5)));
+        sampleMiddleTodo = middleTodoRepository.save(sampleMiddleTodo);
+
+        // Create sample BottomTodo
+        BottomTodo sampleBottomTodo = new BottomTodo();
+        sampleBottomTodo.setBottomTodoTitle("Sample BottomTodo");
+        sampleBottomTodo.setProject(project);
+        sampleBottomTodo.setMiddleTodo(sampleMiddleTodo);
+        sampleBottomTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
+        sampleBottomTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
+        bottomTodoRepository.save(sampleBottomTodo);
+
     }
 
 }

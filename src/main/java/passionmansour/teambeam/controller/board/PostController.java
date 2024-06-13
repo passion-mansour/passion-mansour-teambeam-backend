@@ -49,7 +49,7 @@ public class PostController {
         return ResponseEntity.ok(postService.updatePost(patchPostRequest));
     }
 
-    // 게시물 댓글 삭제
+    // 게시물 삭제
     @DeleteMapping("/{postId}")
     public ResponseEntity<?> deletePost(@PathVariable("postId") Long postId){
         postService.deletePost(postId);
@@ -62,8 +62,11 @@ public class PostController {
 
     // 일련번호로 게시물 조회
     @GetMapping("/{postId}")
-    public ResponseEntity<PostResponse> getPostById(@PathVariable("postId") Long postId){
-        return ResponseEntity.ok(new PostResponse().form(postService.getById(postId)));
+    public ResponseEntity<PostResponse> getPostById(@RequestHeader("Authorization") String token,
+                                                    @PathVariable("postId") Long postId){
+        PostResponse postResponse = new PostResponse().form(postService.getById(postId));
+        postResponse.setBookmark(postService.isBookmark(token, postId));
+        return ResponseEntity.ok(postResponse);
     }
 
     // 태그들로 게시물들 조회
@@ -74,7 +77,8 @@ public class PostController {
 
     // 게시판 일련번호로 모든 게시물 조회
     @GetMapping("/")
-    public ResponseEntity<PostListResponse> getPostsByBoardId(@PathVariable("boardId") Long boardId){
-        return ResponseEntity.ok(postService.getAllByBoardId(boardId));
+    public ResponseEntity<PostListResponse> getPostsByBoardId(@RequestHeader("Authorization") String token,
+                                                              @PathVariable("boardId") Long boardId){
+        return ResponseEntity.ok(postService.getAllByBoardId(token, boardId));
     }
 }

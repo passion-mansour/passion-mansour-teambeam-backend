@@ -14,13 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import passionmansour.teambeam.model.dto.member.MemberDto;
 import passionmansour.teambeam.model.dto.member.request.*;
-import passionmansour.teambeam.model.dto.member.response.ErrorResponse;
-import passionmansour.teambeam.model.dto.member.response.LoginResponse;
-import passionmansour.teambeam.model.dto.member.response.MemberInformationResponse;
-import passionmansour.teambeam.model.dto.member.response.RegisterResponse;
+import passionmansour.teambeam.model.dto.member.response.*;
 import passionmansour.teambeam.service.MemberService;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "Member Controller", description = "회원 관련 API입니다.")
@@ -45,7 +44,12 @@ public class MemberController {
     })
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> saveMember(@Valid @RequestBody RegisterRequest registerRequest) {
-        MemberDto member = memberService.saveMember(registerRequest);
+        MemberDto member = null;
+        try {
+            member = memberService.saveMember(registerRequest);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         RegisterResponse response = new RegisterResponse("Registration successful", member.getMemberId(), member.getMemberName());
 
@@ -133,9 +137,9 @@ public class MemberController {
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetRequest resetRequest) {
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) {
 
-        boolean isReset = memberService.resetPassword(resetRequest.getToken(), resetRequest.getNewPassword());
+        boolean isReset = memberService.resetPassword(resetPasswordRequest.getToken(), resetPasswordRequest.getNewPassword());
 
         // 비밀번호 재설정 성공
         if (isReset) {
@@ -221,13 +225,27 @@ public class MemberController {
         @ApiResponse(responseCode = "500", description = "서버 오류",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @GetMapping("/member/profileImage")
-    public ResponseEntity<?> getMemberProfileImage(@RequestHeader("Authorization") String token) {
-        MemberDto member = memberService.getMember(token);
+    @GetMapping("/member/profileImage/{memberId}")
+    public ResponseEntity<?> getMemberProfileImage(@RequestHeader("Authorization") String token,
+                                                   @PathVariable("memberId") Long memberId) {
+        MemberDto member = memberService.getMemberById(token, memberId);
 
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("message", "Member information inquiry successful");
+        response.put("memberId", member.getMemberId());
         response.put("profileImage", member.getProfileImage());
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    // 이미지 모두 조회
+    @GetMapping("/member/profileImages")
+    public ResponseEntity<?> getProfileImages(@RequestHeader("Authorization") String token) throws IOException {
+        List<ProfileImageResponse> profileImages = memberService.getProfileImages();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "ProfileImage inquiry successful");
+        response.put("profileImages", profileImages);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

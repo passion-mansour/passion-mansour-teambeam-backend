@@ -2,26 +2,21 @@ package passionmansour.teambeam.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.model.dto.board.response.BookmarkListResponse;
 import passionmansour.teambeam.model.dto.board.response.BookmarkResponse;
-import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
 import passionmansour.teambeam.model.entity.Bookmark;
 import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Post;
 import passionmansour.teambeam.repository.BookmarkRepository;
-import passionmansour.teambeam.repository.PostRepository;
 import passionmansour.teambeam.service.board.PostService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
-import java.awt.print.Book;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,61 +30,106 @@ public class BookmarkService {
     @Transactional
     public BookmarkResponse saveBookmark(String token, Long postId){
         Post post = postService.getById(postId);
+        Member member = jwtTokenService.getMemberByToken(token);
+        Bookmark existingBookmark = bookmarkRepository.findByMemberAndPostAndIsDeleted(member.getMemberId(), post.getPostId());
 
-        Bookmark bookmark = Bookmark.builder()
-                .member(jwtTokenService.getMemberByToken(token))
-                .post(post)
-                .build();
+        if (existingBookmark != null) {
+            // 이미 존재하는 북마크가 있으면 삭제 플래그를 다시 설정하고 저장
+            existingBookmark.set_deleted(false);
 
-        return new BookmarkResponse().form(bookmarkRepository.save(bookmark));
+            bookmarkRepository.save(existingBookmark);
+            log.info("existingBookmark status is " + existingBookmark.is_deleted());
+            return new BookmarkResponse().form(existingBookmark);
+        } else {
+            // 중복된 북마크가 없으면 새로운 북마크 생성
+            Bookmark newBookmark = Bookmark.builder()
+                    .member(member)
+                    .post(post)
+                    .build();
+
+            log.info("새 북마크 생성");
+            return new BookmarkResponse().form(bookmarkRepository.save(newBookmark));
+        }
     }
 
     @Transactional
     public void deleteBookmark(Long bookmarkId){
+        Bookmark bookmark = getById(bookmarkId);
+        bookmarkRepository.delete(bookmark);
+    }
 
+    @Transactional
+    public void checkDelete(Bookmark bookmark){
+        if(!bookmark.is_deleted()){
+            bookmark.set_deleted(true);
+            bookmarkRepository.save(bookmark);
+        }
     }
 
     @Transactional(readOnly = true)
-    public Bookmark findById(Long bookmarkId){
-        Optional<Bookmark> bookmark = bookmarkRepository.findById(bookmarkId);
-        if(bookmark.isEmpty()){
-            // TODO: 예외 처리
+    public Bookmark getById(Long bookmarkId){
+        Bookmark bookmark = bookmarkRepository.findById(bookmarkId)
+                .orElseThrow(() -> new RuntimeException("Bookmark not found"));
+
+        if(bookmark.getPost() != null){
+            return bookmark;
+        } else{
+            throw new NullPointerException("Post not found");
         }
-
-        return bookmark.get();
-    }
-
-    public PostResponse sendToPost(Long bookmarkId){
-        Optional<Bookmark> bookmark = bookmarkRepository.findById(bookmarkId);
-        if(bookmark.isEmpty()){
-            // TODO: 예외 처리
-        }
-
-        return new PostResponse().form(bookmark.get().getPost());
     }
 
     @Transactional(readOnly = true)
-    public PostListResponse findAllByToken(String token){
+    public Bookmark getByPostId(String token, Long postId){
         Member member = jwtTokenService.getMemberByToken(token);
-        List<PostResponse> postResponses = new ArrayList<>();
 
         for(Bookmark bookmark : member.getBookmarks()){
-            postResponses.add(new PostResponse().form(bookmark.getPost()));
+            if(bookmark.getPost() != null){
+                if(postId.equals(bookmark.getPost().getPostId())){
+                    return bookmark;
+                }
+            }
         }
-
-        return new PostListResponse().form(postResponses);
+        throw new NullPointerException("Bookmark not found");
     }
 
     @Transactional(readOnly = true)
-    public PostListResponse getAllByTags(String token, List<Long> tagIds){
+    public PostResponse sendToPost(Long bookmarkId){
+        Bookmark bookmark = getById(bookmarkId);
+
+        PostResponse postResponse = new PostResponse().form(bookmark.getPost());
+        postResponse.setBookmark(true);
+        return postResponse;
+    }
+
+    @Transactional(readOnly = true)
+    public BookmarkListResponse findAllByToken(String token){
         Member member = jwtTokenService.getMemberByToken(token);
+        List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
 
-        List<PostResponse> postResponses = new ArrayList<>();
-
-        for(Bookmark bookmark : bookmarkRepository.findAllByTagIds(member.getMemberId(), tagIds, tagIds.size())){
-            postResponses.add(new PostResponse().form(bookmark.getPost()));
+        for(Bookmark bookmark : member.getBookmarks()){
+            if(bookmark.getPost() != null){
+                BookmarkResponse bookmarkResponse = new BookmarkResponse().form(bookmark);
+                bookmarkResponse.getPost().setBookmark(true);
+                bookmarkResponses.add(bookmarkResponse);
+            }
         }
 
-        return new PostListResponse().form(postResponses);
+        return new BookmarkListResponse().form(bookmarkResponses);
+    }
+
+    @Transactional(readOnly = true)
+    public BookmarkListResponse getAllByTags(String token, List<Long> tagIds){
+        Member member = jwtTokenService.getMemberByToken(token);
+        List<BookmarkResponse> bookmarkResponses = new ArrayList<>();
+
+        for(Bookmark bookmark : bookmarkRepository.findAllByTagIds(member.getMemberId(), tagIds)){
+            if(bookmark.getPost() != null) {
+                BookmarkResponse bookmarkResponse = new BookmarkResponse().form(bookmark);
+                bookmarkResponse.getPost().setBookmark(true);
+                bookmarkResponses.add(bookmarkResponse);
+            }
+        }
+
+        return new BookmarkListResponse().form(bookmarkResponses);
     }
 }

@@ -24,7 +24,7 @@ public class PostComment {
     @Column(name="postCommentId")
     private Long postCommentId;
 
-    @Lob
+    @Column(length = 50000)
     private String postCommentContent;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -41,5 +41,6 @@ public class PostComment {
     @JoinColumn(name = "postId")
     private Post post;
 
+    @Builder.Default
     private boolean is_deleted = false;
 }

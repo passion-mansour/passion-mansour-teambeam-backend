@@ -3,6 +3,8 @@ package passionmansour.teambeam.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.MailAuthenticationException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.User;
@@ -10,11 +12,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import passionmansour.teambeam.execption.member.InvalidTokenException;
 import passionmansour.teambeam.execption.member.TokenGenerationException;
 import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.member.request.*;
 import passionmansour.teambeam.model.dto.member.MemberDto;
+import passionmansour.teambeam.model.dto.member.response.ProfileImageResponse;
 import passionmansour.teambeam.model.entity.JoinMember;
 import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Project;
@@ -26,10 +28,13 @@ import passionmansour.teambeam.service.mail.EmailService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 import passionmansour.teambeam.service.security.RedisTokenService;
 
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.UUID;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -46,10 +51,18 @@ public class MemberService {
     private final RedisTokenService redisTokenService;
 
     @Transactional
-    public MemberDto saveMember(RegisterRequest registerRequest) {
+    public MemberDto saveMember(RegisterRequest registerRequest) throws IOException {
 
         String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
-        log.info("Encoded password: {}", encodedPassword);
+
+        // 이미지 리스트 가져오기
+        List<Path> images = getImagesFromClassPath("images");
+
+        // 랜덤 이미지 선택
+        Random random = new Random();
+        Path randomImage = images.get(random.nextInt(images.size()));
+        log.info("randomImage {}", randomImage);
+        log.info("randomImage.getFileName {}", randomImage.getFileName());
 
         Optional<Member> existingMember = memberRepository.findByMail(registerRequest.getMail());
 
@@ -62,6 +75,7 @@ public class MemberService {
                 member.setMemberName(registerRequest.getMemberName());
                 member.setPassword(encodedPassword);
                 member.setNotificationCount(0); // 초기화
+                member.setProfileImage(randomImage.getFileName().toString());
                 member.setStartPage(StartPage.PROJECT_SELECTION_PAGE);
             } else {
                 throw new UserAlreadyExistsException("User with this mail already exists: " + registerRequest.getMail());
@@ -72,6 +86,7 @@ public class MemberService {
             member.setMail(registerRequest.getMail());
             member.setPassword(encodedPassword);
             member.setNotificationCount(0); // 초기화
+            member.setProfileImage(randomImage.getFileName().toString());
             member.setStartPage(StartPage.PROJECT_SELECTION_PAGE);
         }
 
@@ -103,17 +118,17 @@ public class MemberService {
 
     public MemberDto convertToDto(Member member) {
 
-        MemberDto memberDto = MemberDto.builder()
+        MemberDto memberDto = null;
+        memberDto = MemberDto.builder()
             .memberId(member.getMemberId())
             .memberName(member.getMemberName())
             .mail(member.getMail())
             .password(member.getPassword())
             .startPage(member.getStartPage())
-            .profileImage(member.getProfileImage())
+            .profileImage(getImageAsBase64(member.getProfileImage()))
             .notificationCount(member.getNotificationCount())
             .build();
 
-        log.info(memberDto.toString());
         return memberDto;
     }
 
@@ -130,9 +145,7 @@ public class MemberService {
         String subject = "회원가입 메일 인증";
         String text = "회원가입 메일을 인증";
 
-        String code = sendCode(mail, null, subject, text);
-
-        return code;
+        return sendCode(mail, subject, text);
     }
 
     // 로그인
@@ -172,7 +185,7 @@ public class MemberService {
             throw new BadCredentialsException("Invalid credentials provided", e);
         } catch (UsernameNotFoundException e) {
             throw new UsernameNotFoundException("User not found with mail: " + loginRequest.getMail(), e);
-        } catch (Exception e) {
+        } catch (TokenGenerationException e) {
             throw new TokenGenerationException("Failed to generate token", e);
         }
 
@@ -188,17 +201,18 @@ public class MemberService {
             String token = UUID.randomUUID().toString();
 
             // 인증 정보 저장
-            redisTokenService.storeResetToken(token);
+            redisTokenService.storeResetToken(token, request.getMail());
 
             log.info("token {}", token);
 
             // 재설정 링크 생성
-            String resetLink = "http://localhost:3000/user/settingPassword?token=" + token;
+            String resetLink = "https://k0bf03acb7c00a.user-app.krampoline.com/user/settingPassword?token=" + token;
+            String emailBody = "<html><body><p>안녕하세요,</p><p>비밀번호를 재설정하려면 아래 링크를 클릭하세요:</p>" +
+                "<a href='" + resetLink + "'>비밀번호 재설정</a><p>링크는 30분 후에 만료됩니다.</p></body></html>";
+
             // 메일 전송
             try {
-                emailService.sendEmail(request.getMail(), "비밀번호 재설정",
-                    "안녕하세요,\n\n비밀번호를 재설정하려면 아래 링크를 클릭하세요:\n\n" + resetLink
-                        + "\n\n링크는 30분 후에 만료됩니다.\n\n" + "\n\n김시합니다.");
+                emailService.sendHtmlEmail(request.getMail(), "비밀번호 재설정", emailBody);
                 return resetLink;
             } catch (MailAuthenticationException e) {
                 log.error("Mail authentication failed: {}", e.getMessage());
@@ -215,22 +229,85 @@ public class MemberService {
     @Transactional
     public boolean resetPassword(String token, String newPassword) {
 
-        if (redisTokenService.isTrue(token)) {
-            Member member = tokenService.getMemberByToken(token);
-            member.setPassword(passwordEncoder.encode(newPassword));
-            redisTokenService.deleteResetToken(token);
+        String mail = null;
 
-            return true;
-        }
-        else {
-            throw new InvalidTokenException("Token has expired");
+        mail = redisTokenService.getMailByResetToken(token);
+        log.info("mail {}", mail);
+
+        String finalMail = mail;
+        Member member = memberRepository.findByMailAndIsDeletedFalse(mail)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with mail: " + finalMail));
+        log.info("member {}", member);
+
+        member.setPassword(passwordEncoder.encode(newPassword));
+        redisTokenService.deleteResetToken(token);
+
+        log.info("savedMember {}", member);
+
+        return true;
+    }
+
+    // 토큰으로 멤버 조회 -> 알림 수 업데이트
+    @Transactional
+    public MemberDto getMember(String token) {
+        Member member = tokenService.getMemberByToken(token);
+        int size = member.getNotifications().size();
+        member.setNotificationCount(size);
+        return convertToDto(member);
+    }
+
+    // 멤버 아이디를 통해 멤버 조회 (프로필 이미지 조회용)
+    public MemberDto getMemberById(String token, Long memberId) {
+        Member memberByToken = tokenService.getMemberByToken(token);
+
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(()-> new UsernameNotFoundException("User not found with memberId: " + memberId));
+
+        return convertToDto(member);
+    }
+
+    // 이미지 인코딩
+    public static String encodeImageToBase64(Path imagePath) throws IOException {
+        byte[] imageBytes = Files.readAllBytes(imagePath);
+        return Base64.getEncoder().encodeToString(imageBytes);
+    }
+
+    // 특정 이미지 인코딩
+    public String getImageAsBase64(String imageName) {
+        try {
+            ClassPathResource resource = new ClassPathResource("images/" + imageName);
+            Path imagePath = Paths.get(resource.getURI());
+            return encodeImageToBase64(imagePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public MemberDto getMember(String token) {
-        Member member = tokenService.getMemberByToken(token);
+    // 이미지 리스트 반환
+    public List<ProfileImageResponse> getProfileImages() throws IOException{
+        return getImagesFromClassPath("images")
+            .stream()
+            .map(imagePath -> {
+                try {
+                    String fileName = imagePath.getFileName().toString();
+                    String base64 = encodeImageToBase64(imagePath);
+                    return new ProfileImageResponse(fileName, base64);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to encode image", e);
+                }
+            })
+            .collect(Collectors.toList());
+    }
 
-        return convertToDto(member);
+    // 이미지 리소스 가져오기
+    private List<Path> getImagesFromClassPath(String resourcePath) throws IOException {
+        Resource resource = new ClassPathResource(resourcePath);
+        if (!resource.exists()) {
+            throw new IOException("Resource not found: " + resourcePath);
+        }
+        return Files.walk(Paths.get(resource.getURI()))
+            .filter(Files::isRegularFile)
+            .collect(Collectors.toList());
     }
 
     @Transactional
@@ -300,23 +377,20 @@ public class MemberService {
     // 메일 수정 코드 요청
     @Transactional
     public String sendUpdateMailCode(String token, String mail) {
+        tokenService.getMemberByToken(token);
         Optional<Member> optionalMember = memberRepository.findByMailAndIsDeletedFalse(mail);
 
         if (optionalMember.isPresent()) {
             throw new UserAlreadyExistsException("Mail already exists");
         }
 
-        Member member = tokenService.getMemberByToken(token);
-
         String subject = "메일 주소 변경";
         String text = "메일 주소를 변경";
 
-        String code = sendCode(mail, member, subject, text);
-
-        return code;
+        return sendCode(mail, subject, text);
     }
 
-    private String sendCode(String mail, Member member, String subject, String text) {
+    private String sendCode(String mail, String subject, String text) {
         // 100000 (최소값) 부터 999999 (최대값) 사이의 숫자 생성
         String code = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1000000));
 

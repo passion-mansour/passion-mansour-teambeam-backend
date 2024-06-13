@@ -26,7 +26,7 @@ public class Memo {
 
     private String memoTile;
 
-    @Lob
+    @Column(length = 50000)
     private String memoContent;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -39,5 +39,6 @@ public class Memo {
     @JoinColumn(name = "memberId")
     private Member member;
 
+    @Builder.Default
     private boolean is_deleted = false;
 }

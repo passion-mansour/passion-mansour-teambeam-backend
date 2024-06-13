@@ -48,7 +48,23 @@ jobs:
       - name: Deploy on GCP instance
         run: |
           ssh -o StrictHostKeyChecking=no beamt348@${{ secrets.GCP_HOST }} << 'EOF'
-            pkill -f 'java -jar' || true
-            sleep 10  # 애플리케이션 종료 대기 시간
+            echo "Stopping existing application using Actuator..."
+            if curl -s -X POST http://localhost:8080/actuator/shutdown; then
+              echo "Spring Boot application shutdown successfully."
+              sleep 10  # 애플리케이션 종료 대기 시간
+            else
+              echo "Failed to shutdown Spring Boot application or it was not running. Attempting to kill the process..."
+              pkill -f 'java -jar' || true
+              sleep 10  # 애플리케이션 종료 대기 시간
+            fi
+          
+            echo "Checking if port 8080 is free..."
+            while sudo lsof -t -i tcp:8080; do
+              sudo lsof -t -i tcp:8080 | xargs sudo kill -9 || true
+              sleep 1
+            done
+          
+            echo "Starting new application instance..."
             nohup java -jar /home/beamt348/app/teambeam-0.0.1-SNAPSHOT.jar --spring.profiles.active=gcp > /home/beamt348/app/app.log 2>&1 &
           EOF
+
