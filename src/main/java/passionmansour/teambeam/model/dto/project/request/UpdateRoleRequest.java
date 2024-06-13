@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import passionmansour.teambeam.model.enums.MemberRole;
 
 import java.util.List;
 
@@ -22,8 +21,8 @@ public class UpdateRoleRequest {
 
         @Schema(description = "회원 고유 아이디")
         private Long memberId;
-        @Schema(description = "역할(BE, FE)")
-        private MemberRole memberRole;
+        @Schema(description = "역할")
+        private String memberRole;
 
     }
 }
