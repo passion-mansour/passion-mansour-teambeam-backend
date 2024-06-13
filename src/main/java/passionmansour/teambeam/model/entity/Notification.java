@@ -18,6 +18,9 @@ public class Notification {
     private String notificationContent;
     private boolean isRead;
 
+    @Enumerated(EnumType.STRING)
+    private Type type;
+
     @ManyToOne
     @JoinColumn(name = "memberId")
     private Member member;
@@ -27,4 +30,8 @@ public class Notification {
     private Project project;
 
     private boolean is_deleted = false;
+
+    public enum Type {
+        TODO, NOTICE
+    }
 }

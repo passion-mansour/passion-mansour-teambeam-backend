@@ -40,7 +40,7 @@ public class NotificationController {
 
     @GetMapping("/notification")
     public ResponseEntity<NotificationListResponse> getNotificationList(@RequestHeader("Authorization") String token) {
-        List<NotificationDto> list = notificationService.getList(token);
+        List<NotificationDto> list = notificationService.getNotificationsForMember(token);
 
         NotificationListResponse response = new NotificationListResponse();
         response.setMessage("Successfully retrieved list");
