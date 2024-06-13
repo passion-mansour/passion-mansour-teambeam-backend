@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import passionmansour.teambeam.model.enums.MemberRole;
 
 @Entity
 @Getter @Setter
@@ -18,8 +17,7 @@ public class JoinMember {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long joinMemberId;
 
-    @Enumerated(EnumType.STRING)
-    private MemberRole memberRole;
+    private String memberRole;
 
     private boolean isHost;
 
