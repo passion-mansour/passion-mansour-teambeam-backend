@@ -9,10 +9,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table(uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"postId", "memberId"})
-})
-@Data
+@Table @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,7 +25,7 @@ public class Bookmark {
     @JoinColumn(name = "memberId")
     private Member member;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "postId")
     private Post post;
 
