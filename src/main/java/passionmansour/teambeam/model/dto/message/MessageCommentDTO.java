@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class MessageCommentDTO implements Serializable {
     private Long messageCommentId;
+    private Long messageId;
     private String messageCommentContent;
     private String createDate;
     private String updateDate;

@@ -22,4 +22,13 @@ public class CreatorInfoResponse{
                 .profileImage(member.getProfileImage())
                 .build();
     }
+
+    // 프로필 이미지 인코딩값 반환용
+    public CreatorInfoResponse form(Member member, String encodedProfileImage){
+        return CreatorInfoResponse.builder()
+            .memberId(member.getMemberId())
+            .memberName(member.getMemberName())
+            .profileImage(encodedProfileImage)
+            .build();
+    }
 }

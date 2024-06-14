@@ -8,6 +8,7 @@ import passionmansour.teambeam.model.entity.BottomTodo;
 import passionmansour.teambeam.model.entity.MiddleTodo;
 import passionmansour.teambeam.model.entity.TopTodo;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +51,10 @@ public class ConvertTodoService {
         dto.setEndDate(bottomTodo.getEndDate());
         dto.setMemo(bottomTodo.getMemo());
         dto.setBottomMember(bottomTodo.getMember().getMemberId(),bottomTodo.getMember().getMemberName());
+        List<String> tagNames = bottomTodo.getTodoTags().stream()
+                .map(todoTag -> todoTag.getTag().getTagName())
+                .collect(Collectors.toList());
+        dto.setTaglist(tagNames);
         return dto;
     }
 }

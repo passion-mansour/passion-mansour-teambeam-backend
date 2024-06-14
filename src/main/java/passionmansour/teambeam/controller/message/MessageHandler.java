@@ -5,37 +5,41 @@ import com.corundumstudio.socketio.annotation.OnConnect;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import passionmansour.teambeam.model.dto.message.MessageCommentDTO;
 import passionmansour.teambeam.model.dto.message.MessageDTO;
 import passionmansour.teambeam.model.dto.message.request.MessageCommentRequest;
 import passionmansour.teambeam.model.dto.message.request.MessageRequest;
+import passionmansour.teambeam.model.dto.notification.NotificationDto;
 import passionmansour.teambeam.service.message.MessageCommentService;
 import passionmansour.teambeam.service.message.MessageService;
+import passionmansour.teambeam.service.notification.NotificationService;
 
 import java.util.List;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class MessageHandler {
 
-    private SocketIOServer server;
+    private final SocketIOServer server;
     private final MessageService messageService;
     private final MessageCommentService messageCommentService;
+    private final NotificationService notificationService;
 
-    @Autowired
-    public MessageHandler(SocketIOServer server, MessageService messageService, MessageCommentService messageCommentService) {
-        this.messageService = messageService;
-        this.messageCommentService = messageCommentService;
-        this.server = server;
+    @PostConstruct
+    public void init() {
         registerListeners(server);
     }
 
     public void registerListeners(SocketIOServer server) {
+        log.info("Registering server listeners...");
         server.addConnectListener(onConnect());
         server.addDisconnectListener(onDisconnect());
+        server.addEventListener("joinProject", String.class, onJoinProject());
         server.addEventListener("message", MessageRequest.class, onMessage());
         server.addEventListener("joinRoom", String.class, onJoinRoom());
         server.addEventListener("leaveRoom", String.class, onLeaveRoom());
@@ -49,7 +53,6 @@ public class MessageHandler {
             log.info("Socket ID[{}]  Connected to socket", client.getSessionId().toString());
         };
     }
-
 
     public DisconnectListener onDisconnect() {
         return client -> log.info("Socket ID[{}]  Disconnected from socket", client.getSessionId().toString());
@@ -110,4 +113,34 @@ public class MessageHandler {
             server.getRoomOperations(roomId).sendEvent("comment", updatedMessage);
         };
     }
+
+    public DataListener<String> onJoinProject() {
+        return (client, projectId, ackRequest) -> {
+            try {
+                client.joinRoom("project_announcement_" + projectId);
+                log.info("Client {} joined Project: {}", client.getSessionId(), "project_announcement_" + projectId);
+
+                List<NotificationDto> notificationList = notificationService.getNotificationsByProjectId(Long.valueOf(projectId));
+                log.info("Loaded {} notifications for project {}", notificationList.size(), projectId);
+                client.sendEvent("initialNotice", notificationList);
+            } catch (Exception e) {
+                log.error("Error while client joining project: {}", e.getMessage());
+                client.sendEvent("error", "Error occurred: " + e.getMessage());
+            }
+        };
+    }
+
+    public void onNotificationEvent(Long projectId, NotificationDto notificationDto) {
+        try {
+            String room = "project_announcement_" + projectId;
+            server.getRoomOperations(room).sendEvent("announcement", notificationDto);
+            log.info("Sent announcement to project {}: {}", projectId, notificationDto);
+        } catch (Exception e) {
+            log.error("Error sending announcement", e);
+        }
+    }
+
+
+
 }
+

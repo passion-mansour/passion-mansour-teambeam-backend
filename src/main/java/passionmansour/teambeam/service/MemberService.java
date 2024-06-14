@@ -3,7 +3,6 @@ package passionmansour.teambeam.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.MailAuthenticationException;
@@ -120,21 +119,16 @@ public class MemberService {
     public MemberDto convertToDto(Member member) {
 
         MemberDto memberDto = null;
-        try {
-            memberDto = MemberDto.builder()
-                .memberId(member.getMemberId())
-                .memberName(member.getMemberName())
-                .mail(member.getMail())
-                .password(member.getPassword())
-                .startPage(member.getStartPage())
-                .profileImage(getImageAsBase64(member.getProfileImage()))
-                .notificationCount(member.getNotificationCount())
-                .build();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        memberDto = MemberDto.builder()
+            .memberId(member.getMemberId())
+            .memberName(member.getMemberName())
+            .mail(member.getMail())
+            .password(member.getPassword())
+            .startPage(member.getStartPage())
+            .profileImage(getImageAsBase64(member.getProfileImage()))
+            .notificationCount(member.getNotificationCount())
+            .build();
 
-        log.info(memberDto.toString());
         return memberDto;
     }
 
@@ -212,7 +206,7 @@ public class MemberService {
             log.info("token {}", token);
 
             // 재설정 링크 생성
-            String resetLink = "http://localhost:3000/user/settingPassword?token=" + token;
+            String resetLink = "https://k53dc147d2c24a.user-app.krampoline.com/user/settingPassword?token=" + token;
             String emailBody = "<html><body><p>안녕하세요,</p><p>비밀번호를 재설정하려면 아래 링크를 클릭하세요:</p>" +
                 "<a href='" + resetLink + "'>비밀번호 재설정</a><p>링크는 30분 후에 만료됩니다.</p></body></html>";
 
@@ -279,10 +273,10 @@ public class MemberService {
     }
 
     // 특정 이미지 인코딩
-    public String getImageAsBase64(String imageName) throws IOException {
-        ClassPathResource resource = new ClassPathResource("images/" + imageName);
-        Path imagePath = Paths.get(resource.getURI());
+    public String getImageAsBase64(String imageName) {
         try {
+            ClassPathResource resource = new ClassPathResource("images/" + imageName);
+            Path imagePath = Paths.get(resource.getURI());
             return encodeImageToBase64(imagePath);
         } catch (IOException e) {
             throw new RuntimeException(e);

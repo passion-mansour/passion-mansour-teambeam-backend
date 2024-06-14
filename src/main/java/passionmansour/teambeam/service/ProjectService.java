@@ -45,9 +45,9 @@ public class ProjectService {
     private final EmailService emailService;
     private final RedisTokenService redisTokenService;
     private final BoardService boardService;
+    private final MemberService memberService;
 
     private final CalendarRepository calendarRepository;
-
     private final TodolistService todolistService;
 
     @Transactional
@@ -74,7 +74,7 @@ public class ProjectService {
 
 
         //기본 투두리스트 생성
-        todolistService.createSampleTodolist(savedProject);
+        todolistService.createSampleTodolist(savedProject, member);
 
 
         // 게시판 요청 Dto 생성
@@ -199,10 +199,13 @@ public class ProjectService {
     }
 
     private ProjectJoinMemberDto convertToDto(JoinMember joinMember) {
+        String encodedProfileImage = memberService.getImageAsBase64(joinMember.getMember().getProfileImage());
+
         ProjectJoinMemberDto dto = new ProjectJoinMemberDto();
         dto.setMemberId(joinMember.getMember().getMemberId());
         dto.setMemberName(joinMember.getMember().getMemberName());
         dto.setMail(joinMember.getMember().getMail());
+        dto.setProfileImage(encodedProfileImage);
         dto.setMemberRole(joinMember.getMemberRole() != null ? joinMember.getMemberRole().toString() : null);
         dto.setHost(joinMember.isHost());
         return dto;
@@ -300,7 +303,7 @@ public class ProjectService {
         log.info("token {}", linkToken);
 
         // 초대 링크 생성
-        String link = "http://34.22.108.250:8080/accept-invitation?token=" + linkToken;
+        String link = "https://team-beam.com/accept-invitation?token=" + linkToken;
         String emailBody = "<html><body><p>안녕하세요,</p><p>프로젝트에 참가하려면 아래 링크를 클릭하세요:</p>" +
             "<a href='" + link + "'>프로젝트 참가</a><p>링크는 24시간 후에 만료됩니다.</p></body></html>";
 
