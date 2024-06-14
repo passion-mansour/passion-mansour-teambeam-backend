@@ -259,7 +259,7 @@ public class TodolistService {
     }
 
     @Transactional
-    public void createSampleTodolist(Project project){
+    public void createSampleTodolist(Project project, Member member){
         TopTodo sampleTopTodo = new TopTodo();
         sampleTopTodo.setTopTodoTitle("Sample TopTodo");
         sampleTopTodo.setProject(project);
@@ -282,6 +282,7 @@ public class TodolistService {
         sampleBottomTodo.setBottomTodoTitle("Sample BottomTodo");
         sampleBottomTodo.setProject(project);
         sampleBottomTodo.setMiddleTodo(sampleMiddleTodo);
+        sampleBottomTodo.setMember(member);
         sampleBottomTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
         sampleBottomTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
         bottomTodoRepository.save(sampleBottomTodo);

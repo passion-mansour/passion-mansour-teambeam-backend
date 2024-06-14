@@ -74,7 +74,7 @@ public class ProjectService {
 
 
         //기본 투두리스트 생성
-        todolistService.createSampleTodolist(savedProject);
+        todolistService.createSampleTodolist(savedProject, member);
 
 
         // 게시판 요청 Dto 생성
