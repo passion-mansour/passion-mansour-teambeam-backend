@@ -13,6 +13,7 @@ import passionmansour.teambeam.model.dto.todolist.request.PatchBottomTodoRequest
 import passionmansour.teambeam.model.dto.todolist.response.GetBottomTodoResponse;
 import passionmansour.teambeam.service.mypage.MypageService;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public class MypageController {
     private MypageService mypageService;
 
     @GetMapping("/main/todo/{userId}")
-    public List<GetMyTodoResponse> getMyTodolist(@RequestParam(name = "date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date,
+    public List<GetMyTodoResponse> getMyTodolist(@RequestParam(name = "date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                                  @PathVariable Long userId){
         List<GetMyTodoResponse> response = mypageService.getMyTodo(userId, date);
         return response;
