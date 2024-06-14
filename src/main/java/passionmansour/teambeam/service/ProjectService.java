@@ -303,7 +303,7 @@ public class ProjectService {
         log.info("token {}", linkToken);
 
         // 초대 링크 생성
-        String link = "http://34.22.108.250:8080/accept-invitation?token=" + linkToken;
+        String link = "https://team-beam.com/accept-invitation?token=" + linkToken;
         String emailBody = "<html><body><p>안녕하세요,</p><p>프로젝트에 참가하려면 아래 링크를 클릭하세요:</p>" +
             "<a href='" + link + "'>프로젝트 참가</a><p>링크는 24시간 후에 만료됩니다.</p></body></html>";
 
