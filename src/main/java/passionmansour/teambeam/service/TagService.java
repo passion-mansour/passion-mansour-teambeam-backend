@@ -90,6 +90,12 @@ public class TagService {
 
     @Transactional
     public void deleteTag(Long tagId) {
+        if(getPostTagByTagId(tagId) != null){
+            deletePostTag(getPostTagByTagId(tagId));
+        } else if(getTodoTagByTagId(tagId) != null){
+            deleteTodoTag(getTodoTagByTagId(tagId));
+        }
+
         Tag tag = getById(tagId);
         tagRepository.delete(tag);
     }
@@ -100,6 +106,16 @@ public class TagService {
                 .orElseThrow(() -> new RuntimeException("Tag not found"));
 
         return tag;
+    }
+
+    @Transactional(readOnly = true)
+    public TodoTag getTodoTagByTagId(Long tagId) {
+        return todoTagRepository.findByTagId(tagId);
+    }
+
+    @Transactional(readOnly = true)
+    public PostTag getPostTagByTagId(Long tagId) {
+        return postTagRepository.findByTagId(tagId);
     }
 
     @Transactional(readOnly = true)
