@@ -206,7 +206,7 @@ public class MemberService {
             log.info("token {}", token);
 
             // 재설정 링크 생성
-            String resetLink = "https://k0bf03acb7c00a.user-app.krampoline.com/user/settingPassword?token=" + token;
+            String resetLink = "https://k53dc147d2c24a.user-app.krampoline.com/user/settingPassword?token=" + token;
             String emailBody = "<html><body><p>안녕하세요,</p><p>비밀번호를 재설정하려면 아래 링크를 클릭하세요:</p>" +
                 "<a href='" + resetLink + "'>비밀번호 재설정</a><p>링크는 30분 후에 만료됩니다.</p></body></html>";
 
