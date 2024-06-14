@@ -35,7 +35,7 @@ public class InvitationController {
         @ApiResponse(responseCode = "500", description = "서버 오류",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @GetMapping("/accept-invitation")
+    @GetMapping("/api/accept-invitation")
     public String tokenAuthentication(@RequestParam("token") String token) {
 
         TokenAuthenticationResponse response = projectService.tokenAuthentication(token);
