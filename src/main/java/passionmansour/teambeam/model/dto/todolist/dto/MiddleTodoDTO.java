@@ -3,6 +3,7 @@ package passionmansour.teambeam.model.dto.todolist.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -13,9 +14,9 @@ public class MiddleTodoDTO {
     private String title;
     private boolean status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date startDate;
+    private LocalDate startDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date endDate;
+    private LocalDate endDate;
     private List<BottomTodoDTO> bottomTodos;
 
 }

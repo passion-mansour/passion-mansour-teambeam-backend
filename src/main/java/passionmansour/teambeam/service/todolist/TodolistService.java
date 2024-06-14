@@ -263,8 +263,8 @@ public class TodolistService {
         TopTodo sampleTopTodo = new TopTodo();
         sampleTopTodo.setTopTodoTitle("Sample TopTodo");
         sampleTopTodo.setProject(project);
-        sampleTopTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
-        sampleTopTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(10)));
+        sampleTopTodo.setStartDate(LocalDate.now());
+        sampleTopTodo.setEndDate(LocalDate.now().plusDays(10));
         sampleTopTodo.setCalendar(project.getCalendar());
         sampleTopTodo = topTodoRepository.save(sampleTopTodo);
 
@@ -273,8 +273,8 @@ public class TodolistService {
         sampleMiddleTodo.setMiddleTodoTitle("Sample MiddleTodo");
         sampleMiddleTodo.setProject(project);
         sampleMiddleTodo.setTopTodo(sampleTopTodo);
-        sampleMiddleTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
-        sampleMiddleTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(5)));
+        sampleMiddleTodo.setStartDate(LocalDate.now());
+        sampleMiddleTodo.setEndDate(LocalDate.now().plusDays(5));
         sampleMiddleTodo = middleTodoRepository.save(sampleMiddleTodo);
 
         // Create sample BottomTodo
@@ -283,8 +283,8 @@ public class TodolistService {
         sampleBottomTodo.setProject(project);
         sampleBottomTodo.setMiddleTodo(sampleMiddleTodo);
         sampleBottomTodo.setMember(member);
-        sampleBottomTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
-        sampleBottomTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
+        sampleBottomTodo.setStartDate(LocalDate.now());
+        sampleBottomTodo.setEndDate(LocalDate.now().plusDays(2));
         bottomTodoRepository.save(sampleBottomTodo);
 
     }
