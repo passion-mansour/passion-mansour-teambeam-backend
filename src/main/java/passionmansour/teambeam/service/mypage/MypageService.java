@@ -18,6 +18,7 @@ import passionmansour.teambeam.service.schedule.ConvertSchedule;
 import passionmansour.teambeam.service.schedule.ScheduleService;
 import passionmansour.teambeam.service.todolist.ConvertTodoService;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,7 +46,7 @@ public class MypageService {
     @Autowired
     private ConvertSchedule convertSchedule;
 
-    public List<GetMyTodoResponse> getMyTodo(Long userId, Date date){
+    public List<GetMyTodoResponse> getMyTodo(Long userId, LocalDate date){
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));;
         List<BottomTodo> bottomTodoList = bottomTodoRepository
