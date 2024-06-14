@@ -9,7 +9,10 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
-@Table @Data
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"postId", "memberId"})
+})
+@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
