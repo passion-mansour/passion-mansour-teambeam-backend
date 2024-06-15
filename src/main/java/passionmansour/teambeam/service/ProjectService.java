@@ -1,5 +1,6 @@
 package passionmansour.teambeam.service;
 
+import com.nimbusds.oauth2.sdk.util.singleuse.AlreadyUsedException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -284,7 +285,7 @@ public class ProjectService {
     }
 
     @Transactional
-    public String sendLink(String token, Long id, LinkRequest request) {
+    public String sendLink(String token, Long id, LinkRequest request) throws AlreadyUsedException {
         Project project = projectRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
 
@@ -293,6 +294,14 @@ public class ProjectService {
 
         if (!verified) {
             throw new BadCredentialsException("Member is not join of the project.");
+        }
+
+        boolean contains = project.getJoinMembers().stream()
+            .anyMatch(member -> member.getMember().getMail().equals(request.getMail()));
+
+        if (contains) {
+            log.info("A member that already exists");
+            throw new AlreadyUsedException("A member that already exists");
         }
 
         // 인증 정보 생성, 저장

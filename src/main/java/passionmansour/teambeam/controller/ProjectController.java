@@ -1,5 +1,6 @@
 package passionmansour.teambeam.controller;
 
+import com.nimbusds.oauth2.sdk.util.singleuse.AlreadyUsedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -201,7 +202,12 @@ public class ProjectController {
     public ResponseEntity<Map<String, Object>> sendInvitationLink(@RequestHeader("Authorization") String token,
                                                                   @PathVariable("projectId") Long id,
                                                                   @RequestBody LinkRequest request) {
-        String link = projectService.sendLink(token, id, request);
+        String link = null;
+        try {
+            link = projectService.sendLink(token, id, request);
+        } catch (AlreadyUsedException e) {
+            throw new RuntimeException(e.getMessage());
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Successfully sent Email");
