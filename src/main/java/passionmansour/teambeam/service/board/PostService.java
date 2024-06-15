@@ -164,4 +164,12 @@ public class PostService {
 
         return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional));
     }
+
+    public PostListResponse isBelongToBoard(Long boardId, PostListResponse postListResponse){
+        postListResponse.getPostResponses().stream()
+                .filter(p -> p.getBoardId().equals(boardId))
+                .collect(Collectors.toList());
+
+        return postListResponse;
+    }
 }
