@@ -1,6 +1,5 @@
 package passionmansour.teambeam.service;
 
-import com.nimbusds.oauth2.sdk.util.singleuse.AlreadyUsedException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +8,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.board.request.PostBoardRequest;
 import passionmansour.teambeam.model.dto.board.response.BoardResponse;
 import passionmansour.teambeam.model.dto.project.ProjectDto;
@@ -285,7 +285,7 @@ public class ProjectService {
     }
 
     @Transactional
-    public String sendLink(String token, Long id, LinkRequest request) throws AlreadyUsedException {
+    public String sendLink(String token, Long id, LinkRequest request) throws UserAlreadyExistsException {
         Project project = projectRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
 
@@ -301,7 +301,7 @@ public class ProjectService {
 
         if (contains) {
             log.info("A member that already exists");
-            throw new AlreadyUsedException("A member that already exists");
+            throw new UserAlreadyExistsException("A member that already exists");
         }
 
         // 인증 정보 생성, 저장
