@@ -71,8 +71,10 @@ public class PostController {
 
     // 태그들로 게시물들 조회
     @GetMapping("/tags")
-    public ResponseEntity<PostListResponse> getPostsByTags(@RequestParam("tags") List<Long> tags){
-        return ResponseEntity.ok(postService.getAllByTags(tags));
+    public ResponseEntity<PostListResponse> getPostsByTags(@PathVariable("boardId") Long boardId,
+                                                           @RequestParam("tags") List<Long> tags){
+        PostListResponse postListResponse = postService.getAllByTags(tags);
+        return ResponseEntity.ok(postService.isBelongToBoard(boardId, postListResponse));
     }
 
     // 게시판 일련번호로 모든 게시물 조회
