@@ -166,10 +166,11 @@ public class PostService {
     }
 
     public PostListResponse isBelongToBoard(Long boardId, PostListResponse postListResponse){
-        postListResponse.getPostResponses().stream()
+        List<PostResponse> filteredPosts =  postListResponse.getPostResponses().stream()
                 .filter(p -> p.getBoardId().equals(boardId))
                 .collect(Collectors.toList());
 
+        postListResponse.setPostResponses(filteredPosts);
         return postListResponse;
     }
 }
