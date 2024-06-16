@@ -51,6 +51,8 @@ public class NotificationService {
         notification.setRead(false);
         notification.setType(Notification.Type.NOTICE);
         notification.setProject(project);
+        notification.setBoardId(request.getBoardId());
+        notification.setPostId(request.getPostId());
 
         notificationRepository.save(notification);
         log.info("Saved notification for project ID: {}", projectId);
@@ -76,6 +78,8 @@ public class NotificationService {
         notificationDto.setNotificationContent(notification.getNotificationContent());
         notificationDto.setRead(notification.isRead());
         notificationDto.setType(notification.getType());
+        notificationDto.setBoardId(notification.getBoardId());
+        notificationDto.setPostId(notification.getPostId());
 
         return notificationDto;
     }
