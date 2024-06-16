@@ -95,6 +95,20 @@ public class NotificationService {
         return notificationList.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
+    // SOCKET 알림 읽음 처리
+    @Transactional
+    public List<NotificationDto> updateReadStatus(Long memberId, Long notificationId) {
+
+        Notification notification = notificationRepository.findById(notificationId)
+            .orElseThrow(() -> new EntityNotFoundException("Notification not found with notificationId: " + notificationId));
+
+        notification.setRead(true);
+        log.info("notification {}", notification);
+
+        List<Notification> notificationList = notificationRepository.findByMember_memberId(memberId);
+        return notificationList.stream().map(this::convertToDto).toList();
+    }
+
     // 알림 삭제
     @Transactional
     public List<NotificationDto> deleteNotification(String token, Long notificationId) {
@@ -110,6 +124,13 @@ public class NotificationService {
             throw e; // 트랜잭션 롤백을 위해 예외를 다시 던짐
         }
 
+    }
+
+    // SOCKET 알림 삭제
+    @Transactional
+    public String deleteAll() {
+        notificationRepository.deleteAll();
+        return "Delete All Notifications Successfully";
     }
 
     // 알림 수 재설정, 리스트 반환
@@ -193,7 +214,7 @@ public class NotificationService {
         return notificationList.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
-    // 사용자의 모든 알림 조회
+    // API 사용자의 모든 알림 조회
     public List<NotificationDto> getNotificationsForMember(String token) {
 
         Member member = tokenService.getMemberByToken(token);
@@ -218,7 +239,7 @@ public class NotificationService {
         return allNotifications.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
-    // 소켓용 사용자의 모든 알림 조회
+    // SOCKET 사용자의 모든 알림 조회
     public void getNotificationsForMember(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
@@ -243,7 +264,7 @@ public class NotificationService {
 
         List<NotificationDto> notificationList = allNotifications.stream().map(this::convertToDto).collect(Collectors.toList());
 
-        NotificationSocketDto notificationSocketDto = new NotificationSocketDto(memberId, null, notificationList);
+        NotificationSocketDto notificationSocketDto = new NotificationSocketDto(Long.valueOf(memberId), null, notificationList);
         MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
         messageHandler.sendNotificationToUser(notificationSocketDto);
     }
