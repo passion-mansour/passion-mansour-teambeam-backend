@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +21,7 @@ import java.security.SignatureException;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtTokenService jwtTokenService;
@@ -35,38 +37,41 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String username = null;
         String jwtToken = null;
 
-        if (requestTokenHeader != null) {
-            jwtToken = requestTokenHeader;
-            try {
-                username = jwtTokenService.getUsernameFromToken(jwtToken);
-            } catch (ExpiredJwtException e) {
+        try {
+            if (requestTokenHeader != null) {
+                jwtToken = requestTokenHeader;
                 try {
+                    username = jwtTokenService.getUsernameFromToken(jwtToken);
+                } catch (ExpiredJwtException e) {
                     username = handleExpiredToken(request, response, refreshTokenHeader);
-                } catch (SignatureException ex) {
-                    throw new RuntimeException(ex.getMessage());
+                    if (username != null) {
+                        // 새로운 토큰으로 헤더를 업데이트하고 요청을 재시도
+                        String newToken = response.getHeader("Authorization");
+                        if (newToken != null) {
+                            request.setAttribute("Authorization", newToken);
+                            // 새 토큰을 로그에 기록
+                            log.info("New token generated: {}", newToken);
+                        }
+                        // chain.doFilter 호출을 통해 다시 필터링을 진행
+                        chain.doFilter(request, response);
+                        return;
+                    }
+                } catch (IllegalArgumentException e) {
+                    logger.error("Unable to get JWT Token", e);
                 }
-                if (username != null) {
-                    // 새로운 토큰으로 헤더를 업데이트하고 요청을 재시도
-                    String newToken = response.getHeader("Authorization");
-                    request.setAttribute("Authorization", newToken);
-                    // chain.doFilter 호출을 통해 다시 필터링을 진행
-                    chain.doFilter(request, response);
-                    return;
-                } else {
-                    return; // 토큰 갱신 실패시 요청 중단
-                }
-            } catch (IllegalArgumentException e) {
-                logger.error("Unable to get JWT Token", e);
+            } else {
+                logger.warn("JWT Token does not exist");
             }
-        } else {
-            logger.warn("JWT Token does not exist");
-        }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            authenticateUser(username, jwtToken, request);
-        }
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                authenticateUser(username, jwtToken, request);
+            }
 
-        chain.doFilter(request, response);
+            chain.doFilter(request, response);
+        } catch (Exception e) {
+            log.error("Exception occurred while processing JWT Token", e);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        }
     }
 
     private String handleExpiredToken(HttpServletRequest request, HttpServletResponse response, String refreshTokenHeader) throws SignatureException {
@@ -78,7 +83,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 if (jwtTokenService.validateToken(refreshTokenHeader, userDetails)) {
                     String newToken = jwtTokenService.generateAccessToken(userDetails);
                     response.setHeader("Authorization", newToken);
-                    request.setAttribute("Authorization", newToken);
+                    log.info("New token set in response header: {}", newToken);  // 로그에 기록
                     return username;
                 } else {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -90,7 +95,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             }
         } else {
-            System.out.println("Refresh Token is missing or invalid");
+            log.warn("Refresh Token is missing or invalid");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
         return null;
