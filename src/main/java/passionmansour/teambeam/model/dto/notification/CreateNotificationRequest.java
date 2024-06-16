@@ -10,5 +10,7 @@ import lombok.NoArgsConstructor;
 public class CreateNotificationRequest {
 
     private String notificationContent;
+    private Long boardId;
+    private Long postId;
 
 }
