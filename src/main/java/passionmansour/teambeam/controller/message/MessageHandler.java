@@ -14,7 +14,9 @@ import passionmansour.teambeam.model.dto.message.MessageCommentDTO;
 import passionmansour.teambeam.model.dto.message.MessageDTO;
 import passionmansour.teambeam.model.dto.message.request.MessageCommentRequest;
 import passionmansour.teambeam.model.dto.message.request.MessageRequest;
+import passionmansour.teambeam.model.dto.notification.NotificationDto;
 import passionmansour.teambeam.model.dto.notification.NotificationSocketDto;
+import passionmansour.teambeam.model.dto.notification.UpdateReadStatusRequest;
 import passionmansour.teambeam.service.message.MessageCommentService;
 import passionmansour.teambeam.service.message.MessageService;
 import passionmansour.teambeam.service.notification.NotificationService;
@@ -47,19 +49,31 @@ public class MessageHandler {
         server.addEventListener("leaveRoom", String.class, onLeaveRoom());
         server.addEventListener("comment", MessageCommentRequest.class, onAddComment());
         server.addEventListener("joinMessageRoom", String.class, onJoinMessageRoom());
+        server.addEventListener("updateReadStatus", UpdateReadStatusRequest.class, onUpdateReadStatus());
+        server.addEventListener("deleteAll", String.class, onDeleteAll());
     }
 
     @OnConnect
     public ConnectListener onConnect() {
         return (client) -> {
             // 사용자의 소켓 아이디 저장
-            String memberId = client.getHandshakeData().getSingleUrlParam("userId");
+            String memberId = client.getHandshakeData().getSingleUrlParam("memberId");
             String sessionId = client.getSessionId().toString();
+
+            if (memberId == null) {
+                log.error("Null userId received from client handshake data.");
+                return;
+            }
+
             redisTemplate.opsForValue().set("USER_SOCKET_" + memberId, sessionId);
-            log.info("Socket ID[{}]  Connected to socket", client.getSessionId().toString());
+            log.info("Socket ID[{}] Connected to socket", client.getSessionId().toString());
 
             // 초기 데이터 전송
-            notificationService.getNotificationsForMember(Long.valueOf(memberId));
+            try {
+                notificationService.getNotificationsForMember(Long.valueOf(memberId));
+            } catch (NumberFormatException e) {
+                log.error("Invalid userId format: {}", memberId, e);
+            }
         };
     }
 
@@ -140,6 +154,25 @@ public class MessageHandler {
         } else {
             log.info("No active socket found for member [{}]", notification.getMemberId());
         }
+    }
+
+    // 읽음 처리
+    public DataListener<UpdateReadStatusRequest> onUpdateReadStatus() {
+        return (client, data, ackRequest) -> {
+            log.info("Received notificationId {}", data.getNotificationId());
+            List<NotificationDto> notificationDtoList = notificationService.updateReadStatus(data.getMemberId(), data.getNotificationId());
+
+            NotificationSocketDto notificationSocketDto = new NotificationSocketDto(data.getMemberId(), null, notificationDtoList);
+            sendNotificationToUser(notificationSocketDto);
+        };
+    }
+
+    // 전체 삭제
+    public DataListener<String> onDeleteAll() {
+        return (client, data, ackRequest) -> {
+            String result = notificationService.deleteAll();
+            log.info(result);
+        };
     }
 
 }
