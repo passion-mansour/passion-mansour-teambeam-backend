@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import passionmansour.teambeam.model.dto.notification.CreateNotificationRequest;
 import passionmansour.teambeam.model.dto.notification.NotificationDto;
@@ -52,7 +53,7 @@ public class NotificationController {
 
     @PatchMapping("/notification/{notificationId}")
     public ResponseEntity<NotificationListResponse> updateNotification(@RequestHeader("Authorization") String token,
-                                                @PathVariable("notificationId") Long notificationId) {
+                                                                       @PathVariable("notificationId") Long notificationId) {
         List<NotificationDto> notificationList = notificationService.updateNotification(token, notificationId);
 
         NotificationListResponse response = new NotificationListResponse();

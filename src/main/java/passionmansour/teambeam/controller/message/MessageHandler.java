@@ -8,17 +8,19 @@ import com.corundumstudio.socketio.listener.DisconnectListener;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import passionmansour.teambeam.model.dto.message.MessageCommentDTO;
 import passionmansour.teambeam.model.dto.message.MessageDTO;
 import passionmansour.teambeam.model.dto.message.request.MessageCommentRequest;
 import passionmansour.teambeam.model.dto.message.request.MessageRequest;
-import passionmansour.teambeam.model.dto.notification.NotificationDto;
+import passionmansour.teambeam.model.dto.notification.NotificationSocketDto;
 import passionmansour.teambeam.service.message.MessageCommentService;
 import passionmansour.teambeam.service.message.MessageService;
 import passionmansour.teambeam.service.notification.NotificationService;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -29,6 +31,7 @@ public class MessageHandler {
     private final MessageService messageService;
     private final MessageCommentService messageCommentService;
     private final NotificationService notificationService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @PostConstruct
     public void init() {
@@ -39,7 +42,6 @@ public class MessageHandler {
         log.info("Registering server listeners...");
         server.addConnectListener(onConnect());
         server.addDisconnectListener(onDisconnect());
-        server.addEventListener("joinProject", String.class, onJoinProject());
         server.addEventListener("message", MessageRequest.class, onMessage());
         server.addEventListener("joinRoom", String.class, onJoinRoom());
         server.addEventListener("leaveRoom", String.class, onLeaveRoom());
@@ -50,12 +52,28 @@ public class MessageHandler {
     @OnConnect
     public ConnectListener onConnect() {
         return (client) -> {
+            // 사용자의 소켓 아이디 저장
+            String memberId = client.getHandshakeData().getSingleUrlParam("userId");
+            String sessionId = client.getSessionId().toString();
+            redisTemplate.opsForValue().set("USER_SOCKET_" + memberId, sessionId);
             log.info("Socket ID[{}]  Connected to socket", client.getSessionId().toString());
+
+            // 초기 데이터 전송
+            notificationService.getNotificationsForMember(Long.valueOf(memberId));
         };
     }
 
     public DisconnectListener onDisconnect() {
-        return client -> log.info("Socket ID[{}]  Disconnected from socket", client.getSessionId().toString());
+        return client -> {
+            String sessionId = client.getSessionId().toString();
+            // 모든 키를 조회하여 해당 세션 ID를 가진 사용자 ID를 삭제
+            redisTemplate.keys("USER_SOCKET_*").forEach(key -> {
+                if (sessionId.equals(redisTemplate.opsForValue().get(key))) {
+                    redisTemplate.delete(key);
+                }
+            });
+            log.info("Socket ID[{}]  Disconnected from socket", client.getSessionId().toString());
+        };
     }
 
     public DataListener<MessageRequest> onMessage() {
@@ -114,33 +132,15 @@ public class MessageHandler {
         };
     }
 
-    public DataListener<String> onJoinProject() {
-        return (client, projectId, ackRequest) -> {
-            try {
-                client.joinRoom("project_announcement_" + projectId);
-                log.info("Client {} joined Project: {}", client.getSessionId(), "project_announcement_" + projectId);
-
-                List<NotificationDto> notificationList = notificationService.getNotificationsByProjectId(Long.valueOf(projectId));
-                log.info("Loaded {} notifications for project {}", notificationList.size(), projectId);
-                client.sendEvent("initialNotice", notificationList);
-            } catch (Exception e) {
-                log.error("Error while client joining project: {}", e.getMessage());
-                client.sendEvent("error", "Error occurred: " + e.getMessage());
-            }
-        };
-    }
-
-    public void onNotificationEvent(Long projectId, NotificationDto notificationDto) {
-        try {
-            String room = "project_announcement_" + projectId;
-            server.getRoomOperations(room).sendEvent("announcement", notificationDto);
-            log.info("Sent announcement to project {}: {}", projectId, notificationDto);
-        } catch (Exception e) {
-            log.error("Error sending announcement", e);
+    public void sendNotificationToUser(NotificationSocketDto notification) {
+        String socketId = (String) redisTemplate.opsForValue().get("USER_SOCKET_" + notification.getMemberId());
+        if (socketId != null) {
+            server.getClient(UUID.fromString(socketId)).sendEvent("notification", notification);
+            log.info("Sent notification to member [{}] with socket ID [{}]", notification.getMemberId(), socketId);
+        } else {
+            log.info("No active socket found for member [{}]", notification.getMemberId());
         }
     }
-
-
 
 }
 
