@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +21,7 @@ import java.security.SignatureException;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtTokenService jwtTokenService;
@@ -48,11 +50,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 if (username != null) {
                     // 새로운 토큰으로 헤더를 업데이트하고 요청을 재시도
                     String newToken = response.getHeader("Authorization");
-                    request.setAttribute("Authorization", newToken);
+                    if (newToken != null) {
+                        request.setAttribute("Authorization", newToken);
+                        // 새 토큰을 로그에 기록
+                        log.info("New token generated: {}", newToken);
+                    }
                     // chain.doFilter 호출을 통해 다시 필터링을 진행
                     chain.doFilter(request, response);
                     return;
                 } else {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     return; // 토큰 갱신 실패시 요청 중단
                 }
             } catch (IllegalArgumentException e) {
@@ -78,7 +85,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 if (jwtTokenService.validateToken(refreshTokenHeader, userDetails)) {
                     String newToken = jwtTokenService.generateAccessToken(userDetails);
                     response.setHeader("Authorization", newToken);
-                    request.setAttribute("Authorization", newToken);
+                    log.info("New token set in response header: {}", newToken);  // 로그에 기록
                     return username;
                 } else {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
