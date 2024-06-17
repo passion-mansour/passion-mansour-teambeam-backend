@@ -48,6 +48,8 @@ public class JwtTokenService {
 
     // 토큰 생성
     private String createToken(Map<String, Object> claims, String subject, long expiration, SecretKey signingKey) {
+        log.debug("Using secret key hash: {}", signingKey.hashCode());
+
         return Jwts.builder()
             .setClaims(claims)
             .setSubject(subject)
@@ -74,9 +76,19 @@ public class JwtTokenService {
         return getClaimFromToken(token, Claims::getSubject, getSigningKey(secret));
     }
 
+    // 리프레시 토큰에서 사용자 이름 추출
+    public String getUsernameFromRefreshToken(String refreshToken) {
+        return getClaimFromToken(refreshToken, Claims::getSubject, getSigningKey(refreshSecret));
+    }
+
     // 토큰에서 유효 기간 추출
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration, getSigningKey(secret));
+    }
+
+    // 리프레시 토큰에서 유효 기간 추출
+    public Date getExpirationDateFromRefreshToken(String refreshToken) {
+        return getClaimFromToken(refreshToken, Claims::getExpiration, getSigningKey(refreshSecret));
     }
 
     // 특정 클레임 추출
@@ -100,11 +112,38 @@ public class JwtTokenService {
         return expiration.before(new Date());
     }
 
+    // 토큰 유효 기간 확인
+    private Boolean isRefreshTokenExpired(String token) {
+        final Date expiration = getExpirationDateFromRefreshToken(token);
+        return expiration.before(new Date());
+    }
+
     // 토큰 검증
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
+
+    public Boolean validateRefreshToken(String token, UserDetails userDetails) {
+        try {
+            final String email = getUsernameFromRefreshToken(token);
+            log.info("Validating refresh token for email: {}", email);
+            log.info("Token expiration: {}", getExpirationDateFromRefreshToken(token));
+            Date now = new Date();
+            log.info("Current time: {}", now);
+            boolean isExpired = isRefreshTokenExpired(token);
+            log.info("Is token expired? {}", isExpired);
+            boolean isUsernameMatch = email.equals(userDetails.getUsername());
+            log.info("Does username match? {}", isUsernameMatch);
+            return isUsernameMatch && !isExpired;
+        } catch (Exception e) {
+            log.error("Error during token validation", e);
+            return false;
+        }
+    }
+
+
+
 
     // 초대 토큰 생성
     public String generateInvitationToken(String mail, Long projectId) {
