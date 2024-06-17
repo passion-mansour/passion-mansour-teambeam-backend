@@ -1,42 +1,47 @@
 package passionmansour.teambeam.controller.message;
 
-import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.OnConnect;
-import com.corundumstudio.socketio.annotation.OnDisconnect;
-import com.corundumstudio.socketio.annotation.OnEvent;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import passionmansour.teambeam.model.dto.message.MessageCommentDTO;
 import passionmansour.teambeam.model.dto.message.MessageDTO;
 import passionmansour.teambeam.model.dto.message.request.MessageCommentRequest;
 import passionmansour.teambeam.model.dto.message.request.MessageRequest;
+import passionmansour.teambeam.model.dto.notification.NotificationSocketDto;
+import passionmansour.teambeam.model.dto.notification.UpdateReadStatusRequest;
 import passionmansour.teambeam.service.message.MessageCommentService;
 import passionmansour.teambeam.service.message.MessageService;
+import passionmansour.teambeam.service.notification.NotificationService;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class MessageHandler {
 
-    private SocketIOServer server;
+    private final SocketIOServer server;
     private final MessageService messageService;
     private final MessageCommentService messageCommentService;
+    private final NotificationService notificationService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    public MessageHandler(SocketIOServer server, MessageService messageService, MessageCommentService messageCommentService) {
-        this.messageService = messageService;
-        this.messageCommentService = messageCommentService;
-        this.server = server;
+    @PostConstruct
+    public void init() {
         registerListeners(server);
     }
 
     public void registerListeners(SocketIOServer server) {
+        log.info("Registering server listeners...");
         server.addConnectListener(onConnect());
         server.addDisconnectListener(onDisconnect());
         server.addEventListener("message", MessageRequest.class, onMessage());
@@ -44,18 +49,45 @@ public class MessageHandler {
         server.addEventListener("leaveRoom", String.class, onLeaveRoom());
         server.addEventListener("comment", MessageCommentRequest.class, onAddComment());
         server.addEventListener("joinMessageRoom", String.class, onJoinMessageRoom());
+        server.addEventListener("updateReadStatus", UpdateReadStatusRequest.class, onUpdateReadStatus());
+        server.addEventListener("deleteAll", Object.class, onDeleteAll());
     }
 
     @OnConnect
     public ConnectListener onConnect() {
         return (client) -> {
-            log.info("Socket ID[{}]  Connected to socket", client.getSessionId().toString());
+            // 사용자의 소켓 아이디 저장
+            String memberId = client.getHandshakeData().getSingleUrlParam("memberId");
+            String sessionId = client.getSessionId().toString();
+
+            if (memberId == null) {
+                log.error("Null userId received from client handshake data.");
+                return;
+            }
+
+            redisTemplate.opsForValue().set("USER_SOCKET_" + memberId, sessionId);
+            log.info("Socket ID[{}] Connected to socket", client.getSessionId().toString());
+
+            // 초기 데이터 전송
+            try {
+                notificationService.getNotificationsForMember(Long.valueOf(memberId));
+            } catch (NumberFormatException e) {
+                log.error("Invalid userId format: {}", memberId, e);
+            }
         };
     }
 
-
     public DisconnectListener onDisconnect() {
-        return client -> log.info("Socket ID[{}]  Disconnected from socket", client.getSessionId().toString());
+        return client -> {
+            String sessionId = client.getSessionId().toString();
+            // 모든 키를 조회하여 해당 세션 ID를 가진 사용자 ID를 삭제
+            redisTemplate.keys("USER_SOCKET_*").forEach(key -> {
+                if (sessionId.equals(redisTemplate.opsForValue().get(key))) {
+                    redisTemplate.delete(key);
+                }
+            });
+            log.info("Socket ID[{}]  Disconnected from socket", client.getSessionId().toString());
+        };
     }
 
     public DataListener<MessageRequest> onMessage() {
@@ -113,4 +145,63 @@ public class MessageHandler {
             server.getRoomOperations(roomId).sendEvent("comment", updatedMessage);
         };
     }
+
+    public void sendNotificationToUser(NotificationSocketDto notification) {
+        String socketId = (String) redisTemplate.opsForValue().get("USER_SOCKET_" + notification.getMemberId());
+        if (socketId != null) {
+            if (notification.getNotificationList() != null) {
+                // 알림이 리스트인 경우
+                server.getClient(UUID.fromString(socketId)).sendEvent("initial_notifications", notification);
+                log.info("Sent list of notifications to member [{}] with socket ID [{}]", notification.getMemberId(), socketId);
+            } else if (notification.getNotification() != null) {
+                // 알림이 리스트가 아닌 경우
+                server.getClient(UUID.fromString(socketId)).sendEvent("notification", notification);
+                log.info("Sent single notification to member [{}] with socket ID [{}]", notification.getMemberId(), socketId);
+            }
+        } else {
+            log.info("No active socket found for member [{}]", notification.getMemberId());
+        }
+    }
+
+    // 읽음 처리
+    public DataListener<UpdateReadStatusRequest> onUpdateReadStatus() {
+        return (client, data, ackRequest) -> {
+            log.info("Received notificationId {}, memberId {}", data.getNotificationId(), data.getMemberId());
+            notificationService.updateReadStatus(data.getMemberId(), data.getNotificationId());
+        };
+    }
+
+    // 전체 삭제
+    public DataListener<Object> onDeleteAll() {
+        return (client, data, ackRequest) -> {
+            if (data instanceof List<?>) {
+                List<?> list = (List<?>) data;
+                List<Long> longNotifications = list.stream()
+                    .filter(item -> item instanceof Number)
+                    .map(item -> ((Number) item).longValue())
+                    .collect(Collectors.toList());
+
+                if (!longNotifications.isEmpty()) {
+                    String result = notificationService.deleteAll(longNotifications);
+                    log.info(result);
+                    if (ackRequest.isAckRequested()) {
+                        ackRequest.sendAckData("success");
+                    }
+                } else {
+                    log.warn("No valid notification IDs to delete.");
+                    if (ackRequest.isAckRequested()) {
+                        ackRequest.sendAckData("no valid notification IDs");
+                    }
+                }
+            } else {
+                log.warn("Received data is not a list: {}", data);
+                if (ackRequest.isAckRequested()) {
+                    ackRequest.sendAckData("invalid data type");
+                }
+            }
+        };
+    }
+
+
 }
+

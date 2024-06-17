@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateNotificationRequest {
+public class UpdateReadStatusRequest {
 
-    private String notificationContent;
-    private Long boardId;
-    private Long postId;
+    private Long memberId;
+    private Long notificationId;
 
 }

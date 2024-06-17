@@ -8,6 +8,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.board.request.PostBoardRequest;
 import passionmansour.teambeam.model.dto.board.response.BoardResponse;
 import passionmansour.teambeam.model.dto.project.ProjectDto;
@@ -45,9 +46,9 @@ public class ProjectService {
     private final EmailService emailService;
     private final RedisTokenService redisTokenService;
     private final BoardService boardService;
+    private final MemberService memberService;
 
     private final CalendarRepository calendarRepository;
-
     private final TodolistService todolistService;
 
     @Transactional
@@ -199,10 +200,13 @@ public class ProjectService {
     }
 
     private ProjectJoinMemberDto convertToDto(JoinMember joinMember) {
+        String encodedProfileImage = memberService.getImageAsBase64(joinMember.getMember().getProfileImage());
+
         ProjectJoinMemberDto dto = new ProjectJoinMemberDto();
         dto.setMemberId(joinMember.getMember().getMemberId());
         dto.setMemberName(joinMember.getMember().getMemberName());
         dto.setMail(joinMember.getMember().getMail());
+        dto.setProfileImage(encodedProfileImage);
         dto.setMemberRole(joinMember.getMemberRole() != null ? joinMember.getMemberRole().toString() : null);
         dto.setHost(joinMember.isHost());
         return dto;
@@ -281,7 +285,7 @@ public class ProjectService {
     }
 
     @Transactional
-    public String sendLink(String token, Long id, LinkRequest request) {
+    public String sendLink(String token, Long id, LinkRequest request) throws UserAlreadyExistsException {
         Project project = projectRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
 
@@ -292,6 +296,14 @@ public class ProjectService {
             throw new BadCredentialsException("Member is not join of the project.");
         }
 
+        boolean contains = project.getJoinMembers().stream()
+            .anyMatch(member -> member.getMember().getMail().equals(request.getMail()));
+
+        if (contains) {
+            log.info("A member that already exists");
+            throw new UserAlreadyExistsException("A member that already exists");
+        }
+
         // 인증 정보 생성, 저장
         String linkToken = tokenService.generateInvitationToken(request.getMail(), id);
 
@@ -300,7 +312,7 @@ public class ProjectService {
         log.info("token {}", linkToken);
 
         // 초대 링크 생성
-        String link = "http://34.22.108.250:8080/accept-invitation?token=" + linkToken;
+        String link = "https://team-beam.com/api/accept-invitation?token=" + linkToken;
         String emailBody = "<html><body><p>안녕하세요,</p><p>프로젝트에 참가하려면 아래 링크를 클릭하세요:</p>" +
             "<a href='" + link + "'>프로젝트 참가</a><p>링크는 24시간 후에 만료됩니다.</p></body></html>";
 

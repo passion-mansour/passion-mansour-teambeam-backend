@@ -35,12 +35,12 @@ logging:
 jwt:
   secret: RJjAZR5j+wemQdNpd3XreAcM9yftv14Wfc2e5lFrNf3d6RSnqIYkybdqPTPepVaOqBdTq8xVSwHj5tF88msmZw==
   refreshSecret: LyqRq32qBcyF3uCCdDOziK52gzdhSjKsmuMtO7tnmpCdqcwwS9KxzwshCVNou4ml6qyRQqXz4DWwomCjtRZxEg==
-  expiration: 604800
+  expiration: 7200
   refreshExpiration: 604800
 
 kakao:
   client-id: 77cdffa48c591cce8c307afbe9c188d9
-  redirect-uri: http://localhost:3000/oauth
+  redirect-uri: http://localhost:3000/user/login
 
 management:
   endpoints:

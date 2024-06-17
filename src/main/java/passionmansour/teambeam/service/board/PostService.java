@@ -62,6 +62,8 @@ public class PostService {
 
         CreateNotificationRequest createNotification = new CreateNotificationRequest();
         createNotification.setNotificationContent("새로운 공지가 등록되었습니다.");
+        createNotification.setBoardId(postPostRequest.getBoardId());
+        createNotification.setPostId(save.getPostId());
 
         if (save.isNotice()) {
             notificationService.saveNotification(token, postPostRequest.getProjectId(), createNotification);
@@ -163,5 +165,14 @@ public class PostService {
             .orElseThrow(() -> new RuntimeException("Project not found"));
 
         return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional));
+    }
+
+    public PostListResponse isBelongToBoard(Long boardId, PostListResponse postListResponse){
+        List<PostResponse> filteredPosts =  postListResponse.getPostResponses().stream()
+                .filter(p -> p.getBoardId().equals(boardId))
+                .collect(Collectors.toList());
+
+        postListResponse.setPostResponses(filteredPosts);
+        return postListResponse;
     }
 }

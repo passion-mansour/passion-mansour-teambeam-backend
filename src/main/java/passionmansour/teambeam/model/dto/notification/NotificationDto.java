@@ -1,9 +1,11 @@
 package passionmansour.teambeam.model.dto.notification;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import passionmansour.teambeam.model.entity.Notification;
 
 @Data
 @AllArgsConstructor
@@ -20,5 +22,12 @@ public class NotificationDto {
     private String notificationContent;
     @Schema(description = "확인 유무")
     private boolean isRead;
+    @Schema(description = "알림 유형")
+    private Notification.Type type;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long postId;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long boardId;
 
 }
