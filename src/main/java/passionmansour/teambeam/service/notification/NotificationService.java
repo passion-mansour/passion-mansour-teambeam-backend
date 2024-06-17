@@ -101,7 +101,7 @@ public class NotificationService {
 
     // SOCKET 알림 읽음 처리
     @Transactional
-    public List<NotificationDto> updateReadStatus(Long memberId, Long notificationId) {
+    public void updateReadStatus(Long memberId, Long notificationId) {
 
         Notification notification = notificationRepository.findById(notificationId)
             .orElseThrow(() -> new EntityNotFoundException("Notification not found with notificationId: " + notificationId));
@@ -109,8 +109,7 @@ public class NotificationService {
         notification.setRead(true);
         log.info("notification {}", notification);
 
-        List<Notification> notificationList = notificationRepository.findByMember_memberId(memberId);
-        return notificationList.stream().map(this::convertToDto).toList();
+        getNotificationsForMember(memberId);
     }
 
     // 알림 삭제
@@ -132,8 +131,10 @@ public class NotificationService {
 
     // SOCKET 알림 삭제
     @Transactional
-    public String deleteAll() {
-        notificationRepository.deleteAll();
+    public String deleteAll(List<Long> longNotifications) {
+        for (Long notificationId : longNotifications) {
+            notificationRepository.deleteById(notificationId);
+        }
         return "Delete All Notifications Successfully";
     }
 
