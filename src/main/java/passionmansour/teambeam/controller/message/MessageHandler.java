@@ -21,6 +21,7 @@ import passionmansour.teambeam.service.message.MessageCommentService;
 import passionmansour.teambeam.service.message.MessageService;
 import passionmansour.teambeam.service.notification.NotificationService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,7 +51,7 @@ public class MessageHandler {
         server.addEventListener("comment", MessageCommentRequest.class, onAddComment());
         server.addEventListener("joinMessageRoom", String.class, onJoinMessageRoom());
         server.addEventListener("updateReadStatus", UpdateReadStatusRequest.class, onUpdateReadStatus());
-        server.addEventListener("deleteAll", String.class, onDeleteAll());
+        server.addEventListener("deleteAll", Object.class, onDeleteAll());
     }
 
     @OnConnect
@@ -166,19 +167,27 @@ public class MessageHandler {
     // 읽음 처리
     public DataListener<UpdateReadStatusRequest> onUpdateReadStatus() {
         return (client, data, ackRequest) -> {
-            log.info("Received notificationId {}", data.getNotificationId());
-            List<NotificationDto> notificationDtoList = notificationService.updateReadStatus(data.getMemberId(), data.getNotificationId());
-
-            NotificationSocketDto notificationSocketDto = new NotificationSocketDto(data.getMemberId(), null, notificationDtoList);
-            sendNotificationToUser(notificationSocketDto);
+            log.info("Received notificationId {}, memberId {}", data.getNotificationId(), data.getMemberId());
+            notificationService.updateReadStatus(data.getMemberId(), data.getNotificationId());
         };
     }
 
     // 전체 삭제
-    public DataListener<String> onDeleteAll() {
+    public DataListener<Object> onDeleteAll() {
         return (client, data, ackRequest) -> {
-            String result = notificationService.deleteAll();
-            log.info(result);
+            if (data instanceof List<?>) {
+                List<?> list = (List<?>) data;
+                List<Long> longNotifications = new ArrayList<>();
+                for (Object item : list) {
+                    if (item instanceof String) {
+                        longNotifications.add(Long.valueOf((String) item));
+                    }
+                }
+                String result = notificationService.deleteAll(longNotifications);
+                log.info(result);
+            } else {
+                log.warn("Received data is not a list: {}", data);
+            }
         };
     }
 
