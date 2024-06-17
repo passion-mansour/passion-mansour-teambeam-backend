@@ -48,7 +48,8 @@ public class SecurityConfig {
                         "/js/**",
                         "/images/**",
                         "/webjars/**",
-                        "/ws/**").permitAll()
+                        "/ws/**",
+                        "/actuator/shutdown").permitAll()
                     .anyRequest().authenticated()
             )
             .sessionManagement(sessionManagement ->

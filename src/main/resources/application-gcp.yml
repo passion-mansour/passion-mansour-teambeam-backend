@@ -47,3 +47,6 @@ management:
     web:
       exposure:
         include: "shutdown"
+  endpoint:
+    shutdown:
+      enabled: true
