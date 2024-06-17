@@ -14,16 +14,15 @@ import passionmansour.teambeam.model.dto.message.MessageCommentDTO;
 import passionmansour.teambeam.model.dto.message.MessageDTO;
 import passionmansour.teambeam.model.dto.message.request.MessageCommentRequest;
 import passionmansour.teambeam.model.dto.message.request.MessageRequest;
-import passionmansour.teambeam.model.dto.notification.NotificationDto;
 import passionmansour.teambeam.model.dto.notification.NotificationSocketDto;
 import passionmansour.teambeam.model.dto.notification.UpdateReadStatusRequest;
 import passionmansour.teambeam.service.message.MessageCommentService;
 import passionmansour.teambeam.service.message.MessageService;
 import passionmansour.teambeam.service.notification.NotificationService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -177,19 +176,32 @@ public class MessageHandler {
         return (client, data, ackRequest) -> {
             if (data instanceof List<?>) {
                 List<?> list = (List<?>) data;
-                List<Long> longNotifications = new ArrayList<>();
-                for (Object item : list) {
-                    if (item instanceof String) {
-                        longNotifications.add(Long.valueOf((String) item));
+                List<Long> longNotifications = list.stream()
+                    .filter(item -> item instanceof Number)
+                    .map(item -> ((Number) item).longValue())
+                    .collect(Collectors.toList());
+
+                if (!longNotifications.isEmpty()) {
+                    String result = notificationService.deleteAll(longNotifications);
+                    log.info(result);
+                    if (ackRequest.isAckRequested()) {
+                        ackRequest.sendAckData("success");
+                    }
+                } else {
+                    log.warn("No valid notification IDs to delete.");
+                    if (ackRequest.isAckRequested()) {
+                        ackRequest.sendAckData("no valid notification IDs");
                     }
                 }
-                String result = notificationService.deleteAll(longNotifications);
-                log.info(result);
             } else {
                 log.warn("Received data is not a list: {}", data);
+                if (ackRequest.isAckRequested()) {
+                    ackRequest.sendAckData("invalid data type");
+                }
             }
         };
     }
+
 
 }
 
