@@ -193,6 +193,7 @@ public class TodolistService {
         if (request.getEndDate() != null) {
             topTodo.setEndDate(request.getEndDate());
         }
+        updateTopTodoStatus(topTodo);
         return convertTodoService.convertToDto(topTodoRepository.save(topTodo));
     }
 
@@ -212,7 +213,9 @@ public class TodolistService {
         if (request.getEndDate() != null) {
             middleTodo.setEndDate(request.getEndDate());
         }
-        return convertTodoService.convertToDto(middleTodoRepository.save(middleTodo),middleTodo.getTopTodo().getTopTodoId());
+        middleTodoRepository.save(middleTodo);
+        updateTopTodoStatus(middleTodo.getTopTodo());
+        return convertTodoService.convertToDto(middleTodoRepository.save(middleTodo), middleTodo.getTopTodo().getTopTodoId());
     }
 
     @Transactional
@@ -231,16 +234,31 @@ public class TodolistService {
         if (request.getEndDate() != null) {
             bottomTodo.setEndDate(request.getEndDate());
         }
-        if (request.getMember() != null){
+        if (request.getMember() != null) {
             Optional<Member> memberOptional = memberRepository.findById(request.getMember());
             if (!memberOptional.isPresent()) {
                 throw new RuntimeException("member 찾지 못했습니다.");
             }
             bottomTodo.setMember(memberOptional.get());
         }
+        bottomTodoRepository.save(bottomTodo);
+        updateMiddleTodoStatus(bottomTodo.getMiddleTodo());
+        updateTopTodoStatus(bottomTodo.getMiddleTodo().getTopTodo());
         return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
                 bottomTodo.getMiddleTodo().getTopTodo().getTopTodoId(),
                 bottomTodo.getMiddleTodo().getMiddleTodoId());
+    }
+
+    private void updateTopTodoStatus(TopTodo topTodo) {
+        boolean allMiddleTodosTrue = topTodo.getMiddleTodos().stream().allMatch(MiddleTodo::isMiddleTodoStatus);
+        topTodo.setTopTodoStatus(allMiddleTodosTrue);
+        topTodoRepository.save(topTodo);
+    }
+
+    private void updateMiddleTodoStatus(MiddleTodo middleTodo) {
+        boolean allBottomTodosTrue = middleTodo.getBottomTodos().stream().allMatch(BottomTodo::isBottomTodoStatus);
+        middleTodo.setMiddleTodoStatus(allBottomTodosTrue);
+        middleTodoRepository.save(middleTodo);
     }
 
     @Transactional

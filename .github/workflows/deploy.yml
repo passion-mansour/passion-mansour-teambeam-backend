@@ -57,14 +57,19 @@ jobs:
               pkill -f 'java -jar' || true
               sleep 10  # 애플리케이션 종료 대기 시간
             fi
-          
+
             echo "Checking if port 8080 is free..."
             while sudo lsof -t -i tcp:8080; do
               sudo lsof -t -i tcp:8080 | xargs sudo kill -9 || true
               sleep 1
             done
-          
+
+            echo "Checking if Socket.IO server is running on port 9092..."
+            while sudo lsof -t -i tcp:9092; do
+              sudo lsof -t -i tcp:9092 | xargs sudo kill -9 || true
+              sleep 1
+            done
+
             echo "Starting new application instance..."
             nohup java -jar /home/beamt348/app/teambeam-0.0.1-SNAPSHOT.jar --spring.profiles.active=gcp > /home/beamt348/app/app.log 2>&1 &
           EOF
-
