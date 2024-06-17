@@ -149,8 +149,15 @@ public class MessageHandler {
     public void sendNotificationToUser(NotificationSocketDto notification) {
         String socketId = (String) redisTemplate.opsForValue().get("USER_SOCKET_" + notification.getMemberId());
         if (socketId != null) {
-            server.getClient(UUID.fromString(socketId)).sendEvent("notification", notification);
-            log.info("Sent notification to member [{}] with socket ID [{}]", notification.getMemberId(), socketId);
+            if (notification.getNotificationList() != null) {
+                // 알림이 리스트인 경우
+                server.getClient(UUID.fromString(socketId)).sendEvent("initial_notifications", notification);
+                log.info("Sent list of notifications to member [{}] with socket ID [{}]", notification.getMemberId(), socketId);
+            } else if (notification.getNotification() != null) {
+                // 알림이 리스트가 아닌 경우
+                server.getClient(UUID.fromString(socketId)).sendEvent("notification", notification);
+                log.info("Sent single notification to member [{}] with socket ID [{}]", notification.getMemberId(), socketId);
+            }
         } else {
             log.info("No active socket found for member [{}]", notification.getMemberId());
         }
