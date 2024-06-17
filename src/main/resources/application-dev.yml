@@ -45,6 +45,7 @@ jwt:
 
 kakao:
   client-id: 77cdffa48c591cce8c307afbe9c188d9
+  redirect-uri: https://k0bf03acb7c00a.user-app.krampoline.com/user/login
 
 management:
   endpoints:

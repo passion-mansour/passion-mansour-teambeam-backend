@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             .orElseThrow(() -> new UsernameNotFoundException("User not found with memberName: " + username));
 
         return User.builder()
-            .username(member.getMemberName())
+            .username(member.getMail())
             .password(member.getPassword())
             .roles("USER") // 기본 역할
             .build();
