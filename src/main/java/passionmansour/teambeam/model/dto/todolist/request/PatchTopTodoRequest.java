@@ -13,5 +13,5 @@ public class PatchTopTodoRequest {
     private LocalDate startDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate endDate;
-    private boolean status;
+    private Boolean status;
 }

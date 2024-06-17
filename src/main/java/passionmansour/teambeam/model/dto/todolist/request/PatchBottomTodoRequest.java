@@ -15,6 +15,6 @@ public class PatchBottomTodoRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate endDate;
     private String memo;
-    private boolean status;
+    private Boolean status;
     private Long member;
 }

@@ -184,8 +184,8 @@ public class TodolistService {
         if (request.getTitle() != null) {
             topTodo.setTopTodoTitle(request.getTitle());
         }
-        if (request.isStatus() == true) {
-            topTodo.setTopTodoStatus(true);
+        if (request.getStatus() != null) {
+            topTodo.setTopTodoStatus(request.getStatus());
         }
         if (request.getStartDate() != null) {
             topTodo.setStartDate(request.getStartDate());
@@ -203,8 +203,8 @@ public class TodolistService {
         if (request.getTitle() != null) {
             middleTodo.setMiddleTodoTitle(request.getTitle());
         }
-        if (request.isStatus() == true) {
-            middleTodo.setMiddleTodoStatus(true);
+        if (request.getStatus() != null) {
+            middleTodo.setMiddleTodoStatus(request.getStatus());
         }
         if (request.getStartDate() != null) {
             middleTodo.setStartDate(request.getStartDate());
@@ -222,8 +222,8 @@ public class TodolistService {
         if (request.getTitle() != null) {
             bottomTodo.setBottomTodoTitle(request.getTitle());
         }
-        if (request.isStatus() == true) {
-            bottomTodo.setBottomTodoStatus(true);
+        if (request.getStatus() != null) {
+            bottomTodo.setBottomTodoStatus(request.getStatus());
         }
         if (request.getStartDate() != null) {
             bottomTodo.setStartDate(request.getStartDate());
