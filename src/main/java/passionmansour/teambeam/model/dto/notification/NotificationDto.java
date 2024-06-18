@@ -19,7 +19,7 @@ public class NotificationDto {
     @Schema(description = "알림 고유 아이디")
     private Long notificationId;
     @Schema(description = "알림 내용")
-    private String notificationContent;
+    private String title;
     @Schema(description = "확인 유무")
     private boolean isRead;
     @Schema(description = "알림 유형")
