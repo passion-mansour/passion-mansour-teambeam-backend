@@ -17,6 +17,7 @@ import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.member.request.*;
 import passionmansour.teambeam.model.dto.member.MemberDto;
 import passionmansour.teambeam.model.dto.member.response.ProfileImageResponse;
+import passionmansour.teambeam.model.dto.project.InvitationTokenDto;
 import passionmansour.teambeam.model.entity.JoinMember;
 import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Project;
@@ -103,9 +104,9 @@ public class MemberService {
     }
 
     private void joinProjectWithToken(String token, Member member) {
-        Long projectIdFromToken = tokenService.getProjectIdFromToken(token);
-        Project project = projectRepository.findByProjectId(projectIdFromToken).orElseThrow(() ->
-            new EntityNotFoundException("Project not found with projectId: " + projectIdFromToken));
+        InvitationTokenDto invitationTokenDto = redisTokenService.geObjectByInvitationToken(token);
+        Project project = projectRepository.findByProjectId(invitationTokenDto.getProjectId()).orElseThrow(() ->
+            new EntityNotFoundException("Project not found with projectId: " + invitationTokenDto.getProjectId()));
 
         JoinMember joinMember = new JoinMember();
         joinMember.setProject(project);
