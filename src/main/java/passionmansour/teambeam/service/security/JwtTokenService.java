@@ -142,30 +142,6 @@ public class JwtTokenService {
         }
     }
 
-
-
-
-    // 초대 토큰 생성
-    public String generateInvitationToken(String mail, Long projectId) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("projectId", projectId);
-        return createToken(claims, mail, 86400, getSigningKey(secret));
-    }
-
-    // 초대 토큰 검증 및 파싱
-    public Claims decodeToken(String token) {
-        return Jwts.parser()
-            .setSigningKey(getSigningKey(secret))
-            .parseClaimsJws(token)
-            .getBody();
-    }
-
-    // 초대 토큰에서 프로젝트 ID 추출
-    public Long getProjectIdFromToken(String token) {
-        Claims claims = decodeToken(token);
-        return claims.get("projectId", Long.class);
-    }
-
     // 토큰에서 추출한 메일로 멤버 조회
     public Member getMemberByToken(String token) {
         // 토큰에서 회원 메일 확인

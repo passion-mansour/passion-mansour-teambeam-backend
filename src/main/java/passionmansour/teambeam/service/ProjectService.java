@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.board.request.PostBoardRequest;
 import passionmansour.teambeam.model.dto.board.response.BoardResponse;
+import passionmansour.teambeam.model.dto.project.InvitationTokenDto;
 import passionmansour.teambeam.model.dto.project.ProjectDto;
 import passionmansour.teambeam.model.dto.project.ProjectJoinMemberDto;
 import passionmansour.teambeam.model.dto.project.request.LinkRequest;
@@ -31,6 +32,7 @@ import passionmansour.teambeam.service.todolist.TodolistService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -286,9 +288,6 @@ public class ProjectService {
 
     @Transactional
     public String sendLink(String token, Long id, LinkRequest request) throws UserAlreadyExistsException {
-        if (redisTokenService.getMailByToken(token) != null) {
-            redisTokenService.deleteInvitationToken(token);
-        }
 
         Project project = projectRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
@@ -308,10 +307,14 @@ public class ProjectService {
             throw new UserAlreadyExistsException("A member that already exists");
         }
 
-        // 인증 정보 생성, 저장
-        String linkToken = tokenService.generateInvitationToken(request.getMail(), id);
+        String linkToken = UUID.randomUUID().toString();
 
-        redisTokenService.storeInvitationToken(request.getMail(), linkToken);
+        // 인증 정보 생성, 저장
+        InvitationTokenDto invitationTokenDto = new InvitationTokenDto();
+        invitationTokenDto.setProjectId(id);
+        invitationTokenDto.setMail(request.getMail());
+
+        redisTokenService.storeInvitationToken(invitationTokenDto, linkToken);
 
         log.info("token {}", linkToken);
 
@@ -337,22 +340,31 @@ public class ProjectService {
     @Transactional
     public TokenAuthenticationResponse tokenAuthentication(String token) {
 
-        // 토큰에서 메일 추출
-        String mail = redisTokenService.getMailByToken(token);
-        log.info("redisTokenService.getMailByToken(token) {}", mail);
+        // 토큰에서 정보 추출
+        InvitationTokenDto invitationTokenDto = redisTokenService.geObjectByInvitationToken(token);
+        log.info("redisTokenService.getMailByToken(token) {}", invitationTokenDto.getMail());
 
         // 메일로 멤버 조회
-        Optional<Member> member = memberRepository.findByMailAndIsDeletedFalse(mail);
+        Optional<Member> member = memberRepository.findByMailAndIsDeletedFalse(invitationTokenDto.getMail());
         log.info("member {}", member);
 
         // 회원
         if (member.isPresent()) {
             // 토큰에서 프로젝트 아이디 추출
-            Long projectIdFromToken = tokenService.getProjectIdFromToken(token);
+            Long projectIdFromToken = invitationTokenDto.getProjectId();
 
             // 해당 프로젝트 조회
             Project project = projectRepository.findByProjectId(projectIdFromToken)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectIdFromToken));
+
+            // 해당 프로젝트에 이미 참여한 경우 예외처리
+            boolean isMemberAlreadyJoined = project.getJoinMembers().stream()
+                .anyMatch(joinMember -> joinMember.getMember().equals(member.get()));
+
+            if (isMemberAlreadyJoined) {
+                redisTokenService.deleteInvitationToken(token);
+                throw new UserAlreadyExistsException("Member who already exist in the project");
+            }
 
             JoinMember joinMember = new JoinMember();
             joinMember.setProject(project);
