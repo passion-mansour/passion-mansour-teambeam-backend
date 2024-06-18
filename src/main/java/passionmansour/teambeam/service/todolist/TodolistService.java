@@ -250,14 +250,14 @@ public class TodolistService {
     }
 
     private void updateTopTodoStatus(TopTodo topTodo) {
-        boolean allMiddleTodosTrue = topTodo.getMiddleTodos().stream().allMatch(MiddleTodo::isMiddleTodoStatus);
-        topTodo.setTopTodoStatus(allMiddleTodosTrue);
+        boolean anyMiddleTodoTrue = topTodo.getMiddleTodos().stream().anyMatch(MiddleTodo::isMiddleTodoStatus);
+        topTodo.setTopTodoStatus(anyMiddleTodoTrue);
         topTodoRepository.save(topTodo);
     }
 
     private void updateMiddleTodoStatus(MiddleTodo middleTodo) {
-        boolean allBottomTodosTrue = middleTodo.getBottomTodos().stream().allMatch(BottomTodo::isBottomTodoStatus);
-        middleTodo.setMiddleTodoStatus(allBottomTodosTrue);
+        boolean anyBottomTodoTrue = middleTodo.getBottomTodos().stream().anyMatch(BottomTodo::isBottomTodoStatus);
+        middleTodo.setMiddleTodoStatus(anyBottomTodoTrue);
         middleTodoRepository.save(middleTodo);
     }
 
