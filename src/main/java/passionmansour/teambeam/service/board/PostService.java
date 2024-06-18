@@ -8,7 +8,6 @@ import passionmansour.teambeam.model.dto.board.request.PatchPostRequest;
 import passionmansour.teambeam.model.dto.board.request.PostPostRequest;
 import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
-import passionmansour.teambeam.model.dto.notification.CreateNotificationRequest;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.BoardRepository;
 import passionmansour.teambeam.repository.PostRepository;

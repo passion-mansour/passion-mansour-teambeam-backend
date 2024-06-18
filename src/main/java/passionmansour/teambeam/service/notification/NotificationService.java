@@ -41,7 +41,7 @@ public class NotificationService {
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + request.getProjectId()));
 
         Notification notification = new Notification();
-        notification.setNotificationContent(request.getNotificationContent());
+        notification.setNotificationContent(request.getTitle());
         notification.setType(Notification.Type.NOTICE);
         notification.setProject(project);
         notification.setBoardId(request.getBoardId());
