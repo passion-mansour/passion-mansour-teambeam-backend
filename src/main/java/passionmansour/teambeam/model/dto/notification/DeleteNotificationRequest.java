@@ -4,15 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateNotificationRequest {
+public class DeleteNotificationRequest {
 
-    private String notificationContent;
     private Long memberId;
-    private Long projectId;
-    private Long boardId;
-    private Long postId;
+    private List<Long> notificationIds;
 
 }

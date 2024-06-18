@@ -17,20 +17,15 @@ public class Notification {
     private Long notificationId;
 
     private String notificationContent;
-    private boolean isRead;
+
+    private boolean is_deleted = false;
 
     @Enumerated(EnumType.STRING)
     private Type type;
 
     @ManyToOne
-    @JoinColumn(name = "memberId")
-    private Member member;
-
-    @ManyToOne
     @JoinColumn(name = "projectId")
     private Project project;
-
-    private boolean is_deleted = false;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long postId;

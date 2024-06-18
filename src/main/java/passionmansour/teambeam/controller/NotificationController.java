@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import passionmansour.teambeam.model.dto.notification.CreateNotificationRequest;
 import passionmansour.teambeam.model.dto.notification.NotificationDto;
@@ -26,12 +25,11 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @PostMapping("/notification/{projectId}")
+    @PostMapping("/notification")
     public ResponseEntity<?> createNotification(@RequestHeader("Authorization") String token,
-                                                @PathVariable("projectId") Long projectId,
                                                 @RequestBody CreateNotificationRequest request) {
 
-        notificationService.saveNotification(token, projectId, request);
+        notificationService.saveNotification(request);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "successfully create notification");
@@ -67,12 +65,10 @@ public class NotificationController {
     @DeleteMapping("/notification/{notificationId}")
     public ResponseEntity<NotificationListResponse> deleteNotification(@RequestHeader("Authorization") String token,
                                                                        @PathVariable("notificationId") Long notificationId) {
-        List<NotificationDto> notificationList = notificationService.deleteNotification(token, notificationId);
+        notificationService.deleteNotification(token, notificationId);
 
         NotificationListResponse response = new NotificationListResponse();
         response.setMessage("Successfully delete notification");
-        response.setNotificationList(notificationList);
-        response.setNotificationCount(notificationList.size());
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

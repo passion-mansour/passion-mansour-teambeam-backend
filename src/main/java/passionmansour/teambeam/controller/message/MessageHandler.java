@@ -14,8 +14,7 @@ import passionmansour.teambeam.model.dto.message.MessageCommentDTO;
 import passionmansour.teambeam.model.dto.message.MessageDTO;
 import passionmansour.teambeam.model.dto.message.request.MessageCommentRequest;
 import passionmansour.teambeam.model.dto.message.request.MessageRequest;
-import passionmansour.teambeam.model.dto.notification.NotificationSocketDto;
-import passionmansour.teambeam.model.dto.notification.UpdateReadStatusRequest;
+import passionmansour.teambeam.model.dto.notification.*;
 import passionmansour.teambeam.service.message.MessageCommentService;
 import passionmansour.teambeam.service.message.MessageService;
 import passionmansour.teambeam.service.notification.NotificationService;
@@ -50,7 +49,8 @@ public class MessageHandler {
         server.addEventListener("comment", MessageCommentRequest.class, onAddComment());
         server.addEventListener("joinMessageRoom", String.class, onJoinMessageRoom());
         server.addEventListener("updateReadStatus", UpdateReadStatusRequest.class, onUpdateReadStatus());
-        server.addEventListener("deleteAll", Object.class, onDeleteAll());
+        server.addEventListener("deleteAll", String.class, onDeleteAll());
+        server.addEventListener("new_post", CreateNotificationRequest.class, onNewPost());
     }
 
     @OnConnect
@@ -172,36 +172,24 @@ public class MessageHandler {
     }
 
     // 전체 삭제
-    public DataListener<Object> onDeleteAll() {
+    public DataListener<String> onDeleteAll() {
         return (client, data, ackRequest) -> {
-            if (data instanceof List<?>) {
-                List<?> list = (List<?>) data;
-                List<Long> longNotifications = list.stream()
-                    .filter(item -> item instanceof Number)
-                    .map(item -> ((Number) item).longValue())
-                    .collect(Collectors.toList());
-
-                if (!longNotifications.isEmpty()) {
-                    String result = notificationService.deleteAll(longNotifications);
-                    log.info(result);
-                    if (ackRequest.isAckRequested()) {
-                        ackRequest.sendAckData("success");
-                    }
-                } else {
-                    log.warn("No valid notification IDs to delete.");
-                    if (ackRequest.isAckRequested()) {
-                        ackRequest.sendAckData("no valid notification IDs");
-                    }
-                }
-            } else {
-                log.warn("Received data is not a list: {}", data);
-                if (ackRequest.isAckRequested()) {
-                    ackRequest.sendAckData("invalid data type");
-                }
-            }
+            notificationService.deleteAll(Long.valueOf(data));
+            ackRequest.sendAckData("success");
         };
     }
 
-
+    public DataListener<CreateNotificationRequest> onNewPost() {
+        return (client, request, ackRequest) -> {
+            try {
+                NotificationSocketDto notificationSocketDto = notificationService.saveNotification(request);
+                sendNotificationToUser(notificationSocketDto);
+                ackRequest.sendAckData("success");
+            } catch (Exception e) {
+                log.error("Error processing new_post request", e);
+                ackRequest.sendAckData("failure");
+            }
+        };
+    }
 }
 
