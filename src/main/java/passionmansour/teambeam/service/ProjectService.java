@@ -286,6 +286,10 @@ public class ProjectService {
 
     @Transactional
     public String sendLink(String token, Long id, LinkRequest request) throws UserAlreadyExistsException {
+        if (!redisTokenService.getMailByResetToken(request.getMail()).isEmpty()) {
+            redisTokenService.deleteInvitationToken(token);
+        }
+
         Project project = projectRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + id));
 
