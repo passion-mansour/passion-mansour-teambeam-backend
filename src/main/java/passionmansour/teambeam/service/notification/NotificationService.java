@@ -76,7 +76,7 @@ public class NotificationService {
         notificationDto.setProjectId(notification.getProject().getProjectId());
         notificationDto.setProjectName(notification.getProject().getProjectName());
         notificationDto.setNotificationId(notification.getNotificationId());
-        notificationDto.setNotificationContent(notification.getNotificationContent());
+        notificationDto.setTitle(notification.getNotificationContent());
         notificationDto.setRead(memberNotification.isRead());
         notificationDto.setType(notification.getType());
         notificationDto.setBoardId(notification.getBoardId());
