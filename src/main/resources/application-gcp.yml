@@ -8,7 +8,7 @@ spring:
     password: teambeam123
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
   redis:
     host: 34.47.74.35
     port: 6379
@@ -40,7 +40,7 @@ jwt:
 
 kakao:
   client-id: 77cdffa48c591cce8c307afbe9c188d9
-  redirect-uri: http://localhost:3000/user/login
+  redirect-uri: https://k0bf03acb7c00a.user-app.krampoline.com/user/login
 
 management:
   endpoints:

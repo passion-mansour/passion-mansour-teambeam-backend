@@ -46,7 +46,7 @@ public class Member {
     private List<Memo> memos = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Notification> notifications = new ArrayList<>();
+    private List<MemberNotification> memberNotificationList = new ArrayList<>();
 
     private boolean isDeleted = false;
 }
