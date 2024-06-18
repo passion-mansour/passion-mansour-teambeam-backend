@@ -160,9 +160,12 @@ public class MemberService {
 
             log.info("Stored encoded password: {}", member.getPassword());
 
-            // 입력된 비밀번호와 저장된 비밀번호 비교
-            if (!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
-                throw new BadCredentialsException("Invalid credentials provided");
+            // 카카오 로그인 시 비밀번호 검증 제거
+            if (!"kakao".equals(loginRequest.getPassword())) {
+                // 비밀번호가 일치하지 않을 경우 예외 처리
+                if (!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
+                    throw new RuntimeException("Invalid credentials provided");
+                }
             }
 
             // UserDetails 객체로 변환
@@ -251,7 +254,7 @@ public class MemberService {
     @Transactional
     public MemberDto getMember(String token) {
         Member member = tokenService.getMemberByToken(token);
-        int size = member.getNotifications().size();
+        int size = member.getMemberNotificationList().size();
         member.setNotificationCount(size);
         return convertToDto(member);
     }

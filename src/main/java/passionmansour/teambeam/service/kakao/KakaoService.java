@@ -43,7 +43,7 @@ public class KakaoService {
 
             MemberDto member = memberService.login(request);
 
-            LoginResponse response = new LoginResponse("Login successful", member.getMemberId());
+            LoginResponse response = new LoginResponse("Login successful", member.getMemberId(), member.getStartPage());
 
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", member.getAccessToken());
