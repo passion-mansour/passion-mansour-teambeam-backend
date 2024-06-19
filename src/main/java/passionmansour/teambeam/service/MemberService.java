@@ -12,7 +12,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import passionmansour.teambeam.execption.member.TokenGenerationException;
 import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.member.request.*;
 import passionmansour.teambeam.model.dto.member.MemberDto;
@@ -189,8 +188,6 @@ public class MemberService {
             throw new BadCredentialsException("Invalid credentials provided", e);
         } catch (UsernameNotFoundException e) {
             throw new UsernameNotFoundException("User not found with mail: " + loginRequest.getMail(), e);
-        } catch (TokenGenerationException e) {
-            throw new TokenGenerationException("Failed to generate token", e);
         }
 
     }

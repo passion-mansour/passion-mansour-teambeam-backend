@@ -1,6 +1,7 @@
 package passionmansour.teambeam.service.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -61,11 +62,10 @@ public class RedisTokenService {
             if (jsonString != null) {
                 return objectMapper.readValue(jsonString, InvitationTokenDto.class);
             } else {
-                return null;
+                throw new SignatureException("Invalid token or token expired");
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new SignatureException("Failed to parse token: " + e.getMessage());
         }
     }
 
