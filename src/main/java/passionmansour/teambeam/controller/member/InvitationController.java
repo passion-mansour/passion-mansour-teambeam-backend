@@ -43,7 +43,7 @@ public class InvitationController {
         log.info("response {}", response);
         
         if (response.isMember()) {
-            return "redirect:https://k53dc147d2c24a.user-app.krampoline.com/user/main";
+            return "redirect:https://k53dc147d2c24a.user-app.krampoline.com/user/login";
         } else {
             return "redirect:https://k53dc147d2c24a.user-app.krampoline.com/user/join?token=" + response.getToken();
         }

@@ -3,6 +3,7 @@ package passionmansour.teambeam.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.mail.MailAuthenticationException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -342,6 +343,10 @@ public class ProjectService {
 
         // 토큰에서 정보 추출
         InvitationTokenDto invitationTokenDto = redisTokenService.geObjectByInvitationToken(token);
+        if (invitationTokenDto == null) {
+            log.error("Token not found or expired: {}", token);
+            throw new BadCredentialsException("Invalid token");
+        }
         log.info("redisTokenService.getMailByToken(token) {}", invitationTokenDto.getMail());
 
         // 메일로 멤버 조회
