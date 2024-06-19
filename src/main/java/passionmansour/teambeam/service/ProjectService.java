@@ -30,6 +30,7 @@ import passionmansour.teambeam.service.security.JwtTokenService;
 import passionmansour.teambeam.service.security.RedisTokenService;
 import passionmansour.teambeam.service.todolist.TodolistService;
 
+import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -345,7 +346,6 @@ public class ProjectService {
         InvitationTokenDto invitationTokenDto = redisTokenService.geObjectByInvitationToken(token);
         if (invitationTokenDto == null) {
             log.error("Token not found or expired: {}", token);
-            throw new BadCredentialsException("Invalid token");
         }
         log.info("redisTokenService.getMailByToken(token) {}", invitationTokenDto.getMail());
 

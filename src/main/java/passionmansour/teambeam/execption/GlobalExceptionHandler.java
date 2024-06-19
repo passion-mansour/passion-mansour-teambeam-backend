@@ -4,12 +4,10 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import passionmansour.teambeam.execption.member.TokenGenerationException;
 import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.member.response.ErrorResponse;
 
@@ -41,22 +39,6 @@ public class GlobalExceptionHandler {
 
         log.error(response.toString());
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler(TokenGenerationException.class)
-    public ResponseEntity<ErrorResponse> handleTokenGenerationException(TokenGenerationException e) {
-        ErrorResponse response = new ErrorResponse(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
-
-        log.error(response.toString());
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException e) {
-        ErrorResponse response = new ErrorResponse(e.getMessage(), HttpStatus.UNAUTHORIZED.value());
-
-        log.error(response.toString());
-        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)
