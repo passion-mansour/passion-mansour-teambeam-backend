@@ -109,6 +109,9 @@ public class MypageService {
         if (request.getMemo() != null) {
             bottomTodo.setMemo(request.getMemo());
         }
+        if (request.getStatus() != null){
+            bottomTodo.setBottomTodoStatus(request.getStatus());
+        }
         return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
                 bottomTodo.getMiddleTodo().getTopTodo().getTopTodoId(),
                 bottomTodo.getMiddleTodo().getMiddleTodoId());
