@@ -249,13 +249,13 @@ public class TodolistService {
                 bottomTodo.getMiddleTodo().getMiddleTodoId());
     }
 
-    private void updateTopTodoStatus(TopTodo topTodo) {
+    public void updateTopTodoStatus(TopTodo topTodo) {
         boolean anyMiddleTodoTrue = topTodo.getMiddleTodos().stream().anyMatch(MiddleTodo::isMiddleTodoStatus);
         topTodo.setTopTodoStatus(anyMiddleTodoTrue);
         topTodoRepository.save(topTodo);
     }
 
-    private void updateMiddleTodoStatus(MiddleTodo middleTodo) {
+    public void updateMiddleTodoStatus(MiddleTodo middleTodo) {
         boolean anyBottomTodoTrue = middleTodo.getBottomTodos().stream().anyMatch(BottomTodo::isBottomTodoStatus);
         middleTodo.setMiddleTodoStatus(anyBottomTodoTrue);
         middleTodoRepository.save(middleTodo);

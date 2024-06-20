@@ -17,6 +17,7 @@ import passionmansour.teambeam.repository.ScheduleRepository;
 import passionmansour.teambeam.service.schedule.ConvertSchedule;
 import passionmansour.teambeam.service.schedule.ScheduleService;
 import passionmansour.teambeam.service.todolist.ConvertTodoService;
+import passionmansour.teambeam.service.todolist.TodolistService;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -40,6 +41,9 @@ public class MypageService {
 
     @Autowired
     private ScheduleRepository scheduleRepository;
+
+    @Autowired
+    private TodolistService todolistService;
 
     @Autowired
     private ScheduleService scheduleService;
@@ -112,6 +116,9 @@ public class MypageService {
         if (request.getStatus() != null){
             bottomTodo.setBottomTodoStatus(request.getStatus());
         }
+
+        todolistService.updateMiddleTodoStatus(bottomTodo.getMiddleTodo());
+        todolistService.updateTopTodoStatus(bottomTodo.getMiddleTodo().getTopTodo());
         return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
                 bottomTodo.getMiddleTodo().getTopTodo().getTopTodoId(),
                 bottomTodo.getMiddleTodo().getMiddleTodoId());
