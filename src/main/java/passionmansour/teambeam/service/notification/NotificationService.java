@@ -237,6 +237,10 @@ public class NotificationService {
 
         List<MemberNotification> memberNotifications = memberNotificationRepository.findByMember_memberId(member.getMemberId());
 
+        if (memberNotifications == null || memberNotifications.isEmpty()) {
+            return Collections.emptyList(); // null 대신 빈 리스트 반환
+        }
+
         List<NotificationDto> notificationList = new ArrayList<>();
         for (MemberNotification memberNotification : memberNotifications) {
             NotificationDto notificationDto = convertToDto(member.getMemberId(), memberNotification.getNotification());

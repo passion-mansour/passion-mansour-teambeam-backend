@@ -327,7 +327,7 @@ public class ProjectService {
 
         // 메일 전송
         try {
-            emailService.sendHtmlEmail(request.getMail(), "프로젝트 초대", emailBody);
+            emailService.sendHtmlEmail(request.getMail(), project.getProjectName() + " 프로젝트 초대", emailBody);
             return link;
         } catch (MailAuthenticationException e) {
             log.error("Mail authentication failed: {}", e.getMessage());
