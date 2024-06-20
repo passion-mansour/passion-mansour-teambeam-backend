@@ -8,7 +8,7 @@ spring:
     password: teambeam123
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
   redis:
     host: 34.47.74.35
     port: 6379
