@@ -15,7 +15,9 @@ import passionmansour.teambeam.model.entity.MiddleTodo;
 import passionmansour.teambeam.model.entity.TopTodo;
 import passionmansour.teambeam.service.todolist.TodolistService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -79,21 +81,30 @@ public class TodolistController {
     }
 
     @DeleteMapping("/{projectId}/todo/top/{topTodoId}")
-    public ResponseEntity<Void> deleteTopTodo(@PathVariable Long projectId, @PathVariable Long topTodoId) {
+    public ResponseEntity<Map<String, Integer>> deleteTopTodo(@PathVariable Long projectId, @PathVariable Long topTodoId) {
         todolistService.deleteTopTodo(topTodoId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        Map<String, Integer> response = new HashMap<>();
+        response.put("status", HttpStatus.OK.value());
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @DeleteMapping("/{projectId}/todo/middle/{middleTodoId}")
-    public ResponseEntity<Void> deleteMiddleTodo(@PathVariable Long projectId, @PathVariable Long middleTodoId) {
+    public ResponseEntity<Map<String, Integer>> deleteMiddleTodo(@PathVariable Long projectId, @PathVariable Long middleTodoId) {
         todolistService.deleteMiddleTodo(middleTodoId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        Map<String, Integer> response = new HashMap<>();
+        response.put("status", HttpStatus.OK.value());
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @DeleteMapping("/{projectId}/todo/bottom/{bottomTodoId}")
-    public ResponseEntity<Void> deleteBottomTodo(@PathVariable Long projectId, @PathVariable Long bottomTodoId) {
+    public ResponseEntity<Map<String, Integer>> deleteBottomTodo(@PathVariable Long projectId, @PathVariable Long bottomTodoId) {
         todolistService.deleteBottomTodo(bottomTodoId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        Map<String, Integer> response = new HashMap<>();
+        response.put("status", HttpStatus.OK.value());
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }

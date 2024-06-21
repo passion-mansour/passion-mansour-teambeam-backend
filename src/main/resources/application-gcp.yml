@@ -40,10 +40,13 @@ jwt:
 
 kakao:
   client-id: 77cdffa48c591cce8c307afbe9c188d9
-  redirect-uri: http://localhost:3000/user/login
+  redirect-uri: https://k53dc147d2c24a.user-app.krampoline.com/user/login
 
 management:
   endpoints:
     web:
       exposure:
         include: "shutdown"
+  endpoint:
+    shutdown:
+      enabled: true

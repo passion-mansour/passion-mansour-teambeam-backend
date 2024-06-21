@@ -12,11 +12,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import passionmansour.teambeam.execption.member.TokenGenerationException;
 import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.member.request.*;
 import passionmansour.teambeam.model.dto.member.MemberDto;
 import passionmansour.teambeam.model.dto.member.response.ProfileImageResponse;
+import passionmansour.teambeam.model.dto.project.InvitationTokenDto;
 import passionmansour.teambeam.model.entity.JoinMember;
 import passionmansour.teambeam.model.entity.Member;
 import passionmansour.teambeam.model.entity.Project;
@@ -103,9 +103,9 @@ public class MemberService {
     }
 
     private void joinProjectWithToken(String token, Member member) {
-        Long projectIdFromToken = tokenService.getProjectIdFromToken(token);
-        Project project = projectRepository.findByProjectId(projectIdFromToken).orElseThrow(() ->
-            new EntityNotFoundException("Project not found with projectId: " + projectIdFromToken));
+        InvitationTokenDto invitationTokenDto = redisTokenService.geObjectByInvitationToken(token);
+        Project project = projectRepository.findByProjectId(invitationTokenDto.getProjectId()).orElseThrow(() ->
+            new EntityNotFoundException("Project not found with projectId: " + invitationTokenDto.getProjectId()));
 
         JoinMember joinMember = new JoinMember();
         joinMember.setProject(project);
@@ -160,9 +160,12 @@ public class MemberService {
 
             log.info("Stored encoded password: {}", member.getPassword());
 
-            // 입력된 비밀번호와 저장된 비밀번호 비교
-            if (!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
-                throw new BadCredentialsException("Invalid credentials provided");
+            // 카카오 로그인 시 비밀번호 검증 제거
+            if (!"kakao".equals(loginRequest.getPassword())) {
+                // 비밀번호가 일치하지 않을 경우 예외 처리
+                if (!passwordEncoder.matches(loginRequest.getPassword(), member.getPassword())) {
+                    throw new RuntimeException("Invalid credentials provided");
+                }
             }
 
             // UserDetails 객체로 변환
@@ -185,8 +188,6 @@ public class MemberService {
             throw new BadCredentialsException("Invalid credentials provided", e);
         } catch (UsernameNotFoundException e) {
             throw new UsernameNotFoundException("User not found with mail: " + loginRequest.getMail(), e);
-        } catch (TokenGenerationException e) {
-            throw new TokenGenerationException("Failed to generate token", e);
         }
 
     }
@@ -206,7 +207,7 @@ public class MemberService {
             log.info("token {}", token);
 
             // 재설정 링크 생성
-            String resetLink = "https://k0bf03acb7c00a.user-app.krampoline.com/user/settingPassword?token=" + token;
+            String resetLink = "https://k53dc147d2c24a.user-app.krampoline.com/user/settingPassword?token=" + token;
             String emailBody = "<html><body><p>안녕하세요,</p><p>비밀번호를 재설정하려면 아래 링크를 클릭하세요:</p>" +
                 "<a href='" + resetLink + "'>비밀번호 재설정</a><p>링크는 30분 후에 만료됩니다.</p></body></html>";
 
@@ -251,7 +252,7 @@ public class MemberService {
     @Transactional
     public MemberDto getMember(String token) {
         Member member = tokenService.getMemberByToken(token);
-        int size = member.getNotifications().size();
+        int size = member.getMemberNotificationList().size();
         member.setNotificationCount(size);
         return convertToDto(member);
     }

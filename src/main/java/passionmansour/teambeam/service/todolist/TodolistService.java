@@ -184,8 +184,8 @@ public class TodolistService {
         if (request.getTitle() != null) {
             topTodo.setTopTodoTitle(request.getTitle());
         }
-        if (request.isStatus() == true) {
-            topTodo.setTopTodoStatus(true);
+        if (request.getStatus() != null) {
+            topTodo.setTopTodoStatus(request.getStatus());
         }
         if (request.getStartDate() != null) {
             topTodo.setStartDate(request.getStartDate());
@@ -193,6 +193,7 @@ public class TodolistService {
         if (request.getEndDate() != null) {
             topTodo.setEndDate(request.getEndDate());
         }
+        updateTopTodoStatus(topTodo);
         return convertTodoService.convertToDto(topTodoRepository.save(topTodo));
     }
 
@@ -203,8 +204,8 @@ public class TodolistService {
         if (request.getTitle() != null) {
             middleTodo.setMiddleTodoTitle(request.getTitle());
         }
-        if (request.isStatus() == true) {
-            middleTodo.setMiddleTodoStatus(true);
+        if (request.getStatus() != null) {
+            middleTodo.setMiddleTodoStatus(request.getStatus());
         }
         if (request.getStartDate() != null) {
             middleTodo.setStartDate(request.getStartDate());
@@ -212,7 +213,9 @@ public class TodolistService {
         if (request.getEndDate() != null) {
             middleTodo.setEndDate(request.getEndDate());
         }
-        return convertTodoService.convertToDto(middleTodoRepository.save(middleTodo),middleTodo.getTopTodo().getTopTodoId());
+        middleTodoRepository.save(middleTodo);
+        updateTopTodoStatus(middleTodo.getTopTodo());
+        return convertTodoService.convertToDto(middleTodoRepository.save(middleTodo), middleTodo.getTopTodo().getTopTodoId());
     }
 
     @Transactional
@@ -222,8 +225,8 @@ public class TodolistService {
         if (request.getTitle() != null) {
             bottomTodo.setBottomTodoTitle(request.getTitle());
         }
-        if (request.isStatus() == true) {
-            bottomTodo.setBottomTodoStatus(true);
+        if (request.getStatus() != null) {
+            bottomTodo.setBottomTodoStatus(request.getStatus());
         }
         if (request.getStartDate() != null) {
             bottomTodo.setStartDate(request.getStartDate());
@@ -231,16 +234,31 @@ public class TodolistService {
         if (request.getEndDate() != null) {
             bottomTodo.setEndDate(request.getEndDate());
         }
-        if (request.getMember() != null){
+        if (request.getMember() != null) {
             Optional<Member> memberOptional = memberRepository.findById(request.getMember());
             if (!memberOptional.isPresent()) {
                 throw new RuntimeException("member 찾지 못했습니다.");
             }
             bottomTodo.setMember(memberOptional.get());
         }
+        bottomTodoRepository.save(bottomTodo);
+        updateMiddleTodoStatus(bottomTodo.getMiddleTodo());
+        updateTopTodoStatus(bottomTodo.getMiddleTodo().getTopTodo());
         return convertTodoService.convertToDto(bottomTodoRepository.save(bottomTodo),
                 bottomTodo.getMiddleTodo().getTopTodo().getTopTodoId(),
                 bottomTodo.getMiddleTodo().getMiddleTodoId());
+    }
+
+    public void updateTopTodoStatus(TopTodo topTodo) {
+        boolean anyMiddleTodoTrue = topTodo.getMiddleTodos().stream().anyMatch(MiddleTodo::isMiddleTodoStatus);
+        topTodo.setTopTodoStatus(anyMiddleTodoTrue);
+        topTodoRepository.save(topTodo);
+    }
+
+    public void updateMiddleTodoStatus(MiddleTodo middleTodo) {
+        boolean anyBottomTodoTrue = middleTodo.getBottomTodos().stream().anyMatch(BottomTodo::isBottomTodoStatus);
+        middleTodo.setMiddleTodoStatus(anyBottomTodoTrue);
+        middleTodoRepository.save(middleTodo);
     }
 
     @Transactional
@@ -259,12 +277,12 @@ public class TodolistService {
     }
 
     @Transactional
-    public void createSampleTodolist(Project project){
+    public void createSampleTodolist(Project project, Member member){
         TopTodo sampleTopTodo = new TopTodo();
         sampleTopTodo.setTopTodoTitle("Sample TopTodo");
         sampleTopTodo.setProject(project);
-        sampleTopTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
-        sampleTopTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(10)));
+        sampleTopTodo.setStartDate(LocalDate.now());
+        sampleTopTodo.setEndDate(LocalDate.now().plusDays(10));
         sampleTopTodo.setCalendar(project.getCalendar());
         sampleTopTodo = topTodoRepository.save(sampleTopTodo);
 
@@ -273,8 +291,8 @@ public class TodolistService {
         sampleMiddleTodo.setMiddleTodoTitle("Sample MiddleTodo");
         sampleMiddleTodo.setProject(project);
         sampleMiddleTodo.setTopTodo(sampleTopTodo);
-        sampleMiddleTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
-        sampleMiddleTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(5)));
+        sampleMiddleTodo.setStartDate(LocalDate.now());
+        sampleMiddleTodo.setEndDate(LocalDate.now().plusDays(5));
         sampleMiddleTodo = middleTodoRepository.save(sampleMiddleTodo);
 
         // Create sample BottomTodo
@@ -282,8 +300,9 @@ public class TodolistService {
         sampleBottomTodo.setBottomTodoTitle("Sample BottomTodo");
         sampleBottomTodo.setProject(project);
         sampleBottomTodo.setMiddleTodo(sampleMiddleTodo);
-        sampleBottomTodo.setStartDate(java.sql.Date.valueOf(LocalDate.now()));
-        sampleBottomTodo.setEndDate(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
+        sampleBottomTodo.setMember(member);
+        sampleBottomTodo.setStartDate(LocalDate.now());
+        sampleBottomTodo.setEndDate(LocalDate.now().plusDays(2));
         bottomTodoRepository.save(sampleBottomTodo);
 
     }

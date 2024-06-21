@@ -35,7 +35,7 @@ public class InvitationController {
         @ApiResponse(responseCode = "500", description = "서버 오류",
             content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @GetMapping("/accept-invitation")
+    @GetMapping("/api/accept-invitation")
     public String tokenAuthentication(@RequestParam("token") String token) {
 
         TokenAuthenticationResponse response = projectService.tokenAuthentication(token);
@@ -43,9 +43,9 @@ public class InvitationController {
         log.info("response {}", response);
         
         if (response.isMember()) {
-            return "redirect:https://k0bf03acb7c00a.user-app.krampoline.com/user/login";
+            return "redirect:https://k53dc147d2c24a.user-app.krampoline.com/user/login";
         } else {
-            return "redirect:https://k0bf03acb7c00a.user-app.krampoline.com/user/join?token=" + response.getToken();
+            return "redirect:https://k53dc147d2c24a.user-app.krampoline.com/user/join?token=" + response.getToken();
         }
     }
 

@@ -25,12 +25,11 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @PostMapping("/notification/{projectId}")
+    @PostMapping("/notification")
     public ResponseEntity<?> createNotification(@RequestHeader("Authorization") String token,
-                                                @PathVariable("projectId") Long projectId,
                                                 @RequestBody CreateNotificationRequest request) {
 
-        notificationService.saveNotification(token, projectId, request);
+        notificationService.saveNotification(request);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "successfully create notification");
@@ -52,7 +51,7 @@ public class NotificationController {
 
     @PatchMapping("/notification/{notificationId}")
     public ResponseEntity<NotificationListResponse> updateNotification(@RequestHeader("Authorization") String token,
-                                                @PathVariable("notificationId") Long notificationId) {
+                                                                       @PathVariable("notificationId") Long notificationId) {
         List<NotificationDto> notificationList = notificationService.updateNotification(token, notificationId);
 
         NotificationListResponse response = new NotificationListResponse();
@@ -66,12 +65,10 @@ public class NotificationController {
     @DeleteMapping("/notification/{notificationId}")
     public ResponseEntity<NotificationListResponse> deleteNotification(@RequestHeader("Authorization") String token,
                                                                        @PathVariable("notificationId") Long notificationId) {
-        List<NotificationDto> notificationList = notificationService.deleteNotification(token, notificationId);
+        notificationService.deleteNotification(token, notificationId);
 
         NotificationListResponse response = new NotificationListResponse();
         response.setMessage("Successfully delete notification");
-        response.setNotificationList(notificationList);
-        response.setNotificationCount(notificationList.size());
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

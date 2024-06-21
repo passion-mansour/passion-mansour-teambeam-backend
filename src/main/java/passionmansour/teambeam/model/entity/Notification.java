@@ -1,5 +1,6 @@
 package passionmansour.teambeam.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.SQLDelete;
@@ -16,22 +17,22 @@ public class Notification {
     private Long notificationId;
 
     private String notificationContent;
-    private boolean isRead;
+
+    private boolean is_deleted = false;
 
     @Enumerated(EnumType.STRING)
     private Type type;
 
     @ManyToOne
-    @JoinColumn(name = "memberId")
-    private Member member;
-
-    @ManyToOne
     @JoinColumn(name = "projectId")
     private Project project;
 
-    private boolean is_deleted = false;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long postId;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long boardId;
 
     public enum Type {
-        TODO, NOTICE
+        TODO, NOTICE,
     }
 }

@@ -16,7 +16,6 @@ import passionmansour.teambeam.service.security.CustomUserDetailsService;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
 import java.io.IOException;
-import java.security.SignatureException;
 
 @Component
 @RequiredArgsConstructor
@@ -30,7 +29,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         throws ServletException, IOException {
 
         final String requestTokenHeader = request.getHeader("Authorization");
-        final String refreshTokenHeader = request.getHeader("RefreshToken");
 
         String username = null;
         String jwtToken = null;
@@ -40,23 +38,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             try {
                 username = jwtTokenService.getUsernameFromToken(jwtToken);
             } catch (ExpiredJwtException e) {
-                try {
-                    username = handleExpiredToken(request, response, refreshTokenHeader);
-                } catch (SignatureException ex) {
-                    throw new RuntimeException(ex.getMessage());
-                }
-                if (username != null) {
-                    // 새로운 토큰으로 헤더를 업데이트하고 요청을 재시도
-                    String newToken = response.getHeader("Authorization");
-                    request.setAttribute("Authorization", newToken);
-                    // chain.doFilter 호출을 통해 다시 필터링을 진행
-                    chain.doFilter(request, response);
-                    return;
-                } else {
-                    return; // 토큰 갱신 실패시 요청 중단
-                }
+                logger.warn("JWT Token has expired", e);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             } catch (IllegalArgumentException e) {
                 logger.error("Unable to get JWT Token", e);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             }
         } else {
             logger.warn("JWT Token does not exist");
@@ -67,33 +55,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
 
         chain.doFilter(request, response);
-    }
-
-    private String handleExpiredToken(HttpServletRequest request, HttpServletResponse response, String refreshTokenHeader) throws SignatureException {
-        if (refreshTokenHeader != null) {
-            try {
-                String username = jwtTokenService.getUsernameFromToken(refreshTokenHeader);
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-
-                if (jwtTokenService.validateToken(refreshTokenHeader, userDetails)) {
-                    String newToken = jwtTokenService.generateAccessToken(userDetails);
-                    response.setHeader("Authorization", newToken);
-                    request.setAttribute("Authorization", newToken);
-                    return username;
-                } else {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                }
-            } catch (IllegalArgumentException e) {
-                logger.error("Unable to get Refresh Token", e);
-            } catch (ExpiredJwtException e) {
-                logger.warn("Refresh Token has expired", e);
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            }
-        } else {
-            System.out.println("Refresh Token is missing or invalid");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        }
-        return null;
     }
 
     private void authenticateUser(String username, String jwtToken, HttpServletRequest request) {

@@ -45,4 +45,13 @@ jwt:
 
 kakao:
   client-id: 77cdffa48c591cce8c307afbe9c188d9
-  redirect-uri: https://k0bf03acb7c00a.user-app.krampoline.com/oauth
+  redirect-uri: https://k53dc147d2c24a.user-app.krampoline.com/user/login
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "shutdown"
+  endpoint:
+    shutdown:
+      enabled: true

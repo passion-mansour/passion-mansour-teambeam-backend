@@ -5,19 +5,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import passionmansour.teambeam.controller.message.MessageHandler;
 import passionmansour.teambeam.model.dto.notification.CreateNotificationRequest;
 import passionmansour.teambeam.model.dto.notification.NotificationDto;
+import passionmansour.teambeam.model.dto.notification.NotificationSocketDto;
 import passionmansour.teambeam.model.entity.*;
-import passionmansour.teambeam.repository.BottomTodoRepository;
-import passionmansour.teambeam.repository.NotificationRepository;
-import passionmansour.teambeam.repository.ProjectRepository;
+import passionmansour.teambeam.repository.*;
 import passionmansour.teambeam.service.security.JwtTokenService;
 
+import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -30,42 +30,57 @@ public class NotificationService {
     private final ProjectRepository projectRepository;
     private final BottomTodoRepository todoRepository;
     private final ApplicationContext applicationContext;
+    private final MemberRepository memberRepository;
+    private final MemberNotificationRepository memberNotificationRepository;
 
     // 알림 생성
     @Transactional
-    public void saveNotification(String token, Long projectId, CreateNotificationRequest request) {
-        log.info("Saving notification for project ID: {}", projectId);
+    public NotificationSocketDto saveNotification(CreateNotificationRequest request) {
 
-        Project project = projectRepository.findByProjectId(projectId)
-            .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + projectId));
+        Project project = projectRepository.findByProjectId(request.getProjectId())
+            .orElseThrow(() -> new EntityNotFoundException("Project not found with projectId: " + request.getProjectId()));
 
         Notification notification = new Notification();
-        notification.setNotificationContent(request.getNotificationContent());
-        notification.setRead(false);
+        notification.setNotificationContent(request.getTitle());
         notification.setType(Notification.Type.NOTICE);
         notification.setProject(project);
+        notification.setBoardId(request.getBoardId());
+        notification.setPostId(request.getPostId());
+
+        List<JoinMember> joinMembers = project.getJoinMembers();
 
         notificationRepository.save(notification);
-        log.info("Saved notification for project ID: {}", projectId);
+        log.info("Saved notification for project ID: {}", request.getProjectId());
 
-        NotificationDto notificationDto = convertToDto(notification);
+        for (JoinMember joinMember : joinMembers) {
+            Member member = joinMember.getMember();
 
-        MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
-        messageHandler.onNotificationEvent(projectId, notificationDto);
-        log.info("Event notification {}", notificationDto);
+            MemberNotification memberNotification = new MemberNotification();
+            memberNotification.setMember(member);
+            memberNotification.setNotification(notification);
+            memberNotification.setRead(false);
 
-        log.info("Notification saved and event triggered for project ID: {}", projectId);
+            memberNotificationRepository.save(memberNotification);
+        }
+
+        return new NotificationSocketDto(request.getMemberId(), convertToDto(request.getMemberId(), notification), null);
+
     }
 
-    private NotificationDto convertToDto(Notification notification) {
+    private NotificationDto convertToDto(Long memberId, Notification notification) {
+
+        MemberNotification memberNotification = memberNotificationRepository.findByMember_memberIdAndNotification_notificationId(memberId, notification.getNotificationId())
+            .orElseThrow(() -> new EntityNotFoundException("MemberNotification not found with notificationId" + notification.getNotificationId()));
 
         NotificationDto notificationDto = new NotificationDto();
         notificationDto.setProjectId(notification.getProject().getProjectId());
         notificationDto.setProjectName(notification.getProject().getProjectName());
         notificationDto.setNotificationId(notification.getNotificationId());
-        notificationDto.setNotificationContent(notification.getNotificationContent());
-        notificationDto.setRead(notification.isRead());
+        notificationDto.setTitle(notification.getNotificationContent());
+        notificationDto.setRead(memberNotification.isRead());
         notificationDto.setType(notification.getType());
+        notificationDto.setBoardId(notification.getBoardId());
+        notificationDto.setPostId(notification.getPostId());
 
         return notificationDto;
     }
@@ -77,129 +92,180 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(notificationId)
             .orElseThrow(() -> new EntityNotFoundException("Notification not found with notificationId: " + notificationId));
 
-        notification.setRead(true);
         log.info("notification {}", notification);
+
+        Member member = tokenService.getMemberByToken(token);
 
         List<Notification> notificationList = updateNotificationCount(token);
 
-        return notificationList.stream().map(this::convertToDto).collect(Collectors.toList());
+        List<NotificationDto> response = new ArrayList<>();
+        for (Notification item : notificationList) {
+            NotificationDto notificationDto = convertToDto(member.getMemberId(), item);
+            response.add(notificationDto);
+        }
+        return response;
+    }
+
+    // SOCKET 알림 읽음 처리
+    @Transactional
+    public void updateReadStatus(Long memberId, Long notificationId) {
+
+        MemberNotification memberNotification = memberNotificationRepository.findByMember_memberIdAndNotification_notificationId(memberId, notificationId)
+            .orElseThrow(() -> new EntityNotFoundException("MemberNotification not found with notificationId" + notificationId));
+
+        Notification notification = notificationRepository.findById(notificationId)
+            .orElseThrow(() -> new EntityNotFoundException("Notification not found with notificationId: " + notificationId));
+
+        memberNotification.setRead(true);
+        log.info("notification {}", notification);
+
+        getNotificationsForMember(memberId);
     }
 
     // 알림 삭제
     @Transactional
-    public List<NotificationDto> deleteNotification(String token, Long notificationId) {
-
-        try {
-            notificationRepository.deleteById(notificationId);
-
-            List<Notification> notificationList = updateNotificationCount(token);
-
-            return notificationList.stream().map(this::convertToDto).collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("Error occurred while deleting notification", e);
-            throw e; // 트랜잭션 롤백을 위해 예외를 다시 던짐
-        }
-
+    public void deleteNotification(String token, Long notificationId) {
+        notificationRepository.deleteById(notificationId);
     }
 
-    // 알림 수 재설정, 리스트 반환
+    // SOCKET 알림 삭제
+    @Transactional
+    public void deleteAll(Long memberId) {
+        List<MemberNotification> memberNotifications = memberNotificationRepository.findByMember_memberId(memberId);
+        // 멤버 ID와 알림 ID를 기반으로 MemberNotification 조회 및 삭제
+        for (MemberNotification memberNotification : memberNotifications) {
+            memberNotificationRepository.delete(memberNotification);
+
+            // 남은 MemberNotification이 있는지 확인
+            long count = memberNotificationRepository.countByNotification_notificationId(memberNotification.getNotification().getNotificationId());
+                if (count == 0) {
+                    // 남은 MemberNotification이 없으면 해당 알림 삭제
+                    notificationRepository.deleteById(memberNotification.getNotification().getNotificationId());
+                }
+            }
+    }
+
+    // 사용자의 알림 수 재설정, 리스트 반환
     private List<Notification> updateNotificationCount(String token) {
         Member member = tokenService.getMemberByToken(token);
 
-        List<Notification> notificationList = notificationRepository
+        List<MemberNotification> memberNotifications = memberNotificationRepository
             .findByMember_memberId(member.getMemberId());
 
         // 멤버 알림 수 재설정
-        member.setNotificationCount(notificationList.size());
-
+        member.setNotificationCount(memberNotifications.size());
         log.info("member {}", member);
+
+        List<Notification> notificationList = new ArrayList<>();
+
+        for (MemberNotification memberNotification : memberNotifications) {
+            Notification notification = notificationRepository.findById(memberNotification.getNotification().getNotificationId())
+                .orElseThrow(() -> new EntityNotFoundException("Notification not found with notificationId" + memberNotification.getNotification().getNotificationId()));
+            notificationList.add(notification);
+        }
 
         return notificationList;
     }
 
     // 프로젝트에 참여한 모든 멤버의 알림 수를 재설정
     @Transactional
-    private List<NotificationDto> updateNotificationCountForProjectMembers(List<JoinMember> joinMembers) {
+    private void updateNotificationCountForProjectMembers(List<JoinMember> joinMembers) {
         List<Notification> allNotifications = new ArrayList<>();
 
         for (JoinMember member : joinMembers) {
-            List<Notification> notificationList = notificationRepository.findByMember_memberId(member.getMember().getMemberId());
+            List<MemberNotification> memberNotifications = memberNotificationRepository.findByMember_memberId(member.getMember().getMemberId());
 
             // 멤버 알림 수 재설정
-            member.getMember().setNotificationCount(notificationList.size());
-
-            allNotifications.addAll(notificationList);
+            member.getMember().setNotificationCount(memberNotifications.size());
         }
 
         log.info("All members updated: {}", joinMembers.size());
-
-        return allNotifications.stream().map(this::convertToDto).toList();
     }
 
     // 임박 투두 알림 생성 (매일 자정)
     @Transactional
     @Scheduled(cron = "0 0 0 * * ?")
     public void saveDailyNotification() {
-        List<BottomTodo> todoList = todoRepository.findByEndDate(new Date());
+        LocalDate today = LocalDate.now();
+        List<BottomTodo> todoList = todoRepository.findByEndDate(today);
         log.info("todoList {}", todoList.size());
 
         createNotification(todoList);
     }
 
     public void createNotification(List<BottomTodo> todoList) {
+        LocalDate today = LocalDate.now();
 
         for (BottomTodo todo : todoList) {
-            String endDate = todo.getEndDate().toString();
-            log.info("Todo end date: {}", endDate);
+            LocalDate endDate = todo.getEndDate();
 
             // 날짜 비교 후 저장
-            String notice = todo.getBottomTodoTitle() + "이(가) 오늘 마감입니다!";
+            if (endDate.equals(today)) {
+                String notice = todo.getBottomTodoTitle() + "이(가) 오늘 마감입니다!";
 
-            Notification notification = new Notification();
-            notification.setNotificationContent(notice);
-            notification.setRead(false);
-            notification.setType(Notification.Type.TODO);
-            notification.setProject(todo.getProject());
-            notification.setMember(todo.getMember());
+                Notification notification = new Notification();
+                notification.setNotificationContent(notice);
+                notification.setType(Notification.Type.TODO);
+                notification.setProject(todo.getProject());
 
-            notificationRepository.save(notification);
+                notificationRepository.save(notification);
+                log.info("notification {}", notification);
 
-            log.info("notification {}", notification);
+                MemberNotification memberNotification = new MemberNotification();
+                memberNotification.setMember(todo.getMember());
+                memberNotification.setNotification(notification);
+                memberNotification.setRead(false);
+
+                memberNotificationRepository.save(memberNotification);
+                log.info("saved memberNotification {}", memberNotification);
+
+
+                NotificationSocketDto notificationSocketDto = new NotificationSocketDto(todo.getMember().getMemberId(),
+                    convertToDto(todo.getMember().getMemberId(), notification), null);
+
+                MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
+                messageHandler.sendNotificationToUser(notificationSocketDto);
+
+            }
         }
     }
 
-    // 해당 프로젝트의 공지 알림 리스트 조회
-    public List<NotificationDto> getNotificationsByProjectId(Long projectId) {
-        log.info("Executing query to fetch notifications for project {}", projectId);
-        List<Notification> notificationList = notificationRepository.findByProject_projectIdAndType(projectId, Notification.Type.NOTICE);
-        log.info("Query result: {} notifications found", notificationList.size());
-        return notificationList.stream().map(this::convertToDto).collect(Collectors.toList());
-    }
-
-    // 사용자의 모든 알림 조회
+    // API 사용자의 모든 알림 조회
     public List<NotificationDto> getNotificationsForMember(String token) {
 
         Member member = tokenService.getMemberByToken(token);
 
-        log.info("Fetching notifications for member ID: {}", member.getMemberId());
+        List<MemberNotification> memberNotifications = memberNotificationRepository.findByMember_memberId(member.getMemberId());
 
-        // 개인 알림 조회
-        List<Notification> personalNotifications = notificationRepository.findByMember_memberIdAndType(member.getMemberId(), Notification.Type.TODO);
-        log.info("Personal notifications found: {}", personalNotifications.size());
+        if (memberNotifications == null || memberNotifications.isEmpty()) {
+            return Collections.emptyList(); // null 대신 빈 리스트 반환
+        }
 
-        // 멤버가 참여한 프로젝트를 조회
-        List<Project> projects = projectRepository.findByJoinMembers_Member_MemberId(member.getMemberId());
+        List<NotificationDto> notificationList = new ArrayList<>();
+        for (MemberNotification memberNotification : memberNotifications) {
+            NotificationDto notificationDto = convertToDto(member.getMemberId(), memberNotification.getNotification());
+            notificationList.add(notificationDto);
+        }
 
-        // 각 프로젝트에 대한 공지 알림 조회
-        List<Notification> projectNotifications = projects.stream()
-            .flatMap(project -> notificationRepository.findByProject_projectIdAndType(project.getProjectId(), Notification.Type.NOTICE).stream())
-            .collect(Collectors.toList());
-        log.info("Project notifications found: {}", projectNotifications.size());
+        return notificationList;
+    }
 
-        // 개인 알림과 프로젝트 공지 알림을 합침
-        List<Notification> allNotifications = personalNotifications;
-        allNotifications.addAll(projectNotifications);
+    // SOCKET 사용자의 모든 알림 조회
+    public void getNotificationsForMember(Long memberId) {
 
-        return allNotifications.stream().map(this::convertToDto).collect(Collectors.toList());
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new UsernameNotFoundException("Member not found with memberId: " + memberId));
+
+        List<MemberNotification> memberNotifications = memberNotificationRepository.findByMember_memberId(memberId);
+
+        List<NotificationDto> notificationList = new ArrayList<>();
+        for (MemberNotification memberNotification : memberNotifications) {
+            NotificationDto notificationDto = convertToDto(memberId, memberNotification.getNotification());
+            notificationList.add(notificationDto);
+        }
+
+        NotificationSocketDto notificationSocketDto = new NotificationSocketDto(memberId, null, notificationList);
+        MessageHandler messageHandler = applicationContext.getBean(MessageHandler.class);
+        messageHandler.sendNotificationToUser(notificationSocketDto);
     }
 }

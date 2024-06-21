@@ -5,16 +5,15 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 import passionmansour.teambeam.service.todolist.CustomDateDeserializer;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
 public class PostTopTodoRequest {
     private String title;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonDeserialize(using = CustomDateDeserializer.class)
-    private Date startDate;
+    private LocalDate startDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonDeserialize(using = CustomDateDeserializer.class)
-    private Date endDate;
+    private LocalDate endDate;
 
 }

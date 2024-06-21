@@ -14,6 +14,7 @@ public class ConvertSchedule {
     public ScheduleDTO convertSchedule(Schedule schedule){
         ScheduleDTO dto = new ScheduleDTO();
         dto.setScheduleId(schedule.getScheduleId());
+        dto.setProjectId(schedule.getCalendar().getCalendarId());
         dto.setLink(schedule.getScheduleLink());
         dto.setTitle(schedule.getScheduleTitle());
         dto.setTime(schedule.getScheduleTime());
@@ -27,6 +28,7 @@ public class ConvertSchedule {
     public ScheduleTopTodoDTO convertTopTodo(TopTodo topTodo){
         ScheduleTopTodoDTO dto = new ScheduleTopTodoDTO();
         dto.setTopTodoId(topTodo.getTopTodoId());
+        dto.setProjectId(topTodo.getProject().getProjectId());
         dto.setTitle(topTodo.getTopTodoTitle());
         dto.setStatus(topTodo.isTopTodoStatus());
         dto.setStartDate(topTodo.getStartDate());

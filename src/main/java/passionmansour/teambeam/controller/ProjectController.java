@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import passionmansour.teambeam.execption.member.UserAlreadyExistsException;
 import passionmansour.teambeam.model.dto.member.response.ErrorResponse;
 import passionmansour.teambeam.model.dto.member.response.RegisterResponse;
 import passionmansour.teambeam.model.dto.project.ProjectDto;
@@ -201,7 +202,12 @@ public class ProjectController {
     public ResponseEntity<Map<String, Object>> sendInvitationLink(@RequestHeader("Authorization") String token,
                                                                   @PathVariable("projectId") Long id,
                                                                   @RequestBody LinkRequest request) {
-        String link = projectService.sendLink(token, id, request);
+        String link = null;
+        try {
+            link = projectService.sendLink(token, id, request);
+        } catch (UserAlreadyExistsException e) {
+            throw new UserAlreadyExistsException(e.getMessage());
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Successfully sent Email");

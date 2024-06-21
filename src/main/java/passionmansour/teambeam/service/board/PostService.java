@@ -8,7 +8,6 @@ import passionmansour.teambeam.model.dto.board.request.PatchPostRequest;
 import passionmansour.teambeam.model.dto.board.request.PostPostRequest;
 import passionmansour.teambeam.model.dto.board.response.PostListResponse;
 import passionmansour.teambeam.model.dto.board.response.PostResponse;
-import passionmansour.teambeam.model.dto.notification.CreateNotificationRequest;
 import passionmansour.teambeam.model.entity.*;
 import passionmansour.teambeam.repository.BoardRepository;
 import passionmansour.teambeam.repository.PostRepository;
@@ -59,13 +58,6 @@ public class PostService {
             postTags.add(tagService.addPostTag(postTagId, save.getPostId()));
         }
         save.setPostTags(postTags);
-
-        CreateNotificationRequest createNotification = new CreateNotificationRequest();
-        createNotification.setNotificationContent("새로운 공지가 등록되었습니다.");
-
-        if (save.isNotice()) {
-            notificationService.saveNotification(token, postPostRequest.getProjectId(), createNotification);
-        }
 
         return new PostResponse().form(save);
     }
@@ -163,5 +155,14 @@ public class PostService {
             .orElseThrow(() -> new RuntimeException("Project not found"));
 
         return new PostListResponse().entityToForm(postRepository.findAllByNoticeIsTrueAndProject(projectOptional));
+    }
+
+    public PostListResponse isBelongToBoard(Long boardId, PostListResponse postListResponse){
+        List<PostResponse> filteredPosts =  postListResponse.getPostResponses().stream()
+                .filter(p -> p.getBoardId().equals(boardId))
+                .collect(Collectors.toList());
+
+        postListResponse.setPostResponses(filteredPosts);
+        return postListResponse;
     }
 }
