@@ -18,7 +18,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: teambeam07@gmail.com
-    password: kbjtjuqfhocpshhk
+    password: oqjdzbvfvvnqflff
     properties:
       mail:
         smtp:
